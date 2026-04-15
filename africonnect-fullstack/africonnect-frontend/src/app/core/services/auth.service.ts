@@ -23,22 +23,71 @@ export class AuthService {
   }
 
   login(email: string, password: string): Promise<void> {
+    console.log('AuthService login:', email);
+    console.log('Request URL:', this.apiUrl + '/login');
+    console.log('Request body:', { email, password });
+    
     return this.http.post<{ token: string, role: string }>(this.apiUrl + '/login', { email, password })
       .pipe(tap(res => {
+        console.log('Login successful:', res);
         localStorage.setItem('token', res.token);
         const payload: any = JSON.parse(atob(res.token.split('.')[1]));
         this.currentUserSubject.next({ id: payload.userId, email, role: res.role });
       }))
       .toPromise()
       .then(() => {})
-      .catch(err => { throw err.error?.error || err.message; });
+      .catch(err => { 
+        console.error('Login error details:', err);
+        console.error('Login error status:', err.status);
+        console.error('Login error statusText:', err.statusText);
+        console.error('Login error url:', err.url);
+        console.error('Login error object:', err.error);
+        
+        // Handle different error formats
+        let errorMessage = 'Erreur de connexion';
+        if (err.error) {
+          if (typeof err.error === 'string') {
+            errorMessage = err.error;
+          } else if (err.error.error) {
+            errorMessage = err.error.error;
+          } else if (err.error.message) {
+            errorMessage = err.error.message;
+          }
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        console.error('Login error message:', errorMessage);
+        throw errorMessage; 
+      });
   }
 
   register(email: string, password: string): Promise<void> {
+    console.log('AuthService register:', email);
     return this.http.post(this.apiUrl + '/register', { email, password })
       .toPromise()
       .then(() => {})
-      .catch(err => { throw err.error?.error || err.message; });
+      .catch(err => { 
+        console.error('Register error details:', err);
+        console.error('Register error object:', err.error);
+        
+        // Handle different error formats
+        let errorMessage = "Erreur lors de l'inscription";
+        if (err.error) {
+          if (typeof err.error === 'string') {
+            errorMessage = err.error;
+          } else if (err.error.error) {
+            errorMessage = err.error.error;
+          } else if (err.error.message) {
+            errorMessage = err.error.message;
+          }
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        console.error('Register error message:', errorMessage);
+        throw errorMessage; 
+      });
   }
 
   logout(): void {

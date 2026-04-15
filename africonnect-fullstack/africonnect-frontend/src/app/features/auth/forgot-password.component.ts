@@ -21,8 +21,14 @@ export class ForgotPasswordComponent {
   message = '';
   constructor(private api: ApiService) {}
   submit() {
-    this.api.post('auth/forgot-password', { email: this.email }).subscribe(() => {
-      this.message = 'Un email vous a été envoyé.';
+    this.api.post('auth/forgot-password', { email: this.email }, false).subscribe({
+      next: () => {
+        this.message = 'Un email vous a été envoyé.';
+      },
+      error: (err) => {
+        console.error('Forgot password error:', err);
+        this.message = err.error?.error || 'Erreur lors de l\'envoi de l\'email';
+      }
     });
   }
 }

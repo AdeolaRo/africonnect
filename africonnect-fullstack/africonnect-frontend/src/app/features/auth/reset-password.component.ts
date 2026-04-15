@@ -24,9 +24,15 @@ export class ResetPasswordComponent implements OnInit {
   constructor(private api: ApiService, private route: ActivatedRoute, private router: Router) {}
   ngOnInit() { this.token = this.route.snapshot.params['token']; }
   submit() {
-    this.api.post('auth/reset-password', { token: this.token, newPassword: this.password }).subscribe(() => {
-      this.message = 'Mot de passe mis à jour. Connectez-vous.';
-      setTimeout(() => this.router.navigate(['/forum']), 2000);
+    this.api.post('auth/reset-password', { token: this.token, newPassword: this.password }, false).subscribe({
+      next: () => {
+        this.message = 'Mot de passe mis à jour. Connectez-vous.';
+        setTimeout(() => this.router.navigate(['/forum']), 2000);
+      },
+      error: (err) => {
+        console.error('Reset password error:', err);
+        this.message = err.error?.error || 'Erreur lors de la réinitialisation';
+      }
     });
   }
 }

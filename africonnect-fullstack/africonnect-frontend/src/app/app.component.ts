@@ -73,15 +73,15 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     </div>
 
     <app-modal [(visible)]="authModalVisible" title="Connexion / Inscription">
-      <div class="auth-form">
-        <input type="email" [(ngModel)]="authEmail" placeholder="Email">
-        <input type="password" [(ngModel)]="authPassword" placeholder="Mot de passe">
+      <form (ngSubmit)="login($event)" class="auth-form">
+        <input type="email" [(ngModel)]="authEmail" placeholder="Email" name="authEmail" required>
+        <input type="password" [(ngModel)]="authPassword" placeholder="Mot de passe" name="authPassword" required>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button class="btn btn-primary" (click)="login()">Se connecter</button>
-          <button class="btn btn-secondary" (click)="register()">Créer un compte</button>
+          <button type="submit" class="btn btn-primary">Se connecter</button>
+          <button type="button" class="btn btn-secondary" (click)="register()">Créer un compte</button>
           <a routerLink="/forgot-password" style="color:var(--primary);">Mot de passe oublié ?</a>
         </div>
-      </div>
+      </form>
     </app-modal>
 
     <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
@@ -139,24 +139,39 @@ export class AppComponent implements OnInit {
   onSearch() { this.searchService.setQuery(this.searchQuery); }
   openAuthModal() { this.authModalVisible = true; }
 
-  async login() {
+  async login(event?: Event) {
+    if (event) {
+      event.preventDefault();
+    }
+    console.log('Login attempt:', this.authEmail, this.authPassword);
+    if (!this.authEmail || !this.authPassword) {
+      this.showToast('Veuillez remplir tous les champs');
+      return;
+    }
     try {
       await this.auth.login(this.authEmail, this.authPassword);
       this.authModalVisible = false;
       this.showToast('Connecté');
     } catch(e) {
-      this.showToast('Erreur de connexion');
+      console.error('Login error:', e);
+      this.showToast('Erreur de connexion: ' + (e.message || e));
     }
   }
 
   async register() {
+    console.log('Register attempt:', this.authEmail, this.authPassword);
+    if (!this.authEmail || !this.authPassword) {
+      this.showToast('Veuillez remplir tous les champs');
+      return;
+    }
     try {
       await this.auth.register(this.authEmail, this.authPassword);
       this.showToast('Compte créé, vérifiez votre email');
       this.authEmail = '';
       this.authPassword = '';
     } catch(e) {
-      this.showToast("Erreur lors de l'inscription");
+      console.error('Register error:', e);
+      this.showToast("Erreur lors de l'inscription: " + (e.message || e));
     }
   }
 
