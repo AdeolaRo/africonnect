@@ -1,0 +1,31 @@
+import { Routes } from '@angular/router';
+import { ForumComponent } from './features/forum/forum.component';
+import { MarketplaceComponent } from './features/marketplace/marketplace.component';
+import { EmploiComponent } from './features/jobs/jobs.component';
+import { SolutionsComponent } from './features/solutions/solutions.component';
+import { SolidariteComponent } from './features/solidarity/solidarity.component';
+import { EvenementsComponent } from './features/events/events.component';
+import { GroupesComponent } from './features/groups/groups.component';
+import { MessagingComponent } from './features/messaging/messaging.component';
+import { AdminComponent } from './features/admin/admin.component';
+import { ProfileComponent } from './features/profile/profile.component';
+import { UserManagementComponent } from './features/admin/user-management.component';
+import { AuthGuard } from './core/guards/auth.guard';
+import { AdminGuard } from './core/guards/admin.guard';
+
+export const routes: Routes = [
+  { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password.component').then(m => m.ForgotPasswordComponent) },
+  { path: 'reset-password/:token', loadComponent: () => import('./features/auth/reset-password.component').then(m => m.ResetPasswordComponent) },
+  { path: 'forum', component: ForumComponent },
+  { path: 'marketplace', component: MarketplaceComponent },
+  { path: 'emploi', component: EmploiComponent },
+  { path: 'solutions', component: SolutionsComponent },
+  { path: 'solidarite', component: SolidariteComponent },
+  { path: 'evenements', component: EvenementsComponent },
+  { path: 'groupes', component: GroupesComponent },
+  { path: 'messagerie', component: MessagingComponent, canActivate: [AuthGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'admin', component: AdminComponent, canActivate: [AdminGuard] },
+  { path: 'admin/users', component: UserManagementComponent, canActivate: [AdminGuard] },
+  { path: '', redirectTo: 'forum', pathMatch: 'full' }
+];
