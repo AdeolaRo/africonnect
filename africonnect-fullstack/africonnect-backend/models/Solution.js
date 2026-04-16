@@ -5,6 +5,7 @@ const SolutionSchema = new mongoose.Schema({
   category: String,
   desc: String,
   imageUrl: String,
+  imageUrls: { type: [String], default: [] },
   userId: String,
   authorName: String,
   likes: { type: [String], default: [] },

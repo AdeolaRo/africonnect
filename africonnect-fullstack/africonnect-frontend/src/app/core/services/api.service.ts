@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
+import { API_BASE_URL } from '../config/app.config';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private baseUrl = 'http://localhost:3000/api';
+  private baseUrl = API_BASE_URL;
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
@@ -37,5 +38,9 @@ export class ApiService {
   
   delete(endpoint: string, includeAuth = true) { 
     return this.http.delete(`${this.baseUrl}/${endpoint}`, this.getHeaders(includeAuth)); 
+  }
+
+  getBaseUrl() {
+    return this.baseUrl;
   }
 }

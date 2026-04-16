@@ -31,7 +31,6 @@ import { AuthService } from '../../core/services/auth.service';
             <div *ngIf="!isEditing" style="margin-top: 12px; width:100%;">
               <div class="profile-summary">
                 <div class="summary-name">{{ profile.pseudo || '—' }}</div>
-                <div class="summary-email">{{ profile.email || '—' }}</div>
                 <div class="summary-meta" *ngIf="profile.fullName">👤 {{ profile.fullName }}</div>
                 <div class="summary-meta" *ngIf="profile.city">📍 {{ profile.city }}</div>
                 <div class="summary-meta" *ngIf="profile.origin">🌍 {{ profile.origin }}</div>
@@ -216,8 +215,7 @@ export class ProfileComponent implements OnInit {
         // Charger les infos de base depuis le service d'authentification
         this.auth.currentUser.subscribe(user => {
           if (user) {
-            this.profile.email = user.email;
-            this.profile.pseudo = user.email.split('@')[0];
+            this.profile.pseudo = user.pseudo || this.profile.pseudo;
           }
         });
         this.profileSnapshot = { ...this.profile };

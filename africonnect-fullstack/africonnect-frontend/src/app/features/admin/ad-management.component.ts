@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
@@ -11,7 +12,10 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
   imports: [CommonModule, FormsModule, ModalComponent],
   template: `
     <div class="admin-container">
-      <h1>Gestion des publicités</h1>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 12px;">
+        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
+        <h1 style="margin:0;">Gestion des publicités</h1>
+      </div>
       
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <button class="btn btn-primary" (click)="openCreateModal()">
@@ -252,10 +256,14 @@ export class AdManagementComponent implements OnInit {
     return 'PNG, JPG, GIF jusqu\'à 50MB';
   }
 
-  constructor(private api: ApiService, private auth: AuthService) {}
+  constructor(private api: ApiService, private auth: AuthService, private router: Router) {}
 
   ngOnInit() {
     this.loadAds();
+  }
+
+  goBack() {
+    this.router.navigate(['/profile']);
   }
 
   loadAds() {

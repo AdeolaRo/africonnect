@@ -6,6 +6,7 @@ const MarketplaceItemSchema = new mongoose.Schema({
   price: String,
   location: String,
   imageUrl: String,
+  imageUrls: { type: [String], default: [] },
   userId: String,
   authorName: String,
   likes: { type: [String], default: [] },

@@ -6,6 +6,7 @@ const JobSchema = new mongoose.Schema({
   desc: String,
   contact: String,
   imageUrl: String,
+  imageUrls: { type: [String], default: [] },
   userId: String,
   authorName: String,
   likes: { type: [String], default: [] },

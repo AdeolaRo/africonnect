@@ -9,10 +9,14 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', auth, async (req, res) => {
+  const body = { ...req.body };
+  if (Array.isArray(body.imageUrls)) body.imageUrls = body.imageUrls.filter(Boolean).slice(0, 3);
+  else if (body.imageUrl && !body.imageUrls) body.imageUrls = [body.imageUrl].filter(Boolean).slice(0, 3);
+
   const item = new MarketplaceItem({
-    ...req.body,
+    ...body,
     userId: String(req.userId),
-    authorName: req.userEmail
+    authorName: req.userPseudo
   });
   await item.save();
   res.status(201).json(item);

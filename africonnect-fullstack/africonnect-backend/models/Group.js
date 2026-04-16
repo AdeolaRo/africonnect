@@ -4,6 +4,8 @@ const GroupSchema = new mongoose.Schema({
   name: String,
   description: String,
   category: String,
+  imageUrl: String,
+  imageUrls: { type: [String], default: [] },
   members: [String],
   userId: String,
   authorName: String,

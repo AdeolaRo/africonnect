@@ -5,6 +5,8 @@ const EventSchema = new mongoose.Schema({
   desc: String,
   eventDate: Date,
   location: String,
+  imageUrl: String,
+  imageUrls: { type: [String], default: [] },
   userId: String,
   authorName: String,
   likes: { type: [String], default: [] },

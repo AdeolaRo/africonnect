@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../../../core/config/app.config';
 
 @Component({
   selector: 'app-carousel',
@@ -17,11 +18,11 @@ import { HttpClient } from '@angular/common/http';
       <div *ngIf="ads.length > 0">
         <div class="carousel-track" [style.transform]="'translateX(-' + currentSlide * 100 + '%)'">
           <div class="carousel-slide" *ngFor="let ad of ads">
-            <div *ngIf="ad.mediaType === 'video'" class="media-container">
-              <video [src]="ad.mediaUrl" controls autoplay muted loop playsinline style="max-width: 100%; border-radius: 12px; margin-bottom: 16px;"></video>
+            <div *ngIf="ad.mediaType === 'video'" class="media-preview" style="max-height: 220px;">
+              <video [src]="ad.mediaUrl" controls muted loop playsinline></video>
             </div>
-            <div *ngIf="ad.mediaType === 'image'" class="media-container">
-              <img [src]="ad.mediaUrl" [alt]="ad.title" style="max-width: 100%; border-radius: 12px; margin-bottom: 16px;">
+            <div *ngIf="ad.mediaType === 'image'" class="media-preview" style="max-height: 220px;">
+              <img [src]="ad.mediaUrl" [alt]="ad.title">
             </div>
             <h3>{{ ad.title }}</h3>
             <p *ngIf="ad.description">{{ ad.description }}</p>
@@ -61,7 +62,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
   
   loadAds() {
-    const url = `http://localhost:3000/api/advertisements${this.section ? '?section=' + this.section : ''}`;
+    const url = `${API_BASE_URL}/advertisements${this.section ? '?section=' + this.section : ''}`;
     this.http.get<any[]>(url).subscribe({
       next: (ads) => {
         this.ads = (ads || []).map(ad => ({
@@ -87,7 +88,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   private normalizeMediaUrl(url?: string): string {
     if (!url) return '';
     // Si l’API renvoie une URL relative, on la sert depuis le backend
-    if (url.startsWith('/uploads/')) return `http://localhost:3000${url}`;
+    if (url.startsWith('/uploads/')) return `${API_BASE_URL.replace(/\/api$/, '')}${url}`;
     return url;
   }
   

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 
@@ -11,17 +12,17 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
   template: `
     <div class="admin-container">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <h1>Gestion des utilisateurs</h1>
-        <button class="btn btn-primary" (click)="openCreateModal()">
-          + Créer un utilisateur
-        </button>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
+          <h1 style="margin:0;">Gestion des utilisateurs</h1>
+        </div>
+        <button class="btn btn-primary" (click)="openCreateModal()">+ Créer un utilisateur</button>
       </div>
       
       <div class="table-container">
         <table class="admin-table">
           <thead>
             <tr>
-              <th>Email</th>
               <th>Pseudo</th>
               <th>Nom complet</th>
               <th>Rôle</th>
@@ -33,12 +34,11 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
           <tbody>
             <tr *ngFor="let user of users">
               <td>
-                <strong>{{ user.email }}</strong>
+                <strong>{{ user.pseudo || '—' }}</strong>
                 <div *ngIf="user.city" class="text-muted" style="font-size: 0.875rem;">
                   {{ user.city }}{{ user.origin ? ', ' + user.origin : '' }}
                 </div>
               </td>
-              <td>{{ user.pseudo || '-' }}</td>
               <td>{{ user.fullName || '-' }}</td>
               <td>
                 <select [(ngModel)]="user.role" (change)="updateRole(user._id, user.role)" class="form-control" style="width: auto; min-width: 120px;">
@@ -175,10 +175,14 @@ export class UserManagementComponent implements OnInit {
     return this.editingUser ? 'Modifier utilisateur' : 'Créer un utilisateur';
   }
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private router: Router) {}
 
   ngOnInit() { 
     this.loadUsers(); 
+  }
+
+  goBack() {
+    this.router.navigate(['/profile']);
   }
 
   loadUsers() { 

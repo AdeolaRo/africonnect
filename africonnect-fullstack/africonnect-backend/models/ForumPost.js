@@ -10,6 +10,8 @@ const CommentSchema = new mongoose.Schema({
 const ForumPostSchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
+  imageUrl: String,
+  imageUrls: { type: [String], default: [] },
   userId: String,
   authorName: String,
   comments: [CommentSchema],

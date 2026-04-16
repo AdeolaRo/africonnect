@@ -6,6 +6,7 @@ import { AuthService } from './core/services/auth.service';
 import { SearchService } from './core/services/search.service';
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { CarouselComponent } from './shared/components/carousel/carousel.component';
+import { API_BASE_URL } from './core/config/app.config';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,7 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     <nav class="navbar">
       <a routerLink="/" class="brand-link" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text);">
         <div style="width:40px;height:40px;background:var(--primary);border-radius:16px;display:flex;align-items:center;justify-content:center;">🌍</div>
-        <strong style="font-size:1.4rem;">AfriConnect Pro</strong>
+        <strong style="font-size:1.4rem;">African Connect</strong>
       </a>
       <div class="nav-links">
         <a routerLink="/forum" routerLinkActive="active">Forum</a>
@@ -28,7 +29,7 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
         <a routerLink="/profile" routerLinkActive="active" *ngIf="isLoggedIn">Profil</a>
       </div>
       <div class="toolbar">
-        <span *ngIf="userEmail" style="margin-right:12px">{{ userEmail }}</span>
+        <span *ngIf="userPseudo" style="margin-right:12px">{{ userPseudo }}</span>
         <button class="btn" *ngIf="!isLoggedIn" (click)="openAuthModal()">Connexion</button>
         <button class="btn" *ngIf="isLoggedIn" (click)="logout()">Déconnexion</button>
       </div>
@@ -94,7 +95,7 @@ export class AppComponent implements OnInit {
   isLoggedIn = false;
   isAdmin = false;
   isModerator = false;
-  userEmail = '';
+  userPseudo = '';
   authModalVisible = false;
   authEmail = '';
   authPassword = '';
@@ -108,7 +109,7 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this.auth.currentUser.subscribe(user => {
       this.isLoggedIn = !!user;
-      this.userEmail = user?.email || '';
+      this.userPseudo = user?.pseudo || '';
       this.isAdmin = user?.role === 'admin';
       this.isModerator = user?.role === 'moderator';
     });
@@ -185,7 +186,7 @@ export class AppComponent implements OnInit {
   loadRssFeeds() {
     const container = document.getElementById('rssFeedList');
     if (!container) return;
-    fetch('http://localhost:3000/api/rss/feeds')
+    fetch(`${API_BASE_URL}/rss/feeds`)
       .then(res => res.json())
       .then((feeds: any[]) => {
         const normalized = (Array.isArray(feeds) ? feeds : [])

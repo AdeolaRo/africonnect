@@ -31,7 +31,7 @@ router.post('/register', async (req, res) => {
 
     // Envoi d'email de vérification (optionnel, désactivable en cas d'erreur)
     try {
-      const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:4200'}/verify-email/${verificationToken}`;
+      const verifyUrl = `${process.env.FRONTEND_URL || 'https://africanconnect.net'}/verify-email/${verificationToken}`;
       await transporter.sendMail({
         to: email,
         subject: 'Vérification de votre compte AfriConnect Pro',
@@ -57,7 +57,8 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Identifiants invalides' });
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Identifiants invalides' });
-    const token = jwt.sign({ userId: user._id, role: user.role, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const pseudo = user.pseudo || user.email?.split('@')?.[0] || 'Utilisateur';
+    const token = jwt.sign({ userId: user._id, role: user.role, pseudo }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, role: user.role });
   } catch (err) {
     console.error(err);
@@ -76,7 +77,7 @@ router.post('/forgot-password', async (req, res) => {
     user.resetToken = resetToken;
     user.resetExpires = Date.now() + 3600000;
     await user.save();
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:4200'}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL || 'https://africanconnect.net'}/reset-password/${resetToken}`;
     await transporter.sendMail({
       to: user.email,
       subject: 'Réinitialisation de votre mot de passe',

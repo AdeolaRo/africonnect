@@ -1,1 +1,22 @@
-const jwt = require('jsonwebtoken'); const User = require('../models/User'); module.exports = async (req, res, next) => { const token = req.header('Authorization')?.replace('Bearer ', ''); if (!token) return res.status(401).json({ error: 'Accès refusé' }); try { const decoded = jwt.verify(token, process.env.JWT_SECRET); const user = await User.findById(decoded.userId); if (!user) throw new Error(); req.userId = user._id; req.userEmail = user.email; req.role = user.role; next(); } catch (err) { res.status(401).json({ error: 'Token invalide' }); } };
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
+module.exports = async (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Accès refusé' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+    if (!user) throw new Error();
+
+    const pseudo = user.pseudo || user.email?.split('@')?.[0] || 'Utilisateur';
+
+    req.userId = user._id;
+    req.userEmail = user.email;
+    req.userPseudo = pseudo;
+    req.role = user.role;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Token invalide' });
+  }
+};

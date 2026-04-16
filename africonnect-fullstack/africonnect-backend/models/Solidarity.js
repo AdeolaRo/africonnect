@@ -4,6 +4,8 @@ const SolidaritySchema = new mongoose.Schema({
   title: String,
   type: String,
   desc: String,
+  imageUrl: String,
+  imageUrls: { type: [String], default: [] },
   userId: String,
   authorName: String,
   likes: { type: [String], default: [] },

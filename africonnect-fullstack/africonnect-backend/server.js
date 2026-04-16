@@ -27,6 +27,8 @@ app.set('io', io);
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:4200',
+  'https://africanconnect.net',
+  'https://www.africanconnect.net',
 ].filter(Boolean);
 
 const isProduction = process.env.NODE_ENV === 'production';

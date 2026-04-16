@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
@@ -9,7 +10,10 @@ import { ApiService } from '../../core/services/api.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="admin-container">
-      <h2>Gestion RSS</h2>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 16px;">
+        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
+        <h2 style="margin:0;">Gestion RSS</h2>
+      </div>
 
       <div class="card" style="margin-bottom: 16px;">
         <h3 style="margin-top:0;">➕ Ajouter une source</h3>
@@ -41,10 +45,14 @@ export class RssManagementComponent implements OnInit {
   feeds: any[] = [];
   form = { label: '', rssUrl: '' };
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private router: Router) {}
 
   ngOnInit() {
     this.loadFeeds();
+  }
+
+  goBack() {
+    this.router.navigate(['/profile']);
   }
 
   loadFeeds() {

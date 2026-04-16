@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
+import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -9,7 +10,10 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [CommonModule, NgClass],
   template: `
     <div class="admin-container">
-      <h1>Modération des contenus</h1>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 12px;">
+        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
+        <h1 style="margin:0;">Modération des contenus</h1>
+      </div>
       
       <div class="tabs" style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border);">
         <button 
@@ -87,11 +91,15 @@ export class ContentModerationComponent implements OnInit {
   isLoading = false;
   counts: any = {};
 
-  constructor(private api: ApiService, private auth: AuthService) {}
+  constructor(private api: ApiService, private auth: AuthService, private router: Router) {}
 
   ngOnInit() {
     this.loadContent();
     this.loadCounts();
+  }
+
+  goBack() {
+    this.router.navigate(['/profile']);
   }
 
   loadContent() {

@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
+import { API_BASE_URL } from '../config/app.config';
 
-export interface User { id: string; email: string; role: string; }
+export interface User { id: string; pseudo: string; role: string; }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = `${API_BASE_URL}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser = this.currentUserSubject.asObservable();
 
@@ -17,7 +18,7 @@ export class AuthService {
     if (token) {
       try {
         const payload: any = JSON.parse(atob(token.split('.')[1]));
-        this.currentUserSubject.next({ id: payload.userId, email: payload.email, role: payload.role });
+        this.currentUserSubject.next({ id: payload.userId, pseudo: payload.pseudo || 'Utilisateur', role: payload.role });
       } catch(e) { this.logout(); }
     }
   }
@@ -32,7 +33,7 @@ export class AuthService {
         console.log('Login successful:', res);
         localStorage.setItem('token', res.token);
         const payload: any = JSON.parse(atob(res.token.split('.')[1]));
-        this.currentUserSubject.next({ id: payload.userId, email, role: res.role });
+        this.currentUserSubject.next({ id: payload.userId, pseudo: payload.pseudo || 'Utilisateur', role: res.role });
       }))
       .toPromise()
       .then(() => {})

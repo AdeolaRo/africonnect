@@ -19,7 +19,9 @@ import { QuillModule } from 'ngx-quill';
     <div *ngFor="let item of filteredItems" class="item-card">
       <h3>{{ item.title || item.name }}</h3>
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
-      <div *ngIf="item.imageUrl"><img [src]="item.imageUrl" style="max-width:100%; border-radius:16px; margin:12px 0;"></div>
+      <div *ngIf="getImages(item).length > 0" class="thumb-grid">
+        <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || 'Image'" (click)="openPreview(url)">
+      </div>
       <div [innerHTML]="item.content || item.desc"></div>
       <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)" style="margin-top:12px;">Supprimer</button>
       <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
@@ -59,22 +61,20 @@ import { QuillModule } from 'ngx-quill';
         <div class="form-group">
           <label class="form-label">Image (optionnelle)</label>
           <div class="file-upload">
-            <input type="file" (change)="onFileSelected($event)" accept="image/*">
-            <div *ngIf="!selectedFile">
+            <input type="file" (change)="onFileSelected($event)" accept="image/*" multiple>
+            <div *ngIf="selectedFiles.length === 0">
               <div style="font-size: 3rem; margin-bottom: 10px;">🖼️</div>
-              <div>Cliquez pour sélectionner une image</div>
+              <div>Cliquez pour sélectionner jusqu’à 3 images</div>
               <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">{{ fileDescription }}</div>
             </div>
-            <div *ngIf="selectedFile" class="file-selected">
+            <div *ngIf="selectedFiles.length > 0" class="file-selected">
               <div style="display:flex; align-items:center; gap:12px;">
                 <div style="font-size:2rem;">📷</div>
                 <div>
-                  <div>{{ selectedFile.name }}</div>
-                  <div class="text-muted" style="font-size: 0.9rem;">
-                    {{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB
-                  </div>
+                  <div>{{ selectedFiles.length }} image(s) sélectionnée(s)</div>
+                  <div class="text-muted" style="font-size: 0.9rem;">Max 3 images</div>
                 </div>
-                <button type="button" class="btn btn-secondary" (click)="selectedFile = null" style="margin-left:auto;">
+                <button type="button" class="btn btn-secondary" (click)="clearFiles()" style="margin-left:auto;">
                   Supprimer
                 </button>
               </div>
@@ -93,6 +93,10 @@ import { QuillModule } from 'ngx-quill';
         </div>
       </form>
     </app-modal>
+
+    <app-modal [(visible)]="previewVisible" title="Aperçu">
+      <img *ngIf="previewUrl" [src]="previewUrl" alt="Aperçu" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
+    </app-modal>
   `
 })
 export class EmploiComponent implements OnInit {
@@ -106,7 +110,9 @@ export class EmploiComponent implements OnInit {
       contact: ['', null],
       image: ['', null],
   });
-  selectedFile: File | null = null;
+  selectedFiles: File[] = [];
+  previewVisible = false;
+  previewUrl = '';
   isLoggedIn = false;
   currentUserId = '';
   currentUserRole = '';
@@ -133,25 +139,39 @@ export class EmploiComponent implements OnInit {
   }
   loadItems() { this.api.get('jobs').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
   openModal() { this.modalVisible = true; }
-  onFileSelected(event: any) { this.selectedFile = event.target.files[0]; }
+  onFileSelected(event: any) {
+    const files = Array.from(event?.target?.files || []) as File[];
+    this.selectedFiles = files.slice(0, 3);
+  }
+  clearFiles() { this.selectedFiles = []; }
+  getImages(item: any): string[] {
+    const urls = Array.isArray(item?.imageUrls) && item.imageUrls.length
+      ? item.imageUrls
+      : (item?.imageUrl ? [item.imageUrl] : []);
+    return urls.filter(Boolean).slice(0, 3);
+  }
+  openPreview(url: string) {
+    this.previewUrl = url;
+    this.previewVisible = true;
+  }
   async submit() {
     if (this.itemForm.invalid) return;
 
     this.isSubmitting = true;
     try {
       const formValue: any = this.itemForm.value;
-      if (this.selectedFile) {
+      if (this.selectedFiles.length > 0) {
         const fd = new FormData();
-        fd.append('image', this.selectedFile);
+        this.selectedFiles.forEach(f => fd.append('images', f));
         const upload: any = await this.api.post('upload', fd).toPromise();
-        formValue.imageUrl = upload.url;
+        formValue.imageUrls = Array.isArray(upload?.urls) ? upload.urls : (upload?.url ? [upload.url] : []);
       }
 
       await this.api.post('jobs', formValue).toPromise();
       this.modalVisible = false;
       this.loadItems();
       this.itemForm.reset();
-      this.selectedFile = null;
+      this.selectedFiles = [];
     } catch (error) {
       console.error('Error submitting job:', error);
       alert('Une erreur est survenue lors de la publication. Veuillez réessayer.');

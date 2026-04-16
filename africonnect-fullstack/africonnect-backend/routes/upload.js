@@ -8,10 +8,19 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-router.post('/', upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Aucun fichier' });
-  const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-  res.json({ url: fileUrl });
+router.post('/', upload.fields([
+  { name: 'image', maxCount: 1 },      // compat: ancien front
+  { name: 'images', maxCount: 3 },     // nouveau: jusqu'à 3 images
+]), (req, res) => {
+  const files = [
+    ...(req.files?.images || []),
+    ...(req.files?.image || []),
+  ];
+
+  if (!files.length) return res.status(400).json({ error: 'Aucun fichier' });
+
+  const urls = files.slice(0, 3).map(f => `${req.protocol}://${req.get('host')}/uploads/${f.filename}`);
+  res.json({ url: urls[0], urls });
 });
 
 module.exports = router;

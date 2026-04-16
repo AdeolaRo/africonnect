@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -10,7 +11,10 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="messaging-container">
-      <h1>Messagerie interne</h1>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 16px;">
+        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
+        <h1 style="margin:0;">Messagerie interne</h1>
+      </div>
       
       <div class="messaging-layout">
         <!-- Nouveau message -->
@@ -20,7 +24,7 @@ import { AuthService } from '../../core/services/auth.service';
             <label class="form-label">Destinataire</label>
             <select [(ngModel)]="newMessage.recipient" class="form-control">
               <option value="">Sélectionnez un destinataire</option>
-              <option *ngFor="let user of users" [value]="user._id">{{ user.pseudo || user.email }} ({{ user.email }})</option>
+              <option *ngFor="let user of users" [value]="user._id">{{ user.pseudo || 'Utilisateur' }}</option>
             </select>
           </div>
           
@@ -98,11 +102,15 @@ export class MessagingComponent implements OnInit {
     content: ''
   };
 
-  constructor(private api: ApiService, private auth: AuthService) {}
+  constructor(private api: ApiService, private auth: AuthService, private router: Router) {}
 
   ngOnInit() {
     this.loadUsers();
     this.loadMessages();
+  }
+
+  goBack() {
+    this.router.navigate(['/profile']);
   }
 
   loadUsers() {
@@ -134,12 +142,12 @@ export class MessagingComponent implements OnInit {
 
   getSenderName(userId: string): string {
     const user = this.users.find(u => u._id === userId);
-    return user ? (user.pseudo || user.email) : 'Utilisateur inconnu';
+    return user ? (user.pseudo || 'Utilisateur') : 'Utilisateur inconnu';
   }
 
   getRecipientName(userId: string): string {
     const user = this.users.find(u => u._id === userId);
-    return user ? (user.pseudo || user.email) : 'Utilisateur inconnu';
+    return user ? (user.pseudo || 'Utilisateur') : 'Utilisateur inconnu';
   }
 
   canSendMessage(): boolean {
