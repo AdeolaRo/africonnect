@@ -6,9 +6,14 @@ const { canSendEmail, sendMailSafe } = require('../utils/mailer');
 
 const router = express.Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-06-20'
-});
+let stripeClient = null;
+function getStripeClient() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return null;
+  if (stripeClient) return stripeClient;
+  stripeClient = new Stripe(key, { apiVersion: '2024-06-20' });
+  return stripeClient;
+}
 
 function getAmountCents(option) {
   if (option === 'create_and_publish') {
@@ -18,7 +23,8 @@ function getAmountCents(option) {
 }
 
 router.post('/create-checkout-session', auth, async (req, res) => {
-  if (!process.env.STRIPE_SECRET_KEY) {
+  const stripe = getStripeClient();
+  if (!stripe) {
     return res.status(500).json({ error: 'Stripe non configuré' });
   }
 
@@ -97,7 +103,8 @@ async function handlePaid(requestId, session) {
 
 // Webhook handler must be mounted with express.raw({ type: 'application/json' })
 async function webhookHandler(req, res) {
-  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+  const stripe = getStripeClient();
+  if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
     return res.status(500).send('Stripe non configuré');
   }
 
