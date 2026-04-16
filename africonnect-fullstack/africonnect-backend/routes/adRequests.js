@@ -1,21 +1,9 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
 const auth = require('../middleware/auth');
 const AdRequest = require('../models/AdRequest');
+const { canSendEmail, sendMailSafe } = require('../utils/mailer');
 
 const router = express.Router();
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
-function canSendEmail() {
-  return !!process.env.EMAIL_USER && !!process.env.EMAIL_PASS;
-}
 
 router.post('/', auth, async (req, res) => {
   const { option, mediaUrl } = req.body || {};
@@ -46,8 +34,8 @@ router.post('/', auth, async (req, res) => {
       </ul>
     `;
     try {
-      await transporter.sendMail({ to: doc.userEmail, subject, html });
-      if (adminEmail) await transporter.sendMail({ to: adminEmail, subject, html });
+      await sendMailSafe({ to: doc.userEmail, subject, html });
+      if (adminEmail) await sendMailSafe({ to: adminEmail, subject, html });
     } catch (e) {
       // ignore mail failures
     }
@@ -84,7 +72,7 @@ router.post('/:id/confirm-payment', auth, async (req, res) => {
       <p>Votre demande sera traitée par l’administrateur.</p>
     `;
     try {
-      await transporter.sendMail({ to: item.userEmail, subject, html });
+      await sendMailSafe({ to: item.userEmail, subject, html });
     } catch (e) {
       // ignore
     }

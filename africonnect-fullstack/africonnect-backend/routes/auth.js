@@ -2,18 +2,9 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const User = require('../models/User');
+const { canSendEmail, sendMailSafe } = require('../utils/mailer');
 const router = express.Router();
-
-// Configuration email (utilise les variables d'environnement)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
 
 // Inscription
 router.post('/register', async (req, res) => {
@@ -39,7 +30,7 @@ router.post('/register', async (req, res) => {
     // Envoi d'email de vérification / bienvenue (best-effort)
     try {
       const verifyUrl = `${process.env.FRONTEND_URL || 'https://africanconnect.net'}/verify-email/${verificationToken}`;
-      await transporter.sendMail({
+      await sendMailSafe({
         to: email,
         subject: 'Bienvenue sur African Connect',
         html: `
@@ -86,12 +77,13 @@ router.post('/forgot-password', async (req, res) => {
     const user = await User.findOne({ email });
     // Toujours répondre OK pour éviter d'exposer si l'email existe ou non
     if (!user) return res.json({ message: 'Email envoyé' });
+    if (!canSendEmail()) return res.json({ message: 'Email envoyé' });
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetToken = resetToken;
     user.resetExpires = Date.now() + 3600000;
     await user.save();
     const resetUrl = `${process.env.FRONTEND_URL || 'https://africanconnect.net'}/reset-password/${resetToken}`;
-    await transporter.sendMail({
+    await sendMailSafe({
       to: user.email,
       subject: 'Réinitialisation de votre mot de passe',
       html: `

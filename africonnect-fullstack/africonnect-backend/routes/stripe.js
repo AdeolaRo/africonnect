@@ -1,26 +1,14 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
 const Stripe = require('stripe');
 const auth = require('../middleware/auth');
 const AdRequest = require('../models/AdRequest');
+const { canSendEmail, sendMailSafe } = require('../utils/mailer');
 
 const router = express.Router();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2024-06-20'
 });
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
-function canSendEmail() {
-  return !!process.env.EMAIL_USER && !!process.env.EMAIL_PASS;
-}
 
 function getAmountCents(option) {
   if (option === 'create_and_publish') {
@@ -100,7 +88,7 @@ async function handlePaid(requestId, session) {
       <p>Votre demande sera traitée par l’administrateur.</p>
     `;
     try {
-      await transporter.sendMail({ to: item.userEmail, subject, html });
+      await sendMailSafe({ to: item.userEmail, subject, html });
     } catch {
       // ignore
     }
