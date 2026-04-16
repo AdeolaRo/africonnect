@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D08A72"/>
+      <stop offset="1" stop-color="#2C3E50"/>
+    </linearGradient>
+    <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <!-- Soft abstract background -->
+  <rect width="1600" height="1000" fill="url(#g)"/>
+
+  <!-- Subtle geometric texture -->
+  <g opacity="0.22">
+    <path d="M0,240 C220,120 420,420 640,300 C860,180 980,420 1200,320 C1420,220 1500,320 1600,280 L1600,1000 L0,1000 Z" fill="#ffffff"/>
+    <path d="M0,520 C260,420 380,720 620,620 C860,520 980,720 1220,640 C1460,560 1520,640 1600,600 L1600,1000 L0,1000 Z" fill="#ffffff"/>
+  </g>
+
+  <!-- Minimal Africa-inspired silhouette (abstracted blob) -->
+  <g filter="url(#blur)" opacity="0.35">
+    <path d="M1010 210
+      C 980 190, 930 200, 900 240
+      C 875 275, 880 320, 840 350
+      C 800 382, 765 372, 735 410
+      C 710 440, 725 470, 700 500
+      C 668 538, 620 520, 595 565
+      C 570 610, 615 645, 600 690
+      C 585 735, 540 735, 525 780
+      C 510 825, 545 850, 585 850
+      C 630 850, 655 820, 700 820
+      C 740 820, 765 860, 810 850
+      C 860 840, 870 790, 910 770
+      C 945 752, 1005 770, 1025 730
+      C 1045 690, 1015 660, 1045 630
+      C 1075 600, 1120 610, 1145 570
+      C 1168 533, 1135 500, 1155 460
+      C 1175 420, 1230 420, 1245 380
+      C 1260 340, 1220 320, 1205 285
+      C 1190 250, 1225 220, 1195 200
+      C 1160 175, 1120 205, 1090 185
+      C 1060 165, 1045 225, 1010 210 Z"
+      fill="#0b0f14"/>
+  </g>
+</svg>
+

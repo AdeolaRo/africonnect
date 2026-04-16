@@ -38,6 +38,21 @@ body {
   min-height: 100vh;
 }
 
+/* Subtle Africa-inspired background image */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("/assets/bg-africa.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.06; /* keep content readable */
+  transform: translateZ(0);
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
