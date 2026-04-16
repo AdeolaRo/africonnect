@@ -63,9 +63,9 @@ export class AuthService {
       });
   }
 
-  register(email: string, password: string): Promise<void> {
+  register(email: string, password: string, profile?: { pseudo?: string; fullName?: string; city?: string }): Promise<void> {
     console.log('AuthService register:', email);
-    return this.http.post(this.apiUrl + '/register', { email, password })
+    return this.http.post(this.apiUrl + '/register', { email, password, ...(profile || {}) })
       .toPromise()
       .then(() => {})
       .catch(err => { 

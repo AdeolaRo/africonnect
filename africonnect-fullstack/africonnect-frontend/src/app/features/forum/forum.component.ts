@@ -139,6 +139,7 @@ export class ForumComponent implements OnInit {
   isSubmitting = false;
   replyDraft: Record<string, string> = {};
   openReplies: Record<string, boolean> = {};
+  private pendingOpenNew = false;
 
   get fileDescription(): string {
     return 'PNG, JPG, GIF jusqu\'à 5MB';
@@ -157,10 +158,16 @@ export class ForumComponent implements OnInit {
       this.isLoggedIn = !!u;
       this.currentUserId = u?.id || '';
       this.currentUserRole = u?.role || '';
+
+      if (this.pendingOpenNew && this.isLoggedIn) {
+        this.pendingOpenNew = false;
+        this.openModal();
+      }
     });
     this.route.queryParams.subscribe(params => {
-      if (params?.new && this.isLoggedIn) {
-        this.openModal();
+      if (params?.new) {
+        if (this.auth.isLoggedIn()) this.openModal();
+        else this.pendingOpenNew = true;
       }
     });
     this.loadItems();

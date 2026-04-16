@@ -18,7 +18,6 @@ import { StaffGuard } from './core/guards/staff.guard';
 import { SearchComponent } from './features/search/search.component';
 
 export const routes: Routes = [
-  { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password.component').then(m => m.ForgotPasswordComponent) },
   { path: 'reset-password/:token', loadComponent: () => import('./features/auth/reset-password.component').then(m => m.ResetPasswordComponent) },
   { path: 'forum', component: ForumComponent },
   { path: 'marketplace', component: MarketplaceComponent },

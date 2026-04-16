@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 
 // Inscription
 router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, pseudo, fullName, city } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email et mot de passe requis' });
   }
@@ -26,7 +26,14 @@ router.post('/register', async (req, res) => {
     if (existing) return res.status(400).json({ error: 'Email déjà utilisé' });
     const hashed = await bcrypt.hash(password, 10);
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const user = new User({ email, password: hashed, verificationToken });
+    const user = new User({
+      email,
+      password: hashed,
+      verificationToken,
+      ...(pseudo ? { pseudo } : {}),
+      ...(fullName ? { fullName } : {}),
+      ...(city ? { city } : {}),
+    });
     await user.save();
 
     // Envoi d'email de vérification / bienvenue (best-effort)

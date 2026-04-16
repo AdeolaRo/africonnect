@@ -541,7 +541,7 @@ select.form-control {
 /* Responsive */
 @media (max-width: 768px) {
   .container {
-    padding: 20px;
+    padding: 16px;
   }
   
   .navbar {
@@ -556,10 +556,20 @@ select.form-control {
     padding: 8px 12px;
     font-size: 0.9rem;
   }
+
+  .btn {
+    padding: 10px 14px;
+    border-radius: 16px;
+  }
   
   .main-layout {
     flex-direction: column;
     gap: 20px;
+  }
+
+  /* Prevent overflow on small screens */
+  .content {
+    min-width: 0;
   }
   
   .modal-content {
@@ -567,9 +577,9 @@ select.form-control {
     width: 95%;
   }
   
-  h1 { font-size: 2rem; }
-  h2 { font-size: 1.75rem; }
-  h3 { font-size: 1.25rem; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
 }
 
 /* Error States */
