@@ -42,27 +42,11 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
       </div>
 
       <div class="main-layout">
-        <aside class="sidebar-vertical">
-          <h3>Navigation</h3>
-          <ul>
-            <li><a routerLink="/forum" routerLinkActive="active">Forum</a></li>
-            <li><a routerLink="/marketplace" routerLinkActive="active">Ventes/Achats</a></li>
-            <li><a routerLink="/emploi" routerLinkActive="active">Emploi</a></li>
-            <li><a routerLink="/solutions" routerLinkActive="active">Solutions</a></li>
-            <li><a routerLink="/solidarite" routerLinkActive="active">Solidarité</a></li>
-            <li><a routerLink="/evenements" routerLinkActive="active">Événements</a></li>
-            <li><a routerLink="/groupes" routerLinkActive="active">Groupes</a></li>
-            <li><a routerLink="/messagerie" routerLinkActive="active">Messagerie</a></li>
-            <li *ngIf="isAdmin"><a routerLink="/admin" routerLinkActive="active">Modération</a></li>
-            <li *ngIf="isLoggedIn"><a routerLink="/profile" routerLinkActive="active">Profil</a></li>
-          </ul>
-        </aside>
-
         <main class="content">
           <router-outlet (activate)="onActivate($event)"></router-outlet>
         </main>
 
-        <aside class="sidebar-right" *ngIf="!isAdminOrModerationRoute">
+        <aside class="sidebar-right" *ngIf="!isAdminOrModerationRoute && !isProfileRoute">
           <app-carousel></app-carousel>
           <div class="rss-feed">
             <h3>Flux RSS</h3>
@@ -118,6 +102,7 @@ export class AppComponent implements OnInit {
   toastMessage = '';
   searchQuery = '';
   isAdminOrModerationRoute = false;
+  isProfileRoute = false;
 
   constructor(private auth: AuthService, private router: Router, private searchService: SearchService) {}
 
@@ -131,6 +116,7 @@ export class AppComponent implements OnInit {
       if (event instanceof NavigationEnd) {
         const url = event.url;
         this.isAdminOrModerationRoute = url.includes('/admin') || url.includes('/profile') || url.includes('/messagerie');
+        this.isProfileRoute = url.includes('/profile');
       }
     });
     this.loadRssFeeds();

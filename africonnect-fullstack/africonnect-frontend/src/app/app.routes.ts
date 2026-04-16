@@ -27,5 +27,6 @@ export const routes: Routes = [
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard] },
   { path: 'admin/users', component: UserManagementComponent, canActivate: [AdminGuard] },
+  { path: 'admin/ads', loadComponent: () => import('./features/admin/ad-management.component').then(m => m.AdManagementComponent), canActivate: [AdminGuard] },
   { path: '', redirectTo: 'forum', pathMatch: 'full' }
 ];
