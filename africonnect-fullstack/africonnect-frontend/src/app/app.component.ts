@@ -122,7 +122,15 @@ export class AppComponent implements OnInit {
     this.loadRssFeeds();
   }
 
-  onSearch() { this.searchService.setQuery(this.searchQuery); }
+  onSearch() {
+    this.searchService.setQuery(this.searchQuery);
+    const q = (this.searchQuery || '').trim();
+    if (!q) return;
+    // Redirige vers une page de résultats (hors espaces user/mod/admin)
+    if (!this.isAdminOrModerationRoute && !this.router.url.includes('/recherche')) {
+      this.router.navigate(['/recherche']);
+    }
+  }
   openAuthModal() { this.authModalVisible = true; }
 
   async login(event?: Event) {

@@ -13,8 +13,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, FormsModule],
   template: `
-    <div style="display:flex; gap:12px; margin-bottom:24px;">
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher..." style="flex:1; padding:12px; border-radius:16px; background:var(--surface-2); border:1px solid var(--border); color:var(--text);">
+    <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
     </div>
     <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">Aucun élément</div>
@@ -23,8 +22,41 @@ import { FormsModule } from '@angular/forms';
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
       <div *ngIf="item.imageUrl"><img [src]="item.imageUrl" style="max-width:100%; border-radius:16px; margin:12px 0;"></div>
       <div [innerHTML]="item.content || item.desc"></div>
-      <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)" style="margin-top:12px;">Supprimer</button>
-      <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
+        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
+        <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+        <button class="btn btn-secondary" (click)="toggleReplies(item)" type="button">
+          💬 Réponses ({{ item.comments?.length || 0 }})
+        </button>
+      </div>
+
+      <div *ngIf="isRepliesOpen(item)" style="margin-top:14px;">
+        <div *ngIf="(item.comments?.length || 0) === 0" class="text-muted" style="padding:12px; background:var(--surface-2); border-radius:12px; border:1px solid var(--border);">
+          Aucune réponse pour le moment.
+        </div>
+
+        <div *ngFor="let c of (item.comments || [])" style="margin-top:10px; padding:12px; background:var(--surface-2); border-radius:12px; border:1px solid var(--border);">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+            <div style="font-weight:700;">{{ c.authorName || 'Anonyme' }}</div>
+            <div class="text-muted" style="font-size:0.85rem;">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+          <div style="margin-top:6px; white-space:pre-wrap;">{{ c.content }}</div>
+        </div>
+
+        <div style="margin-top:12px;" *ngIf="isLoggedIn">
+          <label class="form-label">Répondre</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="replyDraft[item._id]" placeholder="Écrivez votre réponse..."></textarea>
+          <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button class="btn btn-primary" type="button" (click)="submitReply(item)" [disabled]="!replyDraft[item._id]?.trim()">
+              Envoyer
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoggedIn" class="text-muted" style="margin-top:10px;">
+          Connectez-vous pour répondre.
+        </div>
+      </div>
     </div>
 
     <app-modal [(visible)]="modalVisible" title="Nouveau sujet de forum">
@@ -94,8 +126,12 @@ export class ForumComponent implements OnInit {
   });
   selectedFile: File | null = null;
   isLoggedIn = false;
+  currentUserId = '';
+  currentUserRole = '';
   filteredItems: any[] = [];
   isSubmitting = false;
+  replyDraft: Record<string, string> = {};
+  openReplies: Record<string, boolean> = {};
 
   get fileDescription(): string {
     return 'PNG, JPG, GIF jusqu\'à 5MB';
@@ -104,7 +140,11 @@ export class ForumComponent implements OnInit {
   constructor(private api: ApiService, private fb: FormBuilder, private searchService: SearchService, private auth: AuthService) {}
 
   ngOnInit() {
-    this.auth.currentUser.subscribe(u => this.isLoggedIn = !!u);
+    this.auth.currentUser.subscribe(u => {
+      this.isLoggedIn = !!u;
+      this.currentUserId = u?.id || '';
+      this.currentUserRole = u?.role || '';
+    });
     this.loadItems();
     this.searchService.query$.subscribe(q => {
       this.searchQuery = q;
@@ -140,7 +180,54 @@ export class ForumComponent implements OnInit {
     }
   }
   deleteItem(id: string) { if (confirm('Supprimer ?')) this.api.delete('forum/' + id).subscribe(() => this.loadItems()); }
-  canDelete(item: any) { return true; }
-  toggleLike(item: any) { this.api.post('forum/' + item._id + '/like', {}).subscribe(() => this.loadItems()); }
+  canDelete(item: any) {
+    if (!this.isLoggedIn) return false;
+    if (this.currentUserRole === 'admin' || this.currentUserRole === 'moderator') return true;
+    return !!item?.userId && String(item.userId) === String(this.currentUserId);
+  }
+
+  toggleLike(item: any) {
+    if (!this.isLoggedIn) {
+      alert('Connectez-vous pour liker une publication.');
+      return;
+    }
+    this.api.post('forum/' + item._id + '/like', {}).subscribe({
+      next: (updated: any) => {
+        // Mise à jour locale pour retour immédiat
+        item.likes = updated?.likes || item.likes;
+      },
+      error: (err) => {
+        console.error('Error liking forum post:', err);
+        alert('Impossible de liker pour le moment.');
+      }
+    });
+  }
+
+  toggleReplies(item: any) {
+    const id = String(item?._id || '');
+    if (!id) return;
+    this.openReplies[id] = !this.openReplies[id];
+  }
+
+  isRepliesOpen(item: any): boolean {
+    const id = String(item?._id || '');
+    return !!this.openReplies[id];
+  }
+
+  async submitReply(item: any) {
+    if (!this.isLoggedIn) return;
+    const id = String(item?._id || '');
+    const content = String(this.replyDraft[id] || '').trim();
+    if (!id || !content) return;
+
+    try {
+      const updated: any = await this.api.post(`forum/${id}/comments`, { content }).toPromise();
+      item.comments = updated?.comments || item.comments;
+      this.replyDraft[id] = '';
+    } catch (err) {
+      console.error('Error posting reply:', err);
+      alert('Impossible d’envoyer la réponse.');
+    }
+  }
   updateFilter() { this.filteredItems = this.items.filter(i => JSON.stringify(i).toLowerCase().includes(this.searchQuery.toLowerCase())); }
 }

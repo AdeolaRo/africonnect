@@ -13,6 +13,7 @@ import { UserManagementComponent } from './features/admin/user-management.compon
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
 import { StaffGuard } from './core/guards/staff.guard';
+import { SearchComponent } from './features/search/search.component';
 
 export const routes: Routes = [
   { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password.component').then(m => m.ForgotPasswordComponent) },
@@ -26,6 +27,7 @@ export const routes: Routes = [
   { path: 'groupes', component: GroupesComponent },
   { path: 'messagerie', component: MessagingComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'recherche', component: SearchComponent },
   { path: 'moderation', loadComponent: () => import('./features/admin/content-moderation.component').then(m => m.ContentModerationComponent), canActivate: [StaffGuard] },
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard] },
   { path: 'admin/users', component: UserManagementComponent, canActivate: [AdminGuard] },

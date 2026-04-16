@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-admin',
@@ -8,7 +8,10 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   imports: [CommonModule, RouterLink, RouterOutlet],
   template: `
     <div class="admin-container">
-      <h1>Administration</h1>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <h1 style="margin:0;">Administration</h1>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="goBack()">← Retour</button>
+      </div>
 
       <div class="admin-grid">
         <a class="admin-card" routerLink="/moderation">
@@ -51,4 +54,15 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
   `]
 })
-export class AdminComponent {}
+export class AdminComponent {
+  constructor(private router: Router) {}
+
+  goBack() {
+    // Si on est déjà sur /admin, on retourne au forum
+    if (this.router.url === '/admin') {
+      this.router.navigate(['/forum']);
+      return;
+    }
+    this.router.navigate(['/admin']);
+  }
+}

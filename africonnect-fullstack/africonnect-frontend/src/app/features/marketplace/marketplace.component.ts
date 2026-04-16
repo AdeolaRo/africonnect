@@ -6,15 +6,13 @@ import { SearchService } from '../../core/services/search.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { QuillModule } from 'ngx-quill';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-marketplace',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule],
   template: `
-    <div style="display:flex; gap:12px; margin-bottom:24px;">
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher..." style="flex:1; padding:12px; border-radius:16px; background:var(--surface-2); border:1px solid var(--border); color:var(--text);">
+    <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
     </div>
     <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">Aucun élément</div>
@@ -23,7 +21,7 @@ import { FormsModule } from '@angular/forms';
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
       <div *ngIf="item.imageUrl"><img [src]="item.imageUrl" style="max-width:100%; border-radius:16px; margin:12px 0;"></div>
       <div [innerHTML]="item.content || item.desc"></div>
-      <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item.id)" style="margin-top:12px;">Supprimer</button>
+      <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)" style="margin-top:12px;">Supprimer</button>
       <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
     </div>
 
@@ -114,6 +112,8 @@ export class MarketplaceComponent implements OnInit {
   });
   selectedFile: File | null = null;
   isLoggedIn = false;
+  currentUserId = '';
+  currentUserRole = '';
   filteredItems: any[] = [];
   isSubmitting = false;
 
@@ -124,7 +124,11 @@ export class MarketplaceComponent implements OnInit {
   constructor(private api: ApiService, private fb: FormBuilder, private searchService: SearchService, private auth: AuthService) {}
 
   ngOnInit() {
-    this.auth.currentUser.subscribe(u => this.isLoggedIn = !!u);
+    this.auth.currentUser.subscribe(u => {
+      this.isLoggedIn = !!u;
+      this.currentUserId = u?.id || '';
+      this.currentUserRole = u?.role || '';
+    });
     this.loadItems();
     this.searchService.query$.subscribe(q => {
       this.searchQuery = q;
@@ -160,7 +164,24 @@ export class MarketplaceComponent implements OnInit {
     }
   }
   deleteItem(id: string) { if (confirm('Supprimer ?')) this.api.delete('marketplace/' + id).subscribe(() => this.loadItems()); }
-  canDelete(item: any) { return true; }
-  toggleLike(item: any) { this.api.post('marketplace/' + item.id + '/like', {}).subscribe(() => this.loadItems()); }
+  canDelete(item: any) {
+    if (!this.isLoggedIn) return false;
+    if (this.currentUserRole === 'admin' || this.currentUserRole === 'moderator') return true;
+    return !!item?.userId && String(item.userId) === String(this.currentUserId);
+  }
+
+  toggleLike(item: any) {
+    if (!this.isLoggedIn) {
+      alert('Connectez-vous pour liker.');
+      return;
+    }
+    this.api.post('marketplace/' + item._id + '/like', {}).subscribe({
+      next: (updated: any) => item.likes = updated?.likes || item.likes,
+      error: (err) => {
+        console.error('Error liking marketplace:', err);
+        alert('Impossible de liker pour le moment.');
+      }
+    });
+  }
   updateFilter() { this.filteredItems = this.items.filter(i => JSON.stringify(i).toLowerCase().includes(this.searchQuery.toLowerCase())); }
 }

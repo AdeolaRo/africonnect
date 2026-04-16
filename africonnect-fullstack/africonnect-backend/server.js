@@ -29,10 +29,14 @@ const allowedOrigins = [
   'http://localhost:4200',
 ].filter(Boolean);
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(cors({
   origin: (origin, cb) => {
     // Autorise les outils (curl/postman) sans Origin
     if (!origin) return cb(null, true);
+    // En dev, on autorise toutes les origines (utile quand le frontend est ouvert via IP LAN)
+    if (!isProduction) return cb(null, true);
     if (allowedOrigins.includes(origin)) return cb(null, true);
     return cb(new Error(`Origin not allowed by CORS: ${origin}`));
   },

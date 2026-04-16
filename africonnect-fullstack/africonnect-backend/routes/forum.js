@@ -32,10 +32,34 @@ router.post('/:id/like', auth, async (req, res) => {
   res.json(item);
 });
 
+// Ajouter un commentaire (réponse)
+router.post('/:id/comments', auth, async (req, res) => {
+  const item = await ForumPost.findById(req.params.id);
+  if (!item) return res.status(404).json({ error: 'Non trouvé' });
+
+  const content = String(req.body?.content || '').trim();
+  if (!content) return res.status(400).json({ error: 'Contenu requis' });
+
+  item.comments = Array.isArray(item.comments) ? item.comments : [];
+  item.comments.push({
+    content,
+    userId: String(req.userId),
+    authorName: req.userEmail,
+    createdAt: new Date()
+  });
+  await item.save();
+
+  res.status(201).json(item);
+});
+
 router.delete('/:id', auth, async (req, res) => {
   const item = await ForumPost.findById(req.params.id);
   if (!item) return res.status(404).json({ error: 'Non trouvé' });
-  if (String(item.userId) !== String(req.userId) && req.role !== 'admin') {
+  if (
+    String(item.userId) !== String(req.userId) &&
+    req.role !== 'admin' &&
+    req.role !== 'moderator'
+  ) {
     return res.status(403).json({ error: 'Non autorisé' });
   }
   await item.deleteOne();

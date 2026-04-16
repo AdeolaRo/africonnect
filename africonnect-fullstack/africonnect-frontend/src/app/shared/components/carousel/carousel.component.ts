@@ -64,7 +64,10 @@ export class CarouselComponent implements OnInit, OnDestroy {
     const url = `http://localhost:3000/api/advertisements${this.section ? '?section=' + this.section : ''}`;
     this.http.get<any[]>(url).subscribe({
       next: (ads) => {
-        this.ads = ads;
+        this.ads = (ads || []).map(ad => ({
+          ...ad,
+          mediaUrl: this.normalizeMediaUrl(ad?.mediaUrl)
+        }));
         if (this.ads.length > 1 && !this.interval) {
           this.interval = setInterval(() => this.next(), 8000);
         }
@@ -79,6 +82,13 @@ export class CarouselComponent implements OnInit, OnDestroy {
         ];
       }
     });
+  }
+
+  private normalizeMediaUrl(url?: string): string {
+    if (!url) return '';
+    // Si l’API renvoie une URL relative, on la sert depuis le backend
+    if (url.startsWith('/uploads/')) return `http://localhost:3000${url}`;
+    return url;
   }
   
   next() { 
