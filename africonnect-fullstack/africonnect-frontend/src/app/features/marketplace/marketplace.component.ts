@@ -69,7 +69,7 @@ import { FormsModule } from '@angular/forms';
             <div *ngIf="!selectedFile">
               <div style="font-size: 3rem; margin-bottom: 10px;">🖼️</div>
               <div>Cliquez pour sélectionner une image</div>
-              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">PNG, JPG, GIF jusqu'à 5MB</div>
+              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">{{ fileDescription }}</div>
             </div>
             <div *ngIf="selectedFile" class="file-selected">
               <div style="display: flex; align-items: center; gap: 12px;">
@@ -116,6 +116,10 @@ export class MarketplaceComponent implements OnInit {
   isLoggedIn = false;
   filteredItems: any[] = [];
   isSubmitting = false;
+
+  get fileDescription(): string {
+    return 'PNG, JPG, GIF jusqu\'à 5MB';
+  }
 
   constructor(private api: ApiService, private fb: FormBuilder, private searchService: SearchService, private auth: AuthService) {}
 

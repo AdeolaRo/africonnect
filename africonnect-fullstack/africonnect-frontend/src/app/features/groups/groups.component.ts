@@ -27,12 +27,63 @@ import { FormsModule } from '@angular/forms';
       <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
     </div>
 
-    <app-modal [(visible)]="modalVisible" title="Nouveau groupes">
-      <form [formGroup]="itemForm" (ngSubmit)="submit()">
-        <input type="text" formControlName="name" placeholder="Nom du groupe">
-              <textarea formControlName="description" placeholder="Description" rows="3"></textarea>
-              <input type="text" formControlName="category" placeholder="Catégorie">
-        <button type="submit" class="btn btn-primary" style="margin-top:16px;" [disabled]="itemForm.invalid">Publier</button>
+    <app-modal [(visible)]="modalVisible" title="Nouveau groupe">
+      <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
+        <div class="form-group">
+          <label class="form-label">Nom du groupe *</label>
+          <input type="text" formControlName="name" placeholder="Ex: Entrepreneurs Africains Paris" class="form-control">
+          <div *ngIf="itemForm.get('name')?.invalid && itemForm.get('name')?.touched" class="text-error">
+            Le nom est requis
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea formControlName="description" placeholder="But du groupe, règles, thématiques..." rows="5" class="form-control"></textarea>
+          <div class="text-muted" style="font-size:0.875rem; margin-top:4px;">Optionnel</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Catégorie</label>
+          <input type="text" formControlName="category" placeholder="Ex: Business, Culture, Sport..." class="form-control">
+          <div class="text-muted" style="font-size:0.875rem; margin-top:4px;">Optionnel</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Image (optionnelle)</label>
+          <div class="file-upload">
+            <input type="file" (change)="onFileSelected($event)" accept="image/*">
+            <div *ngIf="!selectedFile">
+              <div style="font-size: 3rem; margin-bottom: 10px;">🖼️</div>
+              <div>Cliquez pour sélectionner une image</div>
+              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">{{ fileDescription }}</div>
+            </div>
+            <div *ngIf="selectedFile" class="file-selected">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="font-size:2rem;">📷</div>
+                <div>
+                  <div>{{ selectedFile.name }}</div>
+                  <div class="text-muted" style="font-size: 0.9rem;">
+                    {{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB
+                  </div>
+                </div>
+                <button type="button" class="btn btn-secondary" (click)="selectedFile = null" style="margin-left:auto;">
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:32px;">
+          <button type="button" class="btn btn-secondary" (click)="modalVisible = false" [disabled]="isSubmitting">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || isSubmitting">
+            <span *ngIf="!isSubmitting">Créer le groupe</span>
+            <span *ngIf="isSubmitting">Création en cours...</span>
+          </button>
+        </div>
       </form>
     </app-modal>
   `
@@ -49,6 +100,11 @@ export class GroupesComponent implements OnInit {
   selectedFile: File | null = null;
   isLoggedIn = false;
   filteredItems: any[] = [];
+  isSubmitting = false;
+
+  get fileDescription(): string {
+    return 'PNG, JPG, GIF jusqu\'à 5MB';
+  }
 
   constructor(private api: ApiService, private fb: FormBuilder, private searchService: SearchService, private auth: AuthService) {}
 
@@ -64,19 +120,28 @@ export class GroupesComponent implements OnInit {
   openModal() { this.modalVisible = true; }
   onFileSelected(event: any) { this.selectedFile = event.target.files[0]; }
   async submit() {
-    const formValue: any = this.itemForm.value;
-    if (this.selectedFile) {
-      const fd = new FormData();
-      fd.append('image', this.selectedFile);
-      const upload: any = await this.api.post('upload', fd).toPromise();
-      formValue.imageUrl = upload.url;
-    }
-    this.api.post('groups', formValue).subscribe(() => {
+    if (this.itemForm.invalid) return;
+
+    this.isSubmitting = true;
+    try {
+      const formValue: any = this.itemForm.value;
+      if (this.selectedFile) {
+        const fd = new FormData();
+        fd.append('image', this.selectedFile);
+        const upload: any = await this.api.post('upload', fd).toPromise();
+        formValue.imageUrl = upload.url;
+      }
+      await this.api.post('groups', formValue).toPromise();
       this.modalVisible = false;
       this.loadItems();
       this.itemForm.reset();
       this.selectedFile = null;
-    });
+    } catch (error) {
+      console.error('Error submitting group:', error);
+      alert('Une erreur est survenue lors de la création. Veuillez réessayer.');
+    } finally {
+      this.isSubmitting = false;
+    }
   }
   deleteItem(id: string) { if (confirm('Supprimer ?')) this.api.delete('groups/' + id).subscribe(() => this.loadItems()); }
   canDelete(item: any) { return true; }

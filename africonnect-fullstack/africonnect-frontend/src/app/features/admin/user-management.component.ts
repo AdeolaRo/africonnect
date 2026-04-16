@@ -78,7 +78,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
     </div>
 
     <!-- Modal de création/édition -->
-    <app-modal [(visible)]="modalVisible" [title]="editingUser ? 'Modifier l\'utilisateur' : 'Créer un utilisateur'">
+    <app-modal [(visible)]="modalVisible" [title]="modalTitle">
       <form (ngSubmit)="saveUser()" class="form-modal" *ngIf="form">
         <div class="form-row" style="display: flex; gap: 20px; margin-bottom: 20px;">
           <div class="form-group" style="flex: 1;">
@@ -171,6 +171,10 @@ export class UserManagementComponent implements OnInit {
     verified: true
   };
 
+  get modalTitle(): string {
+    return this.editingUser ? 'Modifier utilisateur' : 'Créer un utilisateur';
+  }
+
   constructor(private api: ApiService) {}
 
   ngOnInit() { 
@@ -245,25 +249,8 @@ export class UserManagementComponent implements OnInit {
         // Mise à jour via l'API admin
         await this.api.put(`admin/users/${this.editingUser._id}`, userData).toPromise();
       } else {
-        // Création via l'API auth
-        await this.api.post('auth/register', {
-          email: userData.email,
-          password: userData.password,
-          pseudo: userData.pseudo,
-          fullName: userData.fullName,
-          city: userData.city,
-          origin: userData.origin,
-          passions: userData.passions
-        }, false).toPromise();
-        
-        // Ensuite, on met à jour le rôle si nécessaire
-        if (userData.role !== 'user') {
-          // On récupère le nouvel utilisateur pour avoir son ID
-          // Note: Dans une vraie app, on aurait besoin d'une meilleure gestion
-          setTimeout(() => {
-            this.loadUsers();
-          }, 1000);
-        }
+        // Création via l'API admin (permet role/verified)
+        await this.api.post('admin/users', userData).toPromise();
       }
       
       this.modalVisible = false;

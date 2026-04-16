@@ -31,6 +31,10 @@ export class ApiService {
     return this.http.put(`${this.baseUrl}/${endpoint}`, data, this.getHeaders(includeAuth)); 
   }
   
+  patch(endpoint: string, data: any, includeAuth = true) { 
+    return this.http.patch(`${this.baseUrl}/${endpoint}`, data, this.getHeaders(includeAuth)); 
+  }
+  
   delete(endpoint: string, includeAuth = true) { 
     return this.http.delete(`${this.baseUrl}/${endpoint}`, this.getHeaders(includeAuth)); 
   }

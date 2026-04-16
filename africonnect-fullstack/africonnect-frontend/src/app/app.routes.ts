@@ -12,6 +12,7 @@ import { ProfileComponent } from './features/profile/profile.component';
 import { UserManagementComponent } from './features/admin/user-management.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
+import { StaffGuard } from './core/guards/staff.guard';
 
 export const routes: Routes = [
   { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password.component').then(m => m.ForgotPasswordComponent) },
@@ -25,9 +26,11 @@ export const routes: Routes = [
   { path: 'groupes', component: GroupesComponent },
   { path: 'messagerie', component: MessagingComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'moderation', loadComponent: () => import('./features/admin/content-moderation.component').then(m => m.ContentModerationComponent), canActivate: [StaffGuard] },
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard] },
   { path: 'admin/users', component: UserManagementComponent, canActivate: [AdminGuard] },
   { path: 'admin/ads', loadComponent: () => import('./features/admin/ad-management.component').then(m => m.AdManagementComponent), canActivate: [AdminGuard] },
   { path: 'admin/moderation', loadComponent: () => import('./features/admin/content-moderation.component').then(m => m.ContentModerationComponent), canActivate: [AdminGuard] },
+  { path: 'admin/rss', loadComponent: () => import('./features/admin/rss-management.component').then(m => m.RssManagementComponent), canActivate: [AdminGuard] },
   { path: '', redirectTo: 'forum', pathMatch: 'full' }
 ];

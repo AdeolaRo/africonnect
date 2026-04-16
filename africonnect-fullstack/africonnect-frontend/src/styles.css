@@ -299,6 +299,36 @@ select.form-control {
   box-shadow: var(--shadow);
 }
 
+/* Form layout inside modals */
+.form-modal {
+  display: block;
+}
+
+/* Quill in modal: better contrast + spacing */
+.modal-content .ql-toolbar .ql-stroke,
+.modal-content .ql-toolbar .ql-fill {
+  stroke: var(--text-muted) !important;
+}
+
+.modal-content .ql-toolbar .ql-picker {
+  color: var(--text-muted) !important;
+}
+
+.modal-content .ql-toolbar button:hover .ql-stroke,
+.modal-content .ql-toolbar button:hover .ql-fill,
+.modal-content .ql-toolbar button.ql-active .ql-stroke,
+.modal-content .ql-toolbar button.ql-active .ql-fill {
+  stroke: var(--text) !important;
+}
+
+.modal-content .ql-container {
+  min-height: 160px;
+}
+
+.modal-content .ql-editor {
+  min-height: 160px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;

@@ -106,7 +106,7 @@ export class MessagingComponent implements OnInit {
   }
 
   loadUsers() {
-    this.api.get('admin/users').subscribe({
+    this.api.get('user/users').subscribe({
       next: (users: any) => {
         // Exclure l'utilisateur courant
         this.auth.currentUser.subscribe(currentUser => {
@@ -122,27 +122,14 @@ export class MessagingComponent implements OnInit {
   }
 
   loadMessages() {
-    // Dans une vraie implémentation, on aurait des endpoints API pour les messages
-    // Pour l'instant, on simule avec des données locales
-    this.receivedMessages = [
-      {
-        _id: '1',
-        from: 'other-user-id',
-        subject: 'Bienvenue sur Africonnect',
-        content: 'Bonjour et bienvenue sur notre plateforme ! Nous sommes ravis de vous compter parmi nous.',
-        timestamp: new Date('2026-04-15T10:30:00')
-      }
-    ];
-    
-    this.sentMessages = [
-      {
-        _id: '2',
-        to: 'other-user-id',
-        subject: 'Question sur le forum',
-        content: 'Bonjour, j\'ai une question concernant votre publication sur le forum.',
-        timestamp: new Date('2026-04-15T14:45:00')
-      }
-    ];
+    this.api.get('messages/inbox').subscribe({
+      next: (data: any) => this.receivedMessages = Array.isArray(data) ? data : [],
+      error: (err) => console.error('Error loading inbox:', err)
+    });
+    this.api.get('messages/sent').subscribe({
+      next: (data: any) => this.sentMessages = Array.isArray(data) ? data : [],
+      error: (err) => console.error('Error loading sent:', err)
+    });
   }
 
   getSenderName(userId: string): string {
@@ -161,26 +148,24 @@ export class MessagingComponent implements OnInit {
 
   sendNewMessage() {
     if (!this.canSendMessage()) return;
-    
-    // Dans une vraie implémentation, on enverrait au backend
-    const newMsg = {
-      _id: Date.now().toString(),
+
+    const payload = {
       to: this.newMessage.recipient,
-      subject: this.newMessage.subject,
-      content: this.newMessage.content,
-      timestamp: new Date()
+      subject: this.newMessage.subject || '',
+      content: this.newMessage.content
     };
-    
-    this.sentMessages.unshift(newMsg);
-    
-    // Réinitialiser le formulaire
-    this.newMessage = {
-      recipient: '',
-      subject: '',
-      content: ''
-    };
-    
-    alert('✅ Message envoyé avec succès !');
+
+    this.api.post('messages', payload).subscribe({
+      next: (created: any) => {
+        this.sentMessages.unshift(created);
+        this.newMessage = { recipient: '', subject: '', content: '' };
+        alert('✅ Message envoyé avec succès !');
+      },
+      error: (err) => {
+        console.error('Error sending message:', err);
+        alert('❌ Erreur lors de l’envoi du message');
+      }
+    });
   }
 
   replyToMessage(msg: any) {
@@ -196,10 +181,17 @@ export class MessagingComponent implements OnInit {
 
   deleteMessage(messageId: string) {
     if (confirm('Voulez-vous vraiment supprimer ce message ?')) {
-      // Dans une vraie implémentation, on appellerait l'API
-      this.receivedMessages = this.receivedMessages.filter(msg => msg._id !== messageId);
-      this.sentMessages = this.sentMessages.filter(msg => msg._id !== messageId);
-      alert('Message supprimé');
+      this.api.delete(`messages/${messageId}`).subscribe({
+        next: () => {
+          this.receivedMessages = this.receivedMessages.filter(msg => msg._id !== messageId);
+          this.sentMessages = this.sentMessages.filter(msg => msg._id !== messageId);
+          alert('Message supprimé');
+        },
+        error: (err) => {
+          console.error('Error deleting message:', err);
+          alert('❌ Erreur lors de la suppression');
+        }
+      });
     }
   }
 }

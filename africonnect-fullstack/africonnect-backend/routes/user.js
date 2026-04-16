@@ -9,6 +9,7 @@ const Solution = require('../models/Solution');
 const Solidarity = require('../models/Solidarity');
 const Event = require('../models/Event');
 const Group = require('../models/Group');
+const Message = require('../models/Message');
 
 // Obtenir son profil
 router.get('/profile', auth, async (req, res) => {
@@ -18,9 +19,15 @@ router.get('/profile', auth, async (req, res) => {
 
 // Mettre à jour son profil
 router.put('/profile', auth, async (req, res) => {
-  const { fullName, pseudo, avatar, city, origin, passions } = req.body;
-  await User.findByIdAndUpdate(req.userId, { fullName, pseudo, avatar, city, origin, passions });
+  const { fullName, pseudo, avatar, city, origin, passions, bio } = req.body;
+  await User.findByIdAndUpdate(req.userId, { fullName, pseudo, avatar, city, origin, passions, bio });
   res.json({ message: 'Profil mis à jour' });
+});
+
+// Liste des utilisateurs (pour messagerie) - connecté seulement
+router.get('/users', auth, async (req, res) => {
+  const users = await User.find().select('-password -verificationToken -resetToken -resetExpires');
+  res.json(users);
 });
 
 // Obtenir les publications de l'utilisateur (tous types)
@@ -60,6 +67,27 @@ router.get('/saved', auth, async (req, res) => {
     saved.push(...posts);
   }
   res.json(saved);
+});
+
+// Supprimer son compte + données (profil, messages, contenus)
+router.delete('/account', auth, async (req, res) => {
+  try {
+    const userId = String(req.userId);
+
+    // Supprimer messages liés
+    await Message.deleteMany({ $or: [{ from: userId }, { to: userId }] });
+
+    // Supprimer contenus créés (tous types)
+    const models = [ForumPost, MarketplaceItem, Job, Solution, Solidarity, Event, Group];
+    for (const Model of models) {
+      await Model.deleteMany({ userId });
+    }
+
+    await User.findByIdAndDelete(req.userId);
+    res.json({ message: 'Compte supprimé' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

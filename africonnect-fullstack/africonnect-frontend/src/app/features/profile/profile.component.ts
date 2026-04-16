@@ -14,12 +14,11 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="profile-header">
         <h1>Mon Profil</h1>
         <div class="profile-actions">
-          <button class="btn btn-secondary" (click)="openMessaging()">
-            💬 Messagerie
-          </button>
-          <button class="btn btn-danger" (click)="deleteAccount()">
-            🗑️ Supprimer mon compte
-          </button>
+          <button class="btn btn-secondary" (click)="openMessaging()">💬 Messagerie</button>
+          <button class="btn btn-secondary" *ngIf="isModerator || isAdmin" (click)="openModeration()">🛡️ Modération</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminUsers()">👥 Utilisateurs</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 Publicités</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminRss()">📰 RSS</button>
         </div>
       </div>
       
@@ -27,16 +26,38 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="profile-sidebar">
           <div class="avatar-section">
             <img [src]="selectedAvatar" class="avatar-large" [alt]="profile.pseudo || 'Avatar'">
-            <div class="avatar-grid">
-              <img *ngFor="let av of avatars" 
-                   [src]="av" 
-                   class="avatar-thumb" 
-                   [class.selected]="av === selectedAvatar" 
-                   (click)="selectAvatar(av)">
+
+            <!-- Mode vue -->
+            <div *ngIf="!isEditing" style="margin-top: 12px; width:100%;">
+              <div class="profile-summary">
+                <div class="summary-name">{{ profile.pseudo || '—' }}</div>
+                <div class="summary-email">{{ profile.email || '—' }}</div>
+                <div class="summary-meta" *ngIf="profile.fullName">👤 {{ profile.fullName }}</div>
+                <div class="summary-meta" *ngIf="profile.city">📍 {{ profile.city }}</div>
+                <div class="summary-meta" *ngIf="profile.origin">🌍 {{ profile.origin }}</div>
+              </div>
+              <div style="display:flex; gap:10px; margin-top: 12px;">
+                <button class="btn btn-primary" (click)="startEdit()">✏️ Modifier</button>
+                <button class="btn btn-danger" (click)="deleteAccount()">🗑️ Supprimer</button>
+              </div>
             </div>
-            <button class="btn btn-primary" (click)="saveProfile()" [disabled]="isSaving">
-              {{ isSaving ? 'Enregistrement...' : '💾 Enregistrer le profil' }}
-            </button>
+
+            <!-- Mode édition -->
+            <div *ngIf="isEditing">
+              <div class="avatar-grid">
+                <img *ngFor="let av of avatars" 
+                     [src]="av" 
+                     class="avatar-thumb" 
+                     [class.selected]="av === selectedAvatar" 
+                     (click)="selectAvatar(av)">
+              </div>
+              <div style="display:flex; gap:10px; width:100%; margin-top: 12px;">
+                <button class="btn btn-primary" (click)="saveProfile()" [disabled]="isSaving">
+                  {{ isSaving ? 'Enregistrement...' : '💾 Enregistrer' }}
+                </button>
+                <button class="btn btn-secondary" (click)="cancelEdit()" [disabled]="isSaving">Annuler</button>
+              </div>
+            </div>
           </div>
           
           <div class="profile-stats">
@@ -57,44 +78,41 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
         
         <div class="profile-main">
-          <div class="profile-form">
+          <div class="profile-form" *ngIf="isEditing">
             <h2>Informations personnelles</h2>
-            
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Email</label>
                 <input type="email" [(ngModel)]="profile.email" class="form-control" disabled>
                 <div class="text-muted" style="font-size: 0.875rem; margin-top: 4px;">L'email ne peut pas être modifié</div>
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Pseudo *</label>
-                <input type="text" [(ngModel)]="profile.pseudo" class="form-control" placeholder="Votre pseudo">
+                <input type="text" [(ngModel)]="profile.pseudo" class="form-control" placeholder="Votre pseudo" required>
               </div>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">Nom complet</label>
               <input type="text" [(ngModel)]="profile.fullName" class="form-control" placeholder="Prénom Nom">
             </div>
-            
+
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Ville</label>
                 <input type="text" [(ngModel)]="profile.city" class="form-control" placeholder="Votre ville">
               </div>
-              
               <div class="form-group">
                 <label class="form-label">Origine</label>
                 <input type="text" [(ngModel)]="profile.origin" class="form-control" placeholder="Pays d'origine">
               </div>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">Passions et centres d'intérêt</label>
               <textarea [(ngModel)]="profile.passions" class="form-control" rows="3" placeholder="Sports, musique, arts, technologie..."></textarea>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">À propos de moi</label>
               <textarea [(ngModel)]="profile.bio" class="form-control" rows="4" placeholder="Parlez-nous de vous..."></textarea>
@@ -162,6 +180,10 @@ export class ProfileComponent implements OnInit {
   myPosts: any[] = [];
   savedPosts: any[] = [];
   isSaving = false;
+  isEditing = false;
+  isAdmin = false;
+  isModerator = false;
+  private profileSnapshot: any = null;
 
   constructor(
     private api: ApiService, 
@@ -173,6 +195,11 @@ export class ProfileComponent implements OnInit {
     this.loadProfile();
     this.loadMyPosts();
     this.loadSavedPosts();
+
+    this.auth.currentUser.subscribe(user => {
+      this.isAdmin = user?.role === 'admin';
+      this.isModerator = user?.role === 'moderator';
+    });
   }
 
   loadProfile() {
@@ -180,6 +207,9 @@ export class ProfileComponent implements OnInit {
       next: (data: any) => {
         this.profile = data;
         this.selectedAvatar = data.avatar || this.avatars[0];
+        this.profileSnapshot = { ...this.profile };
+        // Après chargement: afficher le profil (pas le formulaire) si déjà renseigné
+        this.isEditing = !this.profile?.pseudo;
       },
       error: (err) => {
         console.error('Error loading profile:', err);
@@ -190,6 +220,8 @@ export class ProfileComponent implements OnInit {
             this.profile.pseudo = user.email.split('@')[0];
           }
         });
+        this.profileSnapshot = { ...this.profile };
+        this.isEditing = true;
       }
     });
   }
@@ -199,12 +231,27 @@ export class ProfileComponent implements OnInit {
     this.profile.avatar = av;
   }
 
+  startEdit() {
+    this.profileSnapshot = { ...this.profile };
+    this.isEditing = true;
+  }
+
+  cancelEdit() {
+    if (this.profileSnapshot) {
+      this.profile = { ...this.profileSnapshot };
+      this.selectedAvatar = this.profile.avatar || this.avatars[0];
+    }
+    this.isEditing = false;
+  }
+
   saveProfile() {
     this.isSaving = true;
     this.api.put('user/profile', this.profile).subscribe({
       next: () => {
         alert('✅ Profil mis à jour avec succès !');
         this.isSaving = false;
+        this.profileSnapshot = { ...this.profile };
+        this.isEditing = false;
       },
       error: (err) => {
         console.error('Error saving profile:', err);
@@ -248,13 +295,29 @@ export class ProfileComponent implements OnInit {
     this.router.navigate(['/messagerie']);
   }
 
+  openModeration() {
+    this.router.navigate(['/moderation']);
+  }
+
+  openAdminUsers() {
+    this.router.navigate(['/admin/users']);
+  }
+
+  openAdminAds() {
+    this.router.navigate(['/admin/ads']);
+  }
+
+  openAdminRss() {
+    this.router.navigate(['/admin/rss']);
+  }
+
   deleteAccount() {
-    if (confirm('⚠️ ATTENTION : Voulez-vous vraiment supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.')) {
+    if (confirm('⚠️ ATTENTION : Voulez-vous vraiment supprimer votre profil ? Cette action est irréversible et supprimera votre compte.')) {
       this.api.delete('user/account').subscribe({
         next: () => {
           this.auth.logout();
-          this.router.navigate(['/forum']);
-          alert('Votre compte a été supprimé. Vous allez être redirigé.');
+          this.router.navigate(['/']);
+          alert('Votre profil a été supprimé. Redirection vers l’accueil.');
         },
         error: (err) => {
           console.error('Error deleting account:', err);

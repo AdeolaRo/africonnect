@@ -23,7 +23,7 @@ import { FormsModule } from '@angular/forms';
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
       <div *ngIf="item.imageUrl"><img [src]="item.imageUrl" style="max-width:100%; border-radius:16px; margin:12px 0;"></div>
       <div [innerHTML]="item.content || item.desc"></div>
-      <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item.id)" style="margin-top:12px;">Supprimer</button>
+      <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)" style="margin-top:12px;">Supprimer</button>
       <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
     </div>
 
@@ -50,9 +50,9 @@ import { FormsModule } from '@angular/forms';
           <div class="file-upload">
             <input type="file" (change)="onFileSelected($event)" accept="image/*">
             <div *ngIf="!selectedFile">
-              <div style="font-size: 3rem; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 3rem; margin-bottom: 10px;">🖼️</div>
               <div>Cliquez pour sélectionner une image</div>
-              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">PNG, JPG, GIF jusqu'à 5MB</div>
+              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">{{ fileDescription }}</div>
             </div>
             <div *ngIf="selectedFile" class="file-selected">
               <div style="display: flex; align-items: center; gap: 12px;">
@@ -97,6 +97,10 @@ export class ForumComponent implements OnInit {
   filteredItems: any[] = [];
   isSubmitting = false;
 
+  get fileDescription(): string {
+    return 'PNG, JPG, GIF jusqu\'à 5MB';
+  }
+
   constructor(private api: ApiService, private fb: FormBuilder, private searchService: SearchService, private auth: AuthService) {}
 
   ngOnInit() {
@@ -137,6 +141,6 @@ export class ForumComponent implements OnInit {
   }
   deleteItem(id: string) { if (confirm('Supprimer ?')) this.api.delete('forum/' + id).subscribe(() => this.loadItems()); }
   canDelete(item: any) { return true; }
-  toggleLike(item: any) { this.api.post('forum/' + item.id + '/like', {}).subscribe(() => this.loadItems()); }
+  toggleLike(item: any) { this.api.post('forum/' + item._id + '/like', {}).subscribe(() => this.loadItems()); }
   updateFilter() { this.filteredItems = this.items.filter(i => JSON.stringify(i).toLowerCase().includes(this.searchQuery.toLowerCase())); }
 }

@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgClass } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-content-moderation',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgClass],
   template: `
     <div class="admin-container">
       <h1>Modération des contenus</h1>
@@ -35,7 +35,7 @@ import { AuthService } from '../../core/services/auth.service';
         <div *ngFor="let item of contents" class="moderation-item">
           <div class="item-header">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <div class="item-type" [class]="'type-' + activeTab">
+              <div class="item-type" [ngClass]="'type-' + activeTab">
                 {{ getTypeLabel(activeTab) }}
               </div>
               <div>

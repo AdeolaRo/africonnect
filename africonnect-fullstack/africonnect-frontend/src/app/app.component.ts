@@ -25,8 +25,6 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
         <a routerLink="/solidarite" routerLinkActive="active">Solidarité</a>
         <a routerLink="/evenements" routerLinkActive="active">Événements</a>
         <a routerLink="/groupes" routerLinkActive="active">Groupes</a>
-        <a routerLink="/messagerie" routerLinkActive="active">Messagerie</a>
-        <a *ngIf="isAdmin" routerLink="/admin" routerLinkActive="active">Modération</a>
         <a routerLink="/profile" routerLinkActive="active" *ngIf="isLoggedIn">Profil</a>
       </div>
       <div class="toolbar">
@@ -95,6 +93,7 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
 export class AppComponent implements OnInit {
   isLoggedIn = false;
   isAdmin = false;
+  isModerator = false;
   userEmail = '';
   authModalVisible = false;
   authEmail = '';
@@ -111,11 +110,12 @@ export class AppComponent implements OnInit {
       this.isLoggedIn = !!user;
       this.userEmail = user?.email || '';
       this.isAdmin = user?.role === 'admin';
+      this.isModerator = user?.role === 'moderator';
     });
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         const url = event.url;
-        this.isAdminOrModerationRoute = url.includes('/admin') || url.includes('/profile') || url.includes('/messagerie');
+        this.isAdminOrModerationRoute = url.includes('/admin') || url.includes('/profile') || url.includes('/messagerie') || url.includes('/moderation');
         this.isProfileRoute = url.includes('/profile');
       }
     });
@@ -177,14 +177,33 @@ export class AppComponent implements OnInit {
   loadRssFeeds() {
     const container = document.getElementById('rssFeedList');
     if (!container) return;
-    const feeds = [
-      { label: 'RFI Afrique', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.rfi.fr/fr/afrique/rss' },
-      { label: 'France 24 Afrique', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.france24.com/fr/afrique/rss' }
-    ];
-    Promise.all(feeds.map(feed => fetch(feed.url).then(res => res.json()).then(data => ({ feed, data })).catch(() => ({ feed, data: { items: [] } }))))
+    fetch('http://localhost:3000/api/rss/feeds')
+      .then(res => res.json())
+      .then((feeds: any[]) => {
+        const normalized = (Array.isArray(feeds) ? feeds : [])
+          .filter(f => f?.rssUrl)
+          .map(f => ({
+            label: f.label || 'RSS',
+            url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(f.rssUrl)}`
+          }));
+
+        // fallback si aucune source configurée
+        const fallback = [
+          { label: 'RFI Afrique', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.rfi.fr/fr/afrique/rss' },
+          { label: 'France 24 Afrique', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.france24.com/fr/afrique/rss' }
+        ];
+        const feedsToUse = normalized.length ? normalized : fallback;
+
+        return Promise.all(feedsToUse.map(feed =>
+          fetch(feed.url)
+            .then(r => r.json())
+            .then(data => ({ feed, data }))
+            .catch(() => ({ feed, data: { items: [] } }))
+        ));
+      })
       .then(results => {
         let items: any[] = [];
-        results.forEach(({ feed, data }) => {
+        (results || []).forEach(({ feed, data }: any) => {
           (data.items || []).slice(0, 3).forEach((item: any) => {
             items.push({ title: item.title, link: item.link, pubDate: item.pubDate, source: feed.label });
           });
@@ -196,6 +215,9 @@ export class AppComponent implements OnInit {
             <div style="font-size:0.8rem; color:var(--muted);">${item.source} - ${new Date(item.pubDate).toLocaleDateString()}</div>
           </div>
         `).join('');
+      })
+      .catch(() => {
+        container.innerHTML = 'Impossible de charger le flux RSS.';
       });
   }
 }

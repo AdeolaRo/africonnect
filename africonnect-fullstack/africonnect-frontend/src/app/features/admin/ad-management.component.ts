@@ -105,7 +105,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
 
     <!-- Modal de création/édition -->
     <app-modal [(visible)]="modalVisible" [title]="editingAd ? 'Modifier la publicité' : 'Nouvelle publicité'">
-      <form (ngSubmit)="saveAd()" class="form-modal" *ngIf="form">
+      <form (ngSubmit)="saveAd()" class="form-modal" *ngIf="form && form.isActive !== undefined">
         <div class="form-row" style="display: flex; gap: 20px; margin-bottom: 20px;">
           <div class="form-group" style="flex: 1;">
             <label class="form-label">Titre *</label>
@@ -146,7 +146,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
               </div>
               <div>Cliquez pour sélectionner un fichier</div>
               <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">
-                {{ form.mediaType === 'video' ? 'MP4, MOV, AVI, WEBM jusqu\'à 50MB' : 'PNG, JPG, GIF jusqu\'à 50MB' }}
+                {{ form.mediaType === 'video' ? videoFileDescription : imageFileDescription }}
               </div>
             </div>
           </div>
@@ -197,7 +197,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
         </div>
         
         <div class="form-group">
-          <label class="checkbox-label">
+          <label class="checkbox-label" *ngIf="form">
             <input type="checkbox" [(ngModel)]="form.isActive" name="isActive">
             Publicité active
           </label>
@@ -243,6 +243,14 @@ export class AdManagementComponent implements OnInit {
     active: 0,
     videos: 0
   };
+
+  get videoFileDescription(): string {
+    return 'MP4, MOV, AVI, WEBM jusqu\'à 50MB';
+  }
+
+  get imageFileDescription(): string {
+    return 'PNG, JPG, GIF jusqu\'à 50MB';
+  }
 
   constructor(private api: ApiService, private auth: AuthService) {}
 

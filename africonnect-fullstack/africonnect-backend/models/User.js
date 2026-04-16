@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
   city: String,
   origin: String,
   passions: String,
+  bio: String,
   savedPosts: [{ type: String }],
   verificationToken: String,
   resetToken: String,

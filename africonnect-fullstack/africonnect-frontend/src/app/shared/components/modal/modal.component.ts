@@ -8,9 +8,11 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="modal-overlay" *ngIf="visible" (click)="close()">
       <div class="modal-content" (click)="$event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+        <div class="modal-header">
           <h3>{{ title }}</h3>
-          <button (click)="close()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+          <button type="button" class="modal-close" (click)="close()" aria-label="Fermer">
+            &times;
+          </button>
         </div>
         <ng-content></ng-content>
       </div>
