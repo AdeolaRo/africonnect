@@ -12,6 +12,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
         <ul style="list-style:none; padding:0;">
           <li><a routerLink="/admin/users" routerLinkActive="active">Gestion utilisateurs</a></li>
           <li><a routerLink="/admin/ads" routerLinkActive="active">Gestion publicités</a></li>
+          <li><a routerLink="/admin/moderation" routerLinkActive="active">Modération des contenus</a></li>
         </ul>
       </div>
       <div style="flex:1;">
