@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
+const { router: stripeRoutes, webhookHandler: stripeWebhookHandler } = require('./routes/stripe');
 const authRoutes = require('./routes/auth');
 const forumRoutes = require('./routes/forum');
 const marketplaceRoutes = require('./routes/marketplace');
@@ -50,6 +51,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
+// Stripe webhook needs the raw body for signature verification
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhookHandler);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -90,6 +94,7 @@ mongoose
   })
   .catch(err => console.error(err));
 app.use('/api/auth', authRoutes);
+app.use('/api/stripe', stripeRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/jobs', jobRoutes);

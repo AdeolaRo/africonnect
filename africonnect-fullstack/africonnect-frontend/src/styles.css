@@ -53,6 +53,54 @@ body::before {
   transform: translateZ(0);
 }
 
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .nav-links {
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+
+  .nav-links a {
+    display: inline-block;
+  }
+
+  .container {
+    padding: 16px;
+  }
+
+  .main-layout {
+    flex-direction: column;
+  }
+
+  .sidebar-right {
+    width: 100%;
+  }
+
+  .profile-content {
+    grid-template-columns: 1fr !important;
+  }
+
+  .messaging-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .admin-table {
+    min-width: 720px;
+  }
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;

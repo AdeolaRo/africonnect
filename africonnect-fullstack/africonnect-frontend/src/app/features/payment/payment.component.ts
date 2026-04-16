@@ -16,27 +16,30 @@ import { ApiService } from '../../core/services/api.service';
 
       <div class="card" style="padding:16px; border:1px solid var(--border); border-radius:16px; background: var(--surface);">
         <p class="text-muted">
-          Choisis un moyen de paiement. Après paiement, clique sur “J’ai payé” pour recevoir ton reçu par email.
+          Choisis un moyen de paiement.
         </p>
 
         <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top: 12px;">
           <a class="btn btn-primary" [href]="paypalLink" target="_blank" (click)="selectedMethod='paypal'">PayPal</a>
           <a class="btn btn-primary" [href]="revolutLink" target="_blank" (click)="selectedMethod='revolut'">Revolut</a>
-          <button class="btn btn-primary" type="button" (click)="selectedMethod='card'; showCardInfo = true">Carte bancaire</button>
+          <button class="btn btn-primary" type="button" (click)="payByCard()" [disabled]="isSubmitting || !requestId">
+            {{ isSubmitting ? 'Redirection...' : 'Carte bancaire (Stripe)' }}
+          </button>
         </div>
 
-        <div *ngIf="showCardInfo" style="margin-top:12px; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--surface-2);">
-          <div style="font-weight:700;">Paiement CB</div>
-          <div class="text-muted" style="font-size:0.9rem; margin-top:6px;">
-            Intégration CB à brancher (Stripe / checkout IONOS). Pour l’instant, contacte l’admin après paiement.
+        <div *ngIf="success" style="margin-top:12px; padding:12px; border:1px solid rgba(72,187,120,.25); border-radius:12px; background: rgba(72,187,120,.08);">
+          <div style="font-weight:800;">✅ Paiement confirmé</div>
+          <div class="text-muted" style="margin-top:6px;">
+            Un reçu a été envoyé par email (si la configuration email est active).
           </div>
+        </div>
+
+        <div *ngIf="canceled" style="margin-top:12px; padding:12px; border:1px solid rgba(245,101,101,.25); border-radius:12px; background: rgba(245,101,101,.08);">
+          <div style="font-weight:800;">Paiement annulé</div>
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top: 16px;">
           <button class="btn btn-secondary" (click)="goProfile()">Retour profil</button>
-          <button class="btn btn-primary" (click)="confirmPaid()" [disabled]="isSubmitting || !requestId">
-            {{ isSubmitting ? 'Validation...' : 'J’ai payé' }}
-          </button>
         </div>
       </div>
     </div>
@@ -45,8 +48,9 @@ import { ApiService } from '../../core/services/api.service';
 export class PaymentComponent implements OnInit {
   requestId = '';
   selectedMethod: 'paypal' | 'revolut' | 'card' | '' = '';
-  showCardInfo = false;
   isSubmitting = false;
+  success = false;
+  canceled = false;
 
   // Replace with your actual payment links if you have them
   paypalLink = 'https://www.paypal.com/';
@@ -57,6 +61,8 @@ export class PaymentComponent implements OnInit {
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.requestId = params?.requestId || '';
+      this.success = !!params?.success;
+      this.canceled = !!params?.canceled;
     });
   }
 
@@ -68,17 +74,17 @@ export class PaymentComponent implements OnInit {
     this.router.navigate(['/profile']);
   }
 
-  async confirmPaid() {
+  async payByCard() {
     if (!this.requestId) return;
     this.isSubmitting = true;
     try {
-      await this.api.post(`ad-requests/${this.requestId}/confirm-payment`, { method: this.selectedMethod || '' }).toPromise();
-      alert('✅ Merci. Un reçu a été envoyé sur votre email (si la configuration email est active).');
-      this.router.navigate(['/profile']);
+      const res: any = await this.api.post('stripe/create-checkout-session', { requestId: this.requestId }).toPromise();
+      const url = res?.url;
+      if (!url) throw new Error('URL checkout manquante');
+      window.location.href = url;
     } catch (e) {
       console.error(e);
-      alert('Erreur lors de la validation du paiement.');
-    } finally {
+      alert('Erreur Stripe: vérifiez la configuration.');
       this.isSubmitting = false;
     }
   }
