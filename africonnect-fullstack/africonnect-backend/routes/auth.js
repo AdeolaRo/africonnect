@@ -29,13 +29,18 @@ router.post('/register', async (req, res) => {
     const user = new User({ email, password: hashed, verificationToken });
     await user.save();
 
-    // Envoi d'email de vérification (optionnel, désactivable en cas d'erreur)
+    // Envoi d'email de vérification / bienvenue (best-effort)
     try {
       const verifyUrl = `${process.env.FRONTEND_URL || 'https://africanconnect.net'}/verify-email/${verificationToken}`;
       await transporter.sendMail({
         to: email,
-        subject: 'Vérification de votre compte AfriConnect Pro',
-        html: `<p>Cliquez sur <a href="${verifyUrl}">ce lien</a> pour vérifier votre email.</p>`
+        subject: 'Bienvenue sur African Connect',
+        html: `
+          <p>Bienvenue sur <strong>African Connect</strong> !</p>
+          <p><strong>Email du compte</strong> : ${email}</p>
+          <p>Par sécurité, nous n’envoyons jamais votre mot de passe par email.</p>
+          <p>Cliquez sur <a href="${verifyUrl}">ce lien</a> pour vérifier votre email.</p>
+        `
       });
     } catch (mailErr) {
       console.error('Erreur envoi email:', mailErr);
@@ -72,7 +77,8 @@ router.post('/forgot-password', async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email requis' });
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ error: 'Email non trouvé' });
+    // Toujours répondre OK pour éviter d'exposer si l'email existe ou non
+    if (!user) return res.json({ message: 'Email envoyé' });
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetToken = resetToken;
     user.resetExpires = Date.now() + 3600000;
@@ -81,7 +87,12 @@ router.post('/forgot-password', async (req, res) => {
     await transporter.sendMail({
       to: user.email,
       subject: 'Réinitialisation de votre mot de passe',
-      html: `<p>Cliquez sur <a href="${resetUrl}">ce lien</a> pour réinitialiser votre mot de passe. Lien valable 1 heure.</p>`
+      html: `
+        <p>Vous avez demandé une réinitialisation de mot de passe.</p>
+        <p><strong>Email</strong> : ${user.email}</p>
+        <p>Cliquez sur <a href="${resetUrl}">ce lien</a> pour définir un nouveau mot de passe.</p>
+        <p>Lien valable 1 heure.</p>
+      `
     });
     res.json({ message: 'Email envoyé' });
   } catch (err) {

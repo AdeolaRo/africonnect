@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-forum',
@@ -143,13 +144,24 @@ export class ForumComponent implements OnInit {
     return 'PNG, JPG, GIF jusqu\'à 5MB';
   }
 
-  constructor(private api: ApiService, private fb: FormBuilder, private searchService: SearchService, private auth: AuthService) {}
+  constructor(
+    private api: ApiService,
+    private fb: FormBuilder,
+    private searchService: SearchService,
+    private auth: AuthService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit() {
     this.auth.currentUser.subscribe(u => {
       this.isLoggedIn = !!u;
       this.currentUserId = u?.id || '';
       this.currentUserRole = u?.role || '';
+    });
+    this.route.queryParams.subscribe(params => {
+      if (params?.new && this.isLoggedIn) {
+        this.openModal();
+      }
     });
     this.loadItems();
     this.searchService.query$.subscribe(q => {

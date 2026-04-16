@@ -45,11 +45,11 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: url("/assets/bg-africa.svg");
+  background-image: url("/assets/afrique3.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.06; /* keep content readable */
+  opacity: 0.10; /* keep content readable */
   transform: translateZ(0);
 }
 

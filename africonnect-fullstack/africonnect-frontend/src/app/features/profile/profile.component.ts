@@ -15,6 +15,7 @@ import { AuthService } from '../../core/services/auth.service';
         <h1>Mon Profil</h1>
         <div class="profile-actions">
           <button class="btn btn-secondary" (click)="openMessaging()">💬 Messagerie</button>
+          <button class="btn btn-secondary" (click)="openAdRequest()">📣 Publicité</button>
           <button class="btn btn-secondary" *ngIf="isModerator || isAdmin" (click)="openModeration()">🛡️ Modération</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminUsers()">👥 Utilisateurs</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 Publicités</button>
@@ -123,7 +124,7 @@ import { AuthService } from '../../core/services/auth.service';
               <h3>Mes publications récentes</h3>
               <div *ngIf="myPosts.length === 0" class="empty-section">
                 <p>Vous n'avez pas encore publié de contenu</p>
-                <button class="btn btn-primary" routerLink="/forum">Publier sur le forum</button>
+                <button class="btn btn-primary" [routerLink]="['/forum']" [queryParams]="{ new: 1 }">Publier sur le forum</button>
               </div>
               <div *ngFor="let post of myPosts" class="post-card">
                 <div class="post-header">
@@ -291,6 +292,10 @@ export class ProfileComponent implements OnInit {
 
   openMessaging() {
     this.router.navigate(['/messagerie']);
+  }
+
+  openAdRequest() {
+    this.router.navigate(['/publicite/demande']);
   }
 
   openModeration() {

@@ -7,6 +7,7 @@ import { SearchService } from './core/services/search.service';
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { CarouselComponent } from './shared/components/carousel/carousel.component';
 import { API_BASE_URL } from './core/config/app.config';
+import { ApiService } from './core/services/api.service';
 
 @Component({
   selector: 'app-root',
@@ -62,7 +63,24 @@ import { API_BASE_URL } from './core/config/app.config';
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
           <button type="submit" class="btn btn-primary">Se connecter</button>
           <button type="button" class="btn btn-secondary" (click)="register()">Créer un compte</button>
-          <a routerLink="/forgot-password" style="color:var(--primary);">Mot de passe oublié ?</a>
+          <button type="button" class="btn btn-link" (click)="openForgotPassword()" style="color:var(--primary); padding: 0; background: transparent; border: none; cursor: pointer;">
+            Mot de passe oublié ?
+          </button>
+        </div>
+      </form>
+    </app-modal>
+
+    <app-modal [(visible)]="forgotModalVisible" title="Mot de passe oublié">
+      <form (ngSubmit)="submitForgotPassword($event)" class="auth-form">
+        <input type="email" [(ngModel)]="forgotEmail" placeholder="Votre email" name="forgotEmail" required>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button type="submit" class="btn btn-primary" [disabled]="isSendingForgot">
+            {{ isSendingForgot ? 'Envoi...' : 'Envoyer' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="forgotModalVisible = false" [disabled]="isSendingForgot">Annuler</button>
+        </div>
+        <div class="text-muted" style="margin-top:10px; font-size:0.9rem;">
+          Vous recevrez un email avec un lien pour définir un nouveau mot de passe.
         </div>
       </form>
     </app-modal>
@@ -100,11 +118,14 @@ export class AppComponent implements OnInit {
   authEmail = '';
   authPassword = '';
   toastMessage = '';
+  forgotModalVisible = false;
+  forgotEmail = '';
+  isSendingForgot = false;
   searchQuery = '';
   isAdminOrModerationRoute = false;
   isProfileRoute = false;
 
-  constructor(private auth: AuthService, private router: Router, private searchService: SearchService) {}
+  constructor(private auth: AuthService, private router: Router, private searchService: SearchService, private api: ApiService) {}
 
   ngOnInit() {
     this.auth.currentUser.subscribe(user => {
@@ -133,6 +154,35 @@ export class AppComponent implements OnInit {
     }
   }
   openAuthModal() { this.authModalVisible = true; }
+
+  openForgotPassword() {
+    this.forgotEmail = this.authEmail || '';
+    this.forgotModalVisible = true;
+  }
+
+  submitForgotPassword(event?: Event) {
+    if (event) event.preventDefault();
+    const email = (this.forgotEmail || '').trim();
+    if (!email) {
+      this.showToast('Email requis');
+      return;
+    }
+    this.isSendingForgot = true;
+    this.api.post('auth/forgot-password', { email }, false).subscribe({
+      next: () => {
+        this.isSendingForgot = false;
+        this.forgotModalVisible = false;
+        this.showToast('Email envoyé (si le compte existe).');
+      },
+      error: (err) => {
+        console.error('Forgot password error:', err);
+        this.isSendingForgot = false;
+        // Ne pas révéler si l’email existe ou non
+        this.forgotModalVisible = false;
+        this.showToast('Email envoyé (si le compte existe).');
+      }
+    });
+  }
 
   async login(event?: Event) {
     if (event) {

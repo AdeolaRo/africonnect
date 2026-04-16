@@ -10,6 +10,8 @@ import { MessagingComponent } from './features/messaging/messaging.component';
 import { AdminComponent } from './features/admin/admin.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { UserManagementComponent } from './features/admin/user-management.component';
+import { AdRequestComponent } from './features/ads/ad-request.component';
+import { PaymentComponent } from './features/payment/payment.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
 import { StaffGuard } from './core/guards/staff.guard';
@@ -26,6 +28,8 @@ export const routes: Routes = [
   { path: 'evenements', component: EvenementsComponent },
   { path: 'groupes', component: GroupesComponent },
   { path: 'messagerie', component: MessagingComponent, canActivate: [AuthGuard] },
+  { path: 'publicite/demande', component: AdRequestComponent, canActivate: [AuthGuard] },
+  { path: 'paiement', component: PaymentComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'recherche', component: SearchComponent },
   { path: 'moderation', loadComponent: () => import('./features/admin/content-moderation.component').then(m => m.ContentModerationComponent), canActivate: [StaffGuard] },

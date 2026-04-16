@@ -18,6 +18,9 @@ const userRoutes = require('./routes/user');
 const uploadRoutes = require('./routes/upload');
 const advertisementRoutes = require('./routes/advertisements');
 const rssRoutes = require('./routes/rss');
+const adRequestRoutes = require('./routes/adRequests');
+const bcrypt = require('bcryptjs');
+const User = require('./models/User');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: '*' } });
@@ -56,6 +59,35 @@ app.use('/uploads', express.static('uploads'));
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
+  .then(async () => {
+    // Seed a default admin (configurable via env) without hardcoding secrets in code.
+    // Required env:
+    // - DEFAULT_ADMIN_EMAIL
+    // - DEFAULT_ADMIN_PASSWORD
+    // Optional:
+    // - DEFAULT_ADMIN_PSEUDO
+    try {
+      const email = process.env.DEFAULT_ADMIN_EMAIL;
+      const password = process.env.DEFAULT_ADMIN_PASSWORD;
+      const pseudo = process.env.DEFAULT_ADMIN_PSEUDO || 'African';
+      if (!email || !password) return;
+
+      const existing = await User.findOne({ email });
+      if (!existing) {
+        const hashed = await bcrypt.hash(password, 10);
+        await new User({
+          email,
+          password: hashed,
+          role: 'admin',
+          verified: true,
+          pseudo
+        }).save();
+        console.log(`Default admin created: ${email}`);
+      }
+    } catch (e) {
+      console.error('Default admin seed error:', e);
+    }
+  })
   .catch(err => console.error(err));
 app.use('/api/auth', authRoutes);
 app.use('/api/forum', forumRoutes);
@@ -71,6 +103,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/advertisements', advertisementRoutes);
 app.use('/api/rss', rssRoutes);
+app.use('/api/ad-requests', adRequestRoutes);
 io.use((socket,next)=>{ const jwt=require('jsonwebtoken'); const token=socket.handshake.auth.token; if(!token) return next(new Error('Auth error')); try{ const decoded=jwt.verify(token,process.env.JWT_SECRET); socket.userId=decoded.userId; next(); } catch(err){ next(new Error('Invalid token')); } });
 io.on('connection',(socket)=>{ console.log('User connected:',socket.userId); socket.join(`user_${socket.userId}`); socket.on('private_message',async(data)=>{ const Message=require('./models/Message'); const message=new Message({from:String(socket.userId),to:String(data.toUserId),subject:data.subject?String(data.subject):'',content:String(data.content||''),timestamp:new Date()}); await message.save(); io.to(`user_${String(data.toUserId)}`).emit('new_message',message); io.to(`user_${String(socket.userId)}`).emit('new_message',message); }); });
 
