@@ -6,18 +6,23 @@ import { SearchService } from '../../core/services/search.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { QuillModule } from 'ngx-quill';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-groupes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, RouterLink],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
     </div>
     <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">Aucun élément</div>
     <div *ngFor="let item of filteredItems" class="item-card">
-      <h3>{{ item.title || item.name }}</h3>
+      <h3 style="margin-bottom: 6px;">
+        <a [routerLink]="['/groupes', item._id]" style="color: inherit; text-decoration: none;">
+          {{ item.title || item.name }}
+        </a>
+      </h3>
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
       <div class="text-muted" style="margin-top:6px;">
         👥 {{ (item.members?.length || 0) }} membre(s)

@@ -26,6 +26,7 @@ export const routes: Routes = [
   { path: 'solidarite', component: SolidariteComponent },
   { path: 'evenements', component: EvenementsComponent },
   { path: 'groupes', component: GroupesComponent },
+  { path: 'groupes/:id', loadComponent: () => import('./features/groups/group-detail.component').then(m => m.GroupDetailComponent) },
   { path: 'messagerie', component: MessagingComponent, canActivate: [AuthGuard] },
   { path: 'publicite/demande', component: AdRequestComponent, canActivate: [AuthGuard] },
   { path: 'paiement', component: PaymentComponent, canActivate: [AuthGuard] },
