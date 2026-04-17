@@ -22,7 +22,9 @@ export class ResetPasswordComponent implements OnInit {
   password = '';
   message = '';
   constructor(private api: ApiService, private route: ActivatedRoute, private router: Router) {}
-  ngOnInit() { this.token = this.route.snapshot.params['token']; }
+  ngOnInit() {
+    this.token = decodeURIComponent(String(this.route.snapshot.params['token'] || '')).trim();
+  }
   submit() {
     this.api.post('auth/reset-password', { token: this.token, newPassword: this.password }, false).subscribe({
       next: () => {

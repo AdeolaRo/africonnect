@@ -102,7 +102,8 @@ router.post('/forgot-password', async (req, res) => {
 
 // Réinitialisation du mot de passe
 router.post('/reset-password', async (req, res) => {
-  const { token, newPassword } = req.body;
+  const token = String(req.body?.token || req.body?.resetToken || '').trim();
+  const newPassword = String(req.body?.newPassword || '').trim();
   if (!token || !newPassword) return res.status(400).json({ error: 'Token et nouveau mot de passe requis' });
   try {
     const user = await User.findOne({ resetToken: token, resetExpires: { $gt: Date.now() } });
