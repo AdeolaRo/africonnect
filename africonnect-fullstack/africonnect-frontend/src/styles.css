@@ -49,19 +49,46 @@ body {
   .navbar {
     padding: 12px 16px;
     gap: 12px;
+    flex-wrap: nowrap;
+    position: sticky;
+  }
+
+  /* Burger menu */
+  .nav-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    flex: 0 0 auto;
   }
 
   .nav-links {
-    width: 100%;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 6px;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(27, 32, 40, 0.98);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
   }
 
-  .nav-links a {
-    display: inline-block;
-  }
+  .nav-links.open { display: flex; }
+
+  .nav-links a { padding: 10px 12px; }
 
   .container {
     padding: 16px;
@@ -90,6 +117,10 @@ body {
   .admin-table {
     min-width: 720px;
   }
+
+  /* Prevent common overflow */
+  img, video, canvas, svg { max-width: 100%; height: auto; }
+  input, textarea, select, button { max-width: 100%; }
 }
 
 /* Typography */
@@ -576,6 +607,35 @@ select.form-control {
     padding: 20px;
     width: 95%;
   }
+
+  /* Forms + Quill: avoid horizontal overflow */
+  .form-control,
+  .form-label,
+  .form-group,
+  .auth-form,
+  .form-modal {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .ql-toolbar,
+  .ql-container,
+  quill-editor {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .ql-editor {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  /* Messaging: make cards readable on narrow widths */
+  .messaging-container { padding: 16px; }
+  .messaging-layout { grid-template-columns: 1fr !important; }
+  .messages-section { max-height: 60vh; }
+  .message-header { flex-wrap: wrap; gap: 8px; }
+  .message-date { white-space: normal; }
   
   h1 { font-size: 1.5rem; }
   h2 { font-size: 1.25rem; }
