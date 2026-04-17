@@ -100,8 +100,11 @@ import { RealtimeService } from './core/services/realtime.service';
 
     <app-modal [(visible)]="notificationsVisible" title="Notifications">
       <div *ngIf="notifications.length === 0" class="text-muted">Aucune notification.</div>
-      <div *ngFor="let n of notifications" style="padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); margin-top:10px;">
-        <div style="font-weight:800;">{{ n.title || 'Notification' }}</div>
+      <div *ngFor="let n of notifications" class="notif-card" [class.read]="!!n.read">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+          <div style="font-weight:800;">{{ n.title || 'Notification' }}</div>
+          <button *ngIf="!n.read" class="btn btn-secondary btn-sm" (click)="markNotifRead(n)">Marquer comme lu</button>
+        </div>
         <div class="text-muted" style="margin-top:6px;">{{ n.body }}</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;" *ngIf="n.type === 'group_invite' && n.data?.groupId">
           <button class="btn btn-primary btn-sm" (click)="acceptInvite(n)">Accepter</button>
@@ -137,6 +140,8 @@ import { RealtimeService } from './core/services/realtime.service';
     .badge { position:absolute; top:-6px; right:-6px; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 999px; background: var(--danger); color: white; font-size: 0.75rem; display:flex; align-items:center; justify-content:center; border: 2px solid var(--surface); }
     .profile-chip { display:inline-flex; align-items:center; gap:8px; padding: 8px 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor:pointer; }
     .avatar-mini { width: 28px; height: 28px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
+    .notif-card { padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); margin-top:10px; }
+    .notif-card.read { opacity: 0.65; }
     .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
     .search-bar { margin-bottom: 20px; }
     .search-bar input { width: 100%; padding: 12px; border-radius: 40px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
@@ -359,9 +364,25 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.api.post(`groups/${gid}/invites/accept`, {}).subscribe({
       next: () => {
         this.showToast('Invitation acceptée');
+        this.markNotifRead(n);
         this.openGroup(gid);
       },
       error: (err) => this.showToast(err?.error?.error || 'Erreur')
+    });
+  }
+
+  markNotifRead(n: any) {
+    if (!n?._id || n.read) return;
+    this.api.post(`notifications/${n._id}/read`, {}).subscribe({
+      next: (updated: any) => {
+        n.read = true;
+        // keep local list but make it "read"
+        this.notifications = (this.notifications || []).map(x => x?._id === n._id ? { ...x, read: true } : x);
+      },
+      error: () => {
+        // best effort
+        n.read = true;
+      }
     });
   }
 
