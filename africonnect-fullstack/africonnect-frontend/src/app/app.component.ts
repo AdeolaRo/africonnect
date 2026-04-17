@@ -17,7 +17,7 @@ import { RealtimeService } from './core/services/realtime.service';
   template: `
     <nav class="navbar">
       <a routerLink="/" class="brand-link" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text);">
-        <div style="width:40px;height:40px;background:var(--primary);border-radius:16px;display:flex;align-items:center;justify-content:center;">🌍</div>
+        <img src="assets/favicon/favicon-96x96.png" alt="Logo" style="width:40px;height:40px;border-radius:16px;display:block;border:1px solid rgba(255,255,255,0.12); object-fit: cover;">
         <strong style="font-size:1.4rem;">African Connect</strong>
       </a>
       <button class="nav-toggle" type="button" (click)="toggleNav()" aria-label="Menu">☰</button>
@@ -99,6 +99,9 @@ import { RealtimeService } from './core/services/realtime.service';
     </app-modal>
 
     <app-modal [(visible)]="notificationsVisible" title="Notifications">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:10px;" *ngIf="notifications.length > 0">
+        <button class="btn btn-danger btn-sm" (click)="clearAllNotifications()">Effacer tout</button>
+      </div>
       <div *ngIf="notifications.length === 0" class="text-muted">Aucune notification.</div>
       <div *ngFor="let n of notifications" class="notif-card" [class.read]="!!n.read">
         <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
@@ -383,6 +386,18 @@ export class AppComponent implements OnInit, AfterViewInit {
         // best effort
         n.read = true;
       }
+    });
+  }
+
+  clearAllNotifications() {
+    if (!confirm('Effacer toutes les notifications ?')) return;
+    this.api.delete('notifications/mine').subscribe({
+      next: () => {
+        this.notifications = [];
+        this.realtime.clearNotificationsCache();
+        this.showToast('Notifications effacées');
+      },
+      error: () => this.showToast('Impossible pour le moment')
     });
   }
 

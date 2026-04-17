@@ -77,6 +77,11 @@ export class RealtimeService {
     this.setBadge({ unreadNotifications: 0 });
   }
 
+  clearNotificationsCache() {
+    this.notificationsSubject.next([]);
+    this.setBadge({ unreadNotifications: 0 });
+  }
+
   clearMessagesBadge() {
     this.setBadge({ unreadMessages: 0 });
   }

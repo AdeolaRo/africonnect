@@ -18,5 +18,10 @@ router.post('/:id/read', auth, async (req, res) => {
   res.json(item);
 });
 
+router.delete('/mine', auth, async (req, res) => {
+  await Notification.deleteMany({ userId: String(req.userId) });
+  res.json({ message: 'Notifications supprimées' });
+});
+
 module.exports = router;
 
