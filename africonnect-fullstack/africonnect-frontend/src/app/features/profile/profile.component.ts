@@ -124,7 +124,7 @@ import { AuthService } from '../../core/services/auth.service';
               <h3>Mes publications récentes</h3>
               <div *ngIf="myPosts.length === 0" class="empty-section">
                 <p>Vous n'avez pas encore publié de contenu</p>
-                <button class="btn btn-primary" [routerLink]="['/forum']" [queryParams]="{ new: 1 }">Publier sur le forum</button>
+                <button class="btn btn-primary" (click)="publishOnForum()">Publier sur le forum</button>
               </div>
               <div *ngFor="let post of myPosts" class="post-card">
                 <div class="post-header">
@@ -190,6 +190,10 @@ export class ProfileComponent implements OnInit {
     private auth: AuthService,
     private router: Router
   ) {}
+
+  publishOnForum() {
+    this.router.navigate(['/forum'], { queryParams: { new: 1 } });
+  }
 
   ngOnInit() {
     this.loadProfile();

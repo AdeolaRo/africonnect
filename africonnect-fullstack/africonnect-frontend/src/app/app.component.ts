@@ -297,42 +297,18 @@ export class AppComponent implements OnInit {
   loadRssFeeds() {
     const container = document.getElementById('rssFeedList');
     if (!container) return;
-    fetch(`${API_BASE_URL}/rss/feeds`)
+    fetch(`${API_BASE_URL}/rss/items?maxPerFeed=3&maxTotal=8`)
       .then(res => res.json())
-      .then((feeds: any[]) => {
-        const normalized = (Array.isArray(feeds) ? feeds : [])
-          .filter(f => f?.rssUrl)
-          .map(f => ({
-            label: f.label || 'RSS',
-            url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(f.rssUrl)}`
-          }));
-
-        // fallback si aucune source configurée
-        const fallback = [
-          { label: 'RFI Afrique', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.rfi.fr/fr/afrique/rss' },
-          { label: 'France 24 Afrique', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.france24.com/fr/afrique/rss' }
-        ];
-        const feedsToUse = normalized.length ? normalized : fallback;
-
-        return Promise.all(feedsToUse.map(feed =>
-          fetch(feed.url)
-            .then(r => r.json())
-            .then(data => ({ feed, data }))
-            .catch(() => ({ feed, data: { items: [] } }))
-        ));
-      })
-      .then(results => {
-        let items: any[] = [];
-        (results || []).forEach(({ feed, data }: any) => {
-          (data.items || []).slice(0, 3).forEach((item: any) => {
-            items.push({ title: item.title, link: item.link, pubDate: item.pubDate, source: feed.label });
-          });
-        });
-        items.sort((a: any, b: any) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
-        container.innerHTML = items.slice(0, 5).map(item => `
+      .then((data: any) => {
+        const items = Array.isArray(data?.items) ? data.items : [];
+        if (!items.length) {
+          container.innerHTML = 'Aucun article RSS pour le moment.';
+          return;
+        }
+        container.innerHTML = items.map(item => `
           <div class="rss-item">
             <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a>
-            <div style="font-size:0.8rem; color:var(--muted);">${item.source} - ${new Date(item.pubDate).toLocaleDateString()}</div>
+            <div style="font-size:0.8rem; color:var(--muted);">${item.source}${item.category ? ' • ' + item.category : ''} - ${new Date(item.pubDate || Date.now()).toLocaleDateString()}</div>
           </div>
         `).join('');
       })

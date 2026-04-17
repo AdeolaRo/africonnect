@@ -19,12 +19,19 @@ import { QuillModule } from 'ngx-quill';
     <div *ngFor="let item of filteredItems" class="item-card">
       <h3>{{ item.title || item.name }}</h3>
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
+      <div class="text-muted" style="margin-top:6px;">
+        👥 {{ (item.members?.length || 0) }} membre(s)
+      </div>
       <div *ngIf="getImages(item).length > 0" class="thumb-grid">
         <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || item.name || 'Image'" (click)="openPreview(url)">
       </div>
       <div [innerHTML]="item.content || item.desc"></div>
-      <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)" style="margin-top:12px;">Supprimer</button>
-      <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
+        <button *ngIf="isLoggedIn && !isMember(item)" class="btn btn-primary" (click)="join(item)">Rejoindre</button>
+        <button *ngIf="isLoggedIn && isMember(item)" class="btn btn-secondary" (click)="leave(item)">Quitter</button>
+        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
+        <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+      </div>
     </div>
 
     <app-modal [(visible)]="modalVisible" title="Nouveau groupe">
@@ -184,6 +191,36 @@ export class GroupesComponent implements OnInit {
       error: (err) => {
         console.error('Error liking group:', err);
         alert('Impossible de liker pour le moment.');
+      }
+    });
+  }
+
+  isMember(item: any): boolean {
+    if (!this.currentUserId) return false;
+    const members = Array.isArray(item?.members) ? item.members : [];
+    return members.map(String).includes(String(this.currentUserId));
+  }
+
+  join(item: any) {
+    this.api.post(`groups/${item._id}/join`, {}).subscribe({
+      next: (updated: any) => {
+        item.members = updated?.members || item.members;
+      },
+      error: (err) => {
+        console.error('Error joining group:', err);
+        alert('Impossible de rejoindre ce groupe.');
+      }
+    });
+  }
+
+  leave(item: any) {
+    this.api.post(`groups/${item._id}/leave`, {}).subscribe({
+      next: (updated: any) => {
+        item.members = updated?.members || item.members;
+      },
+      error: (err) => {
+        console.error('Error leaving group:', err);
+        alert('Impossible de quitter ce groupe.');
       }
     });
   }

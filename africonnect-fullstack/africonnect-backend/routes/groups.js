@@ -16,10 +16,37 @@ router.post('/', auth, async (req, res) => {
   const item = new Group({
     ...body,
     userId: String(req.userId),
-    authorName: req.userPseudo
+    authorName: req.userPseudo,
+    members: [String(req.userId)]
   });
   await item.save();
   res.status(201).json(item);
+});
+
+router.get('/:id', async (req, res) => {
+  const item = await Group.findById(req.params.id);
+  if (!item) return res.status(404).json({ error: 'Non trouvé' });
+  res.json(item);
+});
+
+router.post('/:id/join', auth, async (req, res) => {
+  const item = await Group.findById(req.params.id);
+  if (!item) return res.status(404).json({ error: 'Non trouvé' });
+  const me = String(req.userId);
+  const members = Array.isArray(item.members) ? item.members : [];
+  if (!members.includes(me)) item.members = [...members, me];
+  await item.save();
+  res.json(item);
+});
+
+router.post('/:id/leave', auth, async (req, res) => {
+  const item = await Group.findById(req.params.id);
+  if (!item) return res.status(404).json({ error: 'Non trouvé' });
+  const me = String(req.userId);
+  const members = Array.isArray(item.members) ? item.members : [];
+  item.members = members.filter(id => id !== me);
+  await item.save();
+  res.json(item);
 });
 
 router.post('/:id/like', auth, async (req, res) => {

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const RssFeedSchema = new mongoose.Schema({
   label: { type: String, required: true },
+  category: { type: String, default: '' },
   rssUrl: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
