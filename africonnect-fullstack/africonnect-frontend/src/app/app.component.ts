@@ -113,6 +113,9 @@ import { RealtimeService } from './core/services/realtime.service';
           <button class="btn btn-primary btn-sm" (click)="acceptInvite(n)">Accepter</button>
           <button class="btn btn-secondary btn-sm" (click)="openGroup(n.data.groupId)">Voir</button>
         </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;" *ngIf="n.type === 'ad_payment_link' && n.data?.url">
+          <a class="btn btn-primary btn-sm" [href]="n.data.url" target="_blank">Payer</a>
+        </div>
       </div>
     </app-modal>
 

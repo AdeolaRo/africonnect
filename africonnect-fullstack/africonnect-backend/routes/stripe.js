@@ -1,73 +1,23 @@
 const express = require('express');
-const Stripe = require('stripe');
 const auth = require('../middleware/auth');
 const AdRequest = require('../models/AdRequest');
 const { canSendEmail, sendMailSafe } = require('../utils/mailer');
+const { getStripeClient, createCheckoutSessionForAdRequest } = require('../utils/stripe');
 
 const router = express.Router();
 
-let stripeClient = null;
-function getStripeClient() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return null;
-  if (stripeClient) return stripeClient;
-  stripeClient = new Stripe(key, { apiVersion: '2024-06-20' });
-  return stripeClient;
-}
-
-function getAmountCents(option) {
-  if (option === 'create_and_publish') {
-    return Number(process.env.STRIPE_AMOUNT_CREATE_AND_PUBLISH_CENTS || 5000);
-  }
-  return Number(process.env.STRIPE_AMOUNT_PUBLISH_ONLY_CENTS || 2000);
-}
-
 router.post('/create-checkout-session', auth, async (req, res) => {
-  const stripe = getStripeClient();
-  if (!stripe) {
-    return res.status(500).json({ error: 'Stripe non configuré' });
-  }
-
   const { requestId } = req.body || {};
   if (!requestId) return res.status(400).json({ error: 'requestId requis' });
 
   const item = await AdRequest.findById(requestId);
   if (!item) return res.status(404).json({ error: 'Non trouvé' });
   if (String(item.userId) !== String(req.userId)) return res.status(403).json({ error: 'Non autorisé' });
+  if (item.option !== 'publish_only') return res.status(400).json({ error: 'Paiement direct non disponible pour cette option' });
+  if (!['awaiting_payment'].includes(String(item.status || ''))) return res.status(400).json({ error: 'Demande non payable' });
 
-  const amount = getAmountCents(item.option);
-  const frontend = process.env.FRONTEND_URL || 'https://africanconnect.net';
-  const successUrl = `${frontend}/paiement?success=1&requestId=${encodeURIComponent(String(item._id))}&session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = `${frontend}/paiement?canceled=1&requestId=${encodeURIComponent(String(item._id))}`;
-
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    payment_method_types: ['card'],
-    line_items: [
-      {
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: item.option === 'create_and_publish'
-              ? 'Publicité (création + publication)'
-              : 'Publicité (publication seulement)'
-          },
-          unit_amount: amount
-        },
-        quantity: 1
-      }
-    ],
-    metadata: {
-      requestId: String(item._id),
-      userId: String(item.userId),
-      userEmail: String(item.userEmail || '')
-    },
-    customer_email: item.userEmail,
-    success_url: successUrl,
-    cancel_url: cancelUrl
-  });
-
-  item.status = 'awaiting_payment';
+  const session = await createCheckoutSessionForAdRequest({ adRequest: item });
+  item.stripeSessionId = String(session?.id || '');
   await item.save();
 
   res.json({ url: session.url });
@@ -77,7 +27,7 @@ async function handlePaid(requestId, session) {
   const item = await AdRequest.findById(requestId);
   if (!item) return;
 
-  item.status = 'paid';
+  item.status = item.option === 'publish_only' ? 'under_review' : 'paid';
   item.paymentMethod = 'stripe';
   item.receiptSentAt = new Date();
   await item.save();
@@ -98,6 +48,27 @@ async function handlePaid(requestId, session) {
     } catch {
       // ignore
     }
+  }
+
+  // notify admin (best-effort)
+  try {
+    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL;
+    if (adminEmail && canSendEmail()) {
+      const subject = 'Paiement confirmé - Demande de publicité';
+      const html = `
+        <p>Un paiement a été confirmé pour une demande de publicité.</p>
+        <ul>
+          <li><strong>ID</strong>: ${item._id}</li>
+          <li><strong>Utilisateur</strong>: ${item.userPseudo || '—'} (${item.userEmail})</li>
+          <li><strong>Option</strong>: ${item.option}</li>
+          <li><strong>Statut</strong>: ${item.status}</li>
+          <li><strong>Média</strong>: ${item.mediaUrl || '—'}</li>
+        </ul>
+      `;
+      await sendMailSafe({ to: adminEmail, subject, html });
+    }
+  } catch {
+    // ignore
   }
 }
 

@@ -24,6 +24,15 @@ import { ApiService } from '../../core/services/api.service';
           </select>
         </div>
 
+        <div class="form-group" style="margin-top: 10px;">
+          <label class="form-label">Détails / message *</label>
+          <textarea class="form-control" [(ngModel)]="message" rows="5"
+                    placeholder="Explique ce que tu veux: objectif, texte à mettre, cible, durée, lien, etc."></textarea>
+          <div class="text-muted" style="font-size:0.9rem; margin-top:6px;" *ngIf="option === 'create_and_publish'">
+            Pour cette option, l’admin te renverra un lien de paiement après validation.
+          </div>
+        </div>
+
         <div class="form-group" *ngIf="option === 'publish_only'">
           <label class="form-label">Votre média (image ou vidéo) *</label>
           <div class="file-upload">
@@ -50,9 +59,35 @@ import { ApiService } from '../../core/services/api.service';
           </div>
         </div>
 
+        <div class="form-group" *ngIf="option === 'create_and_publish'">
+          <label class="form-label">Pièce jointe (optionnel) : exemple image/vidéo</label>
+          <div class="file-upload">
+            <input type="file" (change)="onAttachmentSelected($event)" accept="image/*,video/*">
+            <div *ngIf="!attachmentFile">
+              <div style="font-size: 3rem; margin-bottom: 10px;">📎</div>
+              <div>Ajouter un exemple (optionnel)</div>
+              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">PNG/JPG/GIF/MP4/WebM</div>
+            </div>
+            <div *ngIf="attachmentFile" class="file-selected">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="font-size:2rem;">✅</div>
+                <div>
+                  <div>{{ attachmentFile.name }}</div>
+                  <div class="text-muted" style="font-size: 0.9rem;">
+                    {{ (attachmentFile.size / 1024 / 1024).toFixed(2) }} MB
+                  </div>
+                </div>
+                <button type="button" class="btn btn-secondary" (click)="attachmentFile = null" style="margin-left:auto;">
+                  Retirer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top: 12px;">
-          <button class="btn btn-primary" (click)="continue()" [disabled]="isSubmitting || (option==='publish_only' && !selectedFile)">
-            {{ isSubmitting ? 'Traitement...' : 'Continuer vers paiement' }}
+          <button class="btn btn-primary" (click)="submit()" [disabled]="isSubmitting || !message.trim() || (option==='publish_only' && !selectedFile)">
+            {{ isSubmitting ? 'Traitement...' : (option === 'publish_only' ? 'Continuer vers paiement' : 'Envoyer la demande') }}
           </button>
         </div>
       </div>
@@ -62,6 +97,8 @@ import { ApiService } from '../../core/services/api.service';
 export class AdRequestComponent {
   option: 'create_and_publish' | 'publish_only' = 'create_and_publish';
   selectedFile: File | null = null;
+  attachmentFile: File | null = null;
+  message = '';
   isSubmitting = false;
 
   constructor(private api: ApiService, private router: Router) {}
@@ -74,7 +111,11 @@ export class AdRequestComponent {
     this.selectedFile = event?.target?.files?.[0] || null;
   }
 
-  async continue() {
+  onAttachmentSelected(event: any) {
+    this.attachmentFile = event?.target?.files?.[0] || null;
+  }
+
+  async submit() {
     this.isSubmitting = true;
     try {
       let mediaUrl = '';
@@ -85,9 +126,22 @@ export class AdRequestComponent {
         mediaUrl = upload?.url || '';
       }
 
-      const created: any = await this.api.post('ad-requests', { option: this.option, mediaUrl }).toPromise();
+      const attachments: string[] = [];
+      if (this.option === 'create_and_publish' && this.attachmentFile) {
+        const fd = new FormData();
+        fd.append('media', this.attachmentFile);
+        const upload: any = await this.api.post('upload', fd).toPromise();
+        if (upload?.url) attachments.push(String(upload.url));
+      }
+
+      const created: any = await this.api.post('ad-requests', { option: this.option, mediaUrl, message: this.message, attachments }).toPromise();
       const id = created?._id;
-      this.router.navigate(['/paiement'], { queryParams: { requestId: id } });
+      if (this.option === 'publish_only') {
+        this.router.navigate(['/paiement'], { queryParams: { requestId: id } });
+      } else {
+        alert('Demande envoyée. L’administrateur vous enverra un lien de paiement après validation.');
+        this.router.navigate(['/profile']);
+      }
     } catch (e) {
       console.error(e);
       alert('Erreur lors de la création de la demande.');

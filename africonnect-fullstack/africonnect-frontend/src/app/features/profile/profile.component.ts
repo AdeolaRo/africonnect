@@ -20,6 +20,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
           <button class="btn btn-secondary" *ngIf="isModerator || isAdmin" (click)="openModeration()">🛡️ Modération</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminUsers()">👥 Utilisateurs</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 Publicités</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAdRequests()">📣 Demandes pub</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminRss()">📰 RSS</button>
         </div>
       </div>
@@ -153,6 +154,39 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
                 <div class="post-content">{{ (saved.content || saved.desc || '').slice(0, 150) }}...</div>
               </div>
             </div>
+
+            <div class="section">
+              <h3>Mes demandes de publicité</h3>
+              <div *ngIf="adRequests.length === 0" class="empty-section">
+                <p>Aucune demande pour le moment</p>
+                <button class="btn btn-primary" (click)="openAdRequest()">Faire une demande</button>
+              </div>
+              <div *ngFor="let r of adRequests" class="post-card">
+                <div class="post-header">
+                  <h4 style="margin:0;">
+                    {{ r.option === 'create_and_publish' ? 'Création + publication' : 'Publication seulement' }}
+                  </h4>
+                  <span class="post-date">{{ r.createdAt | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="text-muted" style="margin-top:6px;">
+                  Statut: <strong>{{ r.status }}</strong>
+                </div>
+                <div class="post-content" style="margin-top:6px;">{{ (r.message || '').slice(0, 150) }}{{ (r.message || '').length > 150 ? '...' : '' }}</div>
+
+                <div *ngIf="r.adminMessage" style="margin-top:8px; padding:10px; border-radius:12px; border:1px solid rgba(245,101,101,.25); background: rgba(245,101,101,.08); white-space:pre-wrap;">
+                  <strong>Message admin</strong>: {{ r.adminMessage }}
+                </div>
+
+                <div class="post-actions" style="align-items:center;">
+                  <a *ngIf="r.mediaUrl" class="btn btn-secondary btn-sm" [href]="r.mediaUrl" target="_blank">Voir média</a>
+
+                  <label *ngIf="r.status === 'needs_resubmission'" class="btn btn-primary btn-sm" style="cursor:pointer;">
+                    Renvoyer média
+                    <input type="file" style="display:none;" accept="image/*,video/*" (change)="onResubmitSelected($event, r)">
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -204,6 +238,7 @@ export class ProfileComponent implements OnInit {
   };
   myPosts: any[] = [];
   savedPosts: any[] = [];
+  adRequests: any[] = [];
   isSaving = false;
   isEditing = false;
   isAdmin = false;
@@ -251,6 +286,7 @@ export class ProfileComponent implements OnInit {
     this.loadProfile();
     this.loadMyPosts();
     this.loadSavedPosts();
+    this.loadAdRequests();
 
     this.auth.currentUser.subscribe(user => {
       this.isAdmin = user?.role === 'admin';
@@ -330,6 +366,33 @@ export class ProfileComponent implements OnInit {
     }); 
   }
 
+  loadAdRequests() {
+    this.api.get('ad-requests/mine').subscribe({
+      next: (items: any) => this.adRequests = Array.isArray(items) ? items : [],
+      error: () => this.adRequests = []
+    });
+  }
+
+  async onResubmitSelected(event: any, req: any) {
+    const file: File | null = event?.target?.files?.[0] || null;
+    if (!file) return;
+    try {
+      const fd = new FormData();
+      fd.append('media', file);
+      const upload: any = await this.api.post('upload', fd).toPromise();
+      const mediaUrl = upload?.url || '';
+      if (!mediaUrl) throw new Error('upload failed');
+      await this.api.post(`ad-requests/${req._id}/resubmit`, { mediaUrl }).toPromise();
+      alert('Média renvoyé. Merci !');
+      this.loadAdRequests();
+    } catch (e) {
+      console.error(e);
+      alert('Erreur lors du renvoi du média.');
+    } finally {
+      try { event.target.value = ''; } catch {}
+    }
+  }
+
   deletePost(postId: string) { 
     if (confirm('Voulez-vous vraiment supprimer cette publication ?')) {
       this.api.delete(`user/posts/${postId}`).subscribe({
@@ -364,6 +427,10 @@ export class ProfileComponent implements OnInit {
 
   openAdminAds() {
     this.router.navigate(['/admin/ads']);
+  }
+
+  openAdminAdRequests() {
+    this.router.navigate(['/admin/ad-requests']);
   }
 
   openAdminRss() {

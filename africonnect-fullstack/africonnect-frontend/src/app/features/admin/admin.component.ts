@@ -29,6 +29,11 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
           <div class="admin-title">Publicités</div>
           <div class="admin-desc">Upload photo/vidéo et affichage dans les sections</div>
         </a>
+        <a class="admin-card" routerLink="/admin/ad-requests">
+          <div class="admin-emoji">📣</div>
+          <div class="admin-title">Demandes pub</div>
+          <div class="admin-desc">Devis, lien de paiement, validation média</div>
+        </a>
         <a class="admin-card" routerLink="/admin/rss">
           <div class="admin-emoji">📰</div>
           <div class="admin-title">RSS</div>
