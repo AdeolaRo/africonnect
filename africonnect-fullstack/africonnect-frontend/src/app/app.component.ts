@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -136,7 +136,7 @@ import { ApiService } from './core/services/api.service';
     }
   `]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   isLoggedIn = false;
   isAdmin = false;
   isModerator = false;
@@ -175,9 +175,16 @@ export class AppComponent implements OnInit {
         this.isAdminOrModerationRoute = url.includes('/admin') || url.includes('/profile') || url.includes('/messagerie') || url.includes('/moderation');
         this.isProfileRoute = url.includes('/profile');
         this.isNavOpen = false;
+
+        // RSS block is conditionally rendered; reload after navigation
+        setTimeout(() => this.loadRssFeeds(), 0);
       }
     });
-    this.loadRssFeeds();
+  }
+
+  ngAfterViewInit() {
+    // Ensure the RSS container exists before trying to fill it
+    setTimeout(() => this.loadRssFeeds(), 0);
   }
 
   onSearch() {
