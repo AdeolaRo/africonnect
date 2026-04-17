@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   template: `
     <div class="profile-container">
       <div class="profile-header">
@@ -133,7 +134,7 @@ import { AuthService } from '../../core/services/auth.service';
                 </div>
                 <div class="post-content">{{ (post.content || post.desc || '').slice(0, 150) }}...</div>
                 <div class="post-actions">
-                  <button class="btn btn-secondary btn-sm" [routerLink]="['/forum']">Voir</button>
+                  <button class="btn btn-secondary btn-sm" (click)="openPost(post)">Voir</button>
                   <button class="btn btn-danger btn-sm" (click)="deletePost(post._id)">Supprimer</button>
                 </div>
               </div>
@@ -156,6 +157,30 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
       </div>
     </div>
+
+    <app-modal [(visible)]="postModalVisible" title="Publication">
+      <div *ngIf="selectedPost">
+        <h3 style="margin-top:0;">{{ selectedPost.title || selectedPost.subject || 'Sans titre' }}</h3>
+        <div class="text-muted" style="margin-top:6px;">
+          {{ selectedPost.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        </div>
+
+        <div *ngIf="getImages(selectedPost).length" class="thumb-grid" style="margin-top:12px;">
+          <img *ngFor="let url of getImages(selectedPost)" class="thumb" [src]="url" alt="Image" (click)="openPreview(url)">
+        </div>
+
+        <div style="margin-top:12px;" [innerHTML]="selectedPost.content || selectedPost.desc || ''"></div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" (click)="postModalVisible=false">Fermer</button>
+          <button class="btn btn-primary" (click)="goToOriginal(selectedPost)">Ouvrir</button>
+        </div>
+      </div>
+    </app-modal>
+
+    <app-modal [(visible)]="previewVisible" title="Aperçu">
+      <img *ngIf="previewUrl" [src]="previewUrl" alt="Aperçu" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
+    </app-modal>
   `
 })
 export class ProfileComponent implements OnInit {
@@ -183,6 +208,10 @@ export class ProfileComponent implements OnInit {
   isEditing = false;
   isAdmin = false;
   isModerator = false;
+  postModalVisible = false;
+  selectedPost: any = null;
+  previewVisible = false;
+  previewUrl = '';
   private profileSnapshot: any = null;
 
   constructor(
@@ -193,6 +222,29 @@ export class ProfileComponent implements OnInit {
 
   publishOnForum() {
     this.router.navigate(['/forum'], { queryParams: { new: 1 } });
+  }
+
+  openPost(post: any) {
+    this.selectedPost = post;
+    this.postModalVisible = true;
+  }
+
+  getImages(post: any): string[] {
+    const urls = Array.isArray(post?.imageUrls) && post.imageUrls.length
+      ? post.imageUrls
+      : (post?.imageUrl ? [post.imageUrl] : []);
+    return urls.filter(Boolean).slice(0, 3);
+  }
+
+  openPreview(url: string) {
+    this.previewUrl = url;
+    this.previewVisible = true;
+  }
+
+  goToOriginal(post: any) {
+    // Best-effort: open forum for now (works for forum posts). For other types, keep user on forum.
+    this.postModalVisible = false;
+    this.router.navigate(['/forum']);
   }
 
   ngOnInit() {
