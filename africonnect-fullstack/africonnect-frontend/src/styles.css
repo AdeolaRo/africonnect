@@ -1286,6 +1286,27 @@ select.form-control {
   margin-bottom: 10px;
 }
 
+.message-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.message-row:hover {
+  border-color: rgba(208, 138, 114, 0.35);
+  background: var(--surface-3);
+}
+
 .message-header {
   display: flex;
   justify-content: space-between;

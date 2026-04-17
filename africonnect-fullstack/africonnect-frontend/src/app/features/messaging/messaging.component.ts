@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { RealtimeService } from '../../core/services/realtime.service';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-messaging',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   template: `
     <div class="messaging-container">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 16px;">
@@ -51,20 +52,20 @@ import { RealtimeService } from '../../core/services/realtime.service';
             <p>Vous n'avez pas encore reçu de messages</p>
           </div>
           
-          <div *ngFor="let msg of receivedMessages" class="message-card">
-            <div class="message-header">
-              <div>
-                <strong>De: {{ getSenderName(msg.from) }}</strong>
-                <div class="message-subject">{{ msg.subject || 'Sans objet' }}</div>
+          <button *ngFor="let msg of receivedMessages"
+                  type="button"
+                  class="message-row"
+                  (click)="openMessage(msg, 'received')">
+            <div style="min-width:0;">
+              <div style="font-weight:800;">{{ getSenderName(msg.from) }}</div>
+              <div class="text-muted" style="font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                {{ msg.subject || 'Sans objet' }}
               </div>
-              <div class="message-date">{{ msg.timestamp | date:'dd/MM/yyyy HH:mm' }}</div>
             </div>
-            <div class="message-content">{{ msg.content }}</div>
-            <div class="message-actions">
-              <button class="btn btn-secondary btn-sm" (click)="replyToMessage(msg)">↩️ Répondre</button>
-              <button class="btn btn-danger btn-sm" (click)="deleteMessage(msg._id)">🗑️ Supprimer</button>
+            <div class="text-muted" style="font-size:0.85rem; white-space:nowrap;">
+              {{ msg.timestamp | date:'dd/MM/yyyy HH:mm' }}
             </div>
-          </div>
+          </button>
         </div>
         
         <!-- Messages envoyés -->
@@ -74,22 +75,45 @@ import { RealtimeService } from '../../core/services/realtime.service';
             <p>Vous n'avez pas encore envoyé de messages</p>
           </div>
           
-          <div *ngFor="let msg of sentMessages" class="message-card">
-            <div class="message-header">
-              <div>
-                <strong>À: {{ getRecipientName(msg.to) }}</strong>
-                <div class="message-subject">{{ msg.subject || 'Sans objet' }}</div>
+          <button *ngFor="let msg of sentMessages"
+                  type="button"
+                  class="message-row"
+                  (click)="openMessage(msg, 'sent')">
+            <div style="min-width:0;">
+              <div style="font-weight:800;">{{ getRecipientName(msg.to) }}</div>
+              <div class="text-muted" style="font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                {{ msg.subject || 'Sans objet' }}
               </div>
-              <div class="message-date">{{ msg.timestamp | date:'dd/MM/yyyy HH:mm' }}</div>
             </div>
-            <div class="message-content">{{ msg.content }}</div>
-            <div class="message-actions">
-              <button class="btn btn-danger btn-sm" (click)="deleteMessage(msg._id)">🗑️ Supprimer</button>
+            <div class="text-muted" style="font-size:0.85rem; white-space:nowrap;">
+              {{ msg.timestamp | date:'dd/MM/yyyy HH:mm' }}
             </div>
-          </div>
+          </button>
         </div>
       </div>
     </div>
+
+    <app-modal [(visible)]="messageModalVisible" [title]="messageModalTitle">
+      <div *ngIf="selectedMessage">
+        <div class="text-muted" style="margin-bottom:10px;">
+          <div *ngIf="selectedBox === 'received'"><strong>De</strong>: {{ getSenderName(selectedMessage.from) }}</div>
+          <div *ngIf="selectedBox === 'sent'"><strong>À</strong>: {{ getRecipientName(selectedMessage.to) }}</div>
+          <div><strong>Date</strong>: {{ selectedMessage.timestamp | date:'dd/MM/yyyy HH:mm' }}</div>
+        </div>
+        <div style="font-weight:900; margin-bottom:10px;">{{ selectedMessage.subject || 'Sans objet' }}</div>
+        <div style="white-space:pre-wrap; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2);">
+          {{ selectedMessage.content }}
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; margin-top:12px;">
+          <button class="btn btn-danger btn-sm" (click)="deleteMessage(selectedMessage._id)">🗑️ Supprimer</button>
+          <button *ngIf="selectedBox === 'received'" class="btn btn-primary btn-sm" (click)="replyToMessage(selectedMessage)">
+            ↩️ Répondre
+          </button>
+          <button class="btn btn-secondary btn-sm" (click)="messageModalVisible=false">Fermer</button>
+        </div>
+      </div>
+    </app-modal>
   `
 })
 export class MessagingComponent implements OnInit {
@@ -102,6 +126,11 @@ export class MessagingComponent implements OnInit {
     subject: '',
     content: ''
   };
+
+  messageModalVisible = false;
+  selectedMessage: any = null;
+  selectedBox: 'received' | 'sent' = 'received';
+  messageModalTitle = 'Message';
 
   constructor(private api: ApiService, private auth: AuthService, private router: Router, private realtime: RealtimeService) {}
 
@@ -182,11 +211,19 @@ export class MessagingComponent implements OnInit {
     this.newMessage.recipient = msg.from;
     this.newMessage.subject = `Re: ${msg.subject}`;
     this.newMessage.content = `\n\n--- Message original ---\n${msg.content}\n\n`;
+    this.messageModalVisible = false;
     
     // Scroll vers le formulaire
     setTimeout(() => {
       document.querySelector('.new-message-card')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
+  }
+
+  openMessage(msg: any, box: 'received' | 'sent') {
+    this.selectedMessage = msg;
+    this.selectedBox = box;
+    this.messageModalTitle = box === 'received' ? 'Message reçu' : 'Message envoyé';
+    this.messageModalVisible = true;
   }
 
   deleteMessage(messageId: string) {
@@ -195,6 +232,10 @@ export class MessagingComponent implements OnInit {
         next: () => {
           this.receivedMessages = this.receivedMessages.filter(msg => msg._id !== messageId);
           this.sentMessages = this.sentMessages.filter(msg => msg._id !== messageId);
+          if (this.selectedMessage?._id === messageId) {
+            this.messageModalVisible = false;
+            this.selectedMessage = null;
+          }
           alert('Message supprimé');
         },
         error: (err) => {
