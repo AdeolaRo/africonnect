@@ -8,6 +8,7 @@ import { ModalComponent } from './shared/components/modal/modal.component';
 import { CarouselComponent } from './shared/components/carousel/carousel.component';
 import { API_BASE_URL } from './core/config/app.config';
 import { ApiService } from './core/services/api.service';
+import { RealtimeService } from './core/services/realtime.service';
 
 @Component({
   selector: 'app-root',
@@ -28,10 +29,21 @@ import { ApiService } from './core/services/api.service';
         <a routerLink="/solidarite" routerLinkActive="active">Solidarité</a>
         <a routerLink="/evenements" routerLinkActive="active">Événements</a>
         <a routerLink="/groupes" routerLinkActive="active">Groupes</a>
-        <a routerLink="/profile" routerLinkActive="active" *ngIf="isLoggedIn">Profil</a>
       </div>
       <div class="toolbar">
-        <span *ngIf="userPseudo" style="margin-right:12px">{{ userPseudo }}</span>
+        <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openNotifications()" aria-label="Notifications">
+          🔔
+          <span *ngIf="unreadNotifications > 0" class="badge">{{ unreadNotifications }}</span>
+        </button>
+        <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openMessaging()" aria-label="Messages">
+          💬
+          <span *ngIf="unreadMessages > 0" class="badge">{{ unreadMessages }}</span>
+        </button>
+        <button *ngIf="isLoggedIn" class="profile-chip" type="button" (click)="goProfile()">
+          <img *ngIf="userAvatar" [src]="userAvatar" class="avatar-mini" alt="Avatar">
+          <span>Profil</span>
+        </button>
+        <span *ngIf="userPseudo" class="user-pseudo">{{ userPseudo }}</span>
         <button class="btn" *ngIf="!isLoggedIn" (click)="openAuthModal()">Connexion</button>
         <button class="btn" *ngIf="isLoggedIn" (click)="logout()">Déconnexion</button>
       </div>
@@ -73,11 +85,10 @@ import { ApiService } from './core/services/api.service';
 
     <app-modal [(visible)]="registerModalVisible" title="Créer un compte">
       <form (ngSubmit)="submitRegister($event)" class="auth-form">
+        <input type="text" [(ngModel)]="registerPseudo" placeholder="Pseudo" name="registerPseudo" required>
+        <input type="text" [(ngModel)]="registerFullName" placeholder="Nom complet" name="registerFullName" required>
         <input type="email" [(ngModel)]="registerEmail" placeholder="Email" name="registerEmail" required>
         <input type="password" [(ngModel)]="registerPassword" placeholder="Mot de passe" name="registerPassword" required>
-        <input type="text" [(ngModel)]="registerPseudo" placeholder="Pseudo" name="registerPseudo" required>
-        <input type="text" [(ngModel)]="registerFullName" placeholder="Nom complet" name="registerFullName">
-        <input type="text" [(ngModel)]="registerCity" placeholder="Ville" name="registerCity">
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
           <button type="submit" class="btn btn-primary" [disabled]="isRegistering">
             {{ isRegistering ? 'Création...' : 'Créer' }}
@@ -85,6 +96,18 @@ import { ApiService } from './core/services/api.service';
           <button type="button" class="btn btn-secondary" (click)="registerModalVisible = false" [disabled]="isRegistering">Annuler</button>
         </div>
       </form>
+    </app-modal>
+
+    <app-modal [(visible)]="notificationsVisible" title="Notifications">
+      <div *ngIf="notifications.length === 0" class="text-muted">Aucune notification.</div>
+      <div *ngFor="let n of notifications" style="padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); margin-top:10px;">
+        <div style="font-weight:800;">{{ n.title || 'Notification' }}</div>
+        <div class="text-muted" style="margin-top:6px;">{{ n.body }}</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;" *ngIf="n.type === 'group_invite' && n.data?.groupId">
+          <button class="btn btn-primary btn-sm" (click)="acceptInvite(n)">Accepter</button>
+          <button class="btn btn-secondary btn-sm" (click)="openGroup(n.data.groupId)">Voir</button>
+        </div>
+      </div>
     </app-modal>
 
     <app-modal [(visible)]="forgotModalVisible" title="Mot de passe oublié">
@@ -108,7 +131,12 @@ import { ApiService } from './core/services/api.service';
     .navbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; background: var(--surface); padding: 12px 24px; gap: 16px; border-bottom: 1px solid var(--border); }
     .nav-toggle { display:none; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
     .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
-    .toolbar { display: flex; gap: 12px; align-items: center; }
+    .toolbar { display: flex; gap: 10px; align-items: center; }
+    .user-pseudo { margin-right: 6px; font-weight: 700; }
+    .icon-btn { position: relative; display:inline-flex; align-items:center; justify-content:center; width: 40px; height: 40px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
+    .badge { position:absolute; top:-6px; right:-6px; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 999px; background: var(--danger); color: white; font-size: 0.75rem; display:flex; align-items:center; justify-content:center; border: 2px solid var(--surface); }
+    .profile-chip { display:inline-flex; align-items:center; gap:8px; padding: 8px 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor:pointer; }
+    .avatar-mini { width: 28px; height: 28px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
     .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
     .search-bar { margin-bottom: 20px; }
     .search-bar input { width: 100%; padding: 12px; border-radius: 40px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
@@ -141,6 +169,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   isAdmin = false;
   isModerator = false;
   userPseudo = '';
+  userAvatar = '';
   authModalVisible = false;
   authEmail = '';
   authPassword = '';
@@ -153,14 +182,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   registerPassword = '';
   registerPseudo = '';
   registerFullName = '';
-  registerCity = '';
   isRegistering = false;
   searchQuery = '';
   isAdminOrModerationRoute = false;
   isProfileRoute = false;
   isNavOpen = false;
+  unreadMessages = 0;
+  unreadNotifications = 0;
+  notificationsVisible = false;
+  notifications: any[] = [];
 
-  constructor(private auth: AuthService, private router: Router, private searchService: SearchService, private api: ApiService) {}
+  constructor(private auth: AuthService, private router: Router, private searchService: SearchService, private api: ApiService, private realtime: RealtimeService) {}
 
   ngOnInit() {
     this.auth.currentUser.subscribe(user => {
@@ -168,13 +200,21 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.userPseudo = user?.pseudo || '';
       this.isAdmin = user?.role === 'admin';
       this.isModerator = user?.role === 'moderator';
+      if (this.isLoggedIn) this.loadAvatar();
     });
+
+    this.realtime.badge$.subscribe(b => {
+      this.unreadMessages = b.unreadMessages;
+      this.unreadNotifications = b.unreadNotifications;
+    });
+    this.realtime.notifications$.subscribe(items => this.notifications = items || []);
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         const url = event.url;
         this.isAdminOrModerationRoute = url.includes('/admin') || url.includes('/profile') || url.includes('/messagerie') || url.includes('/moderation');
         this.isProfileRoute = url.includes('/profile');
         this.isNavOpen = false;
+        if (url.includes('/messagerie')) this.realtime.clearMessagesBadge();
 
         // RSS block is conditionally rendered; reload after navigation
         setTimeout(() => this.loadRssFeeds(), 0);
@@ -207,11 +247,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   openRegisterModal() {
     this.authModalVisible = false;
-    this.registerEmail = this.authEmail || '';
-    this.registerPassword = this.authPassword || '';
     this.registerPseudo = '';
     this.registerFullName = '';
-    this.registerCity = '';
+    this.registerEmail = '';
+    this.registerPassword = '';
     this.registerModalVisible = true;
   }
 
@@ -221,20 +260,21 @@ export class AppComponent implements OnInit, AfterViewInit {
     const password = (this.registerPassword || '').trim();
     const pseudo = (this.registerPseudo || '').trim();
     const fullName = (this.registerFullName || '').trim();
-    const city = (this.registerCity || '').trim();
 
-    if (!email || !password || !pseudo) {
-      this.showToast('Email, mot de passe et pseudo requis');
+    if (!email || !password || !pseudo || !fullName) {
+      this.showToast('Pseudo, nom complet, email et mot de passe requis');
       return;
     }
 
     this.isRegistering = true;
     try {
-      await this.auth.register(email, password, { pseudo, fullName, city });
+      await this.auth.register(email, password, { pseudo, fullName });
       this.registerModalVisible = false;
       this.showToast('Compte créé, vérifiez votre email');
-      this.authEmail = '';
+      // Retour à la fenêtre de login
+      this.authEmail = email;
       this.authPassword = '';
+      this.authModalVisible = true;
     } catch (e) {
       console.error('Register error:', e);
       this.showToast("Erreur lors de l'inscription: " + (e.message || e));
@@ -292,6 +332,46 @@ export class AppComponent implements OnInit, AfterViewInit {
     await this.auth.logout();
     this.showToast('Déconnecté');
     this.router.navigate(['/']);
+  }
+
+  goProfile() {
+    this.router.navigate(['/profile']);
+  }
+
+  openMessaging() {
+    this.router.navigate(['/messagerie']);
+  }
+
+  openNotifications() {
+    this.notificationsVisible = true;
+    this.realtime.markAllNotificationsSeen();
+    this.realtime.refreshNotifications();
+  }
+
+  openGroup(groupId: string) {
+    this.notificationsVisible = false;
+    this.router.navigate(['/groupes', groupId]);
+  }
+
+  acceptInvite(n: any) {
+    const gid = n?.data?.groupId;
+    if (!gid) return;
+    this.api.post(`groups/${gid}/invites/accept`, {}).subscribe({
+      next: () => {
+        this.showToast('Invitation acceptée');
+        this.openGroup(gid);
+      },
+      error: (err) => this.showToast(err?.error?.error || 'Erreur')
+    });
+  }
+
+  loadAvatar() {
+    this.api.get('user/profile').subscribe({
+      next: (p: any) => {
+        this.userAvatar = p?.avatar || '';
+      },
+      error: () => { this.userAvatar = ''; }
+    });
   }
 
   showToast(msg: string) {

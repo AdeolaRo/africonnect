@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 
 @Component({
   selector: 'app-messaging',
@@ -102,11 +103,12 @@ export class MessagingComponent implements OnInit {
     content: ''
   };
 
-  constructor(private api: ApiService, private auth: AuthService, private router: Router) {}
+  constructor(private api: ApiService, private auth: AuthService, private router: Router, private realtime: RealtimeService) {}
 
   ngOnInit() {
     this.loadUsers();
     this.loadMessages();
+    this.realtime.clearMessagesBadge();
   }
 
   goBack() {
