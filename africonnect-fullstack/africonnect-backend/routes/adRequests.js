@@ -4,6 +4,7 @@ const AdRequest = require('../models/AdRequest');
 const { canSendEmail, sendMailSafe } = require('../utils/mailer');
 const { createCheckoutSessionForAdRequest } = require('../utils/stripe');
 const Notification = require('../models/Notification');
+const Advertisement = require('../models/Advertisement');
 
 const router = express.Router();
 
@@ -194,15 +195,34 @@ router.post('/:id/approve', auth, async (req, res) => {
   if (!item) return res.status(404).json({ error: 'Non trouvé' });
   if (item.option !== 'publish_only') return res.status(400).json({ error: 'Action invalide' });
   if (!['under_review'].includes(String(item.status || ''))) return res.status(400).json({ error: 'Statut incompatible' });
-  item.status = 'approved';
+
+  // Auto-create a real Advertisement from the request
+  const mediaUrl = String(item.mediaUrl || '').trim();
+  if (!mediaUrl) return res.status(400).json({ error: 'Média manquant' });
+  const mediaType = /\.(mp4|mov|avi|webm)(\?|#|$)/i.test(mediaUrl) ? 'video' : 'image';
+
+  const ad = await new Advertisement({
+    title: `Publicité - ${item.userPseudo || 'Utilisateur'}`,
+    description: String(item.message || '').trim(),
+    mediaUrl,
+    mediaType,
+    buttonText: 'En savoir plus',
+    displayIn: ['forum', 'marketplace', 'jobs', 'solutions', 'solidarity', 'events', 'groups'],
+    order: 0,
+    isActive: true,
+    createdBy: req.userId
+  }).save();
+
+  item.status = 'published';
   await item.save();
+
   await notify(req, item.userId, {
     type: 'ad_approved',
     title: 'Publicité approuvée',
-    body: 'Votre publicité a été approuvée. Elle sera publiée prochainement.',
-    data: { requestId: String(item._id) }
+    body: 'Votre publicité a été approuvée et publiée.',
+    data: { requestId: String(item._id), advertisementId: String(ad._id) }
   });
-  res.json(item);
+  res.json({ item, advertisement: ad });
 });
 
 router.post('/:id/reject', auth, async (req, res) => {
