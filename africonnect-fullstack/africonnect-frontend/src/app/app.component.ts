@@ -88,7 +88,20 @@ import { RealtimeService } from './core/services/realtime.service';
         <input type="text" [(ngModel)]="registerPseudo" placeholder="Pseudo" name="registerPseudo" required>
         <input type="text" [(ngModel)]="registerFullName" placeholder="Nom complet" name="registerFullName" required>
         <input type="email" [(ngModel)]="registerEmail" placeholder="Email" name="registerEmail" required>
-        <input type="password" [(ngModel)]="registerPassword" placeholder="Mot de passe" name="registerPassword" required>
+        <div class="pw-wrap">
+          <input [type]="showRegisterPassword ? 'text' : 'password'" [(ngModel)]="registerPassword" placeholder="Mot de passe" name="registerPassword" required>
+          <button class="pw-toggle" type="button" (click)="showRegisterPassword = !showRegisterPassword"
+                  [attr.aria-label]="showRegisterPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+            👁
+          </button>
+        </div>
+        <div class="pw-wrap">
+          <input [type]="showRegisterPasswordConfirm ? 'text' : 'password'" [(ngModel)]="registerPasswordConfirm" placeholder="Confirmer le mot de passe" name="registerPasswordConfirm" required>
+          <button class="pw-toggle" type="button" (click)="showRegisterPasswordConfirm = !showRegisterPasswordConfirm"
+                  [attr.aria-label]="showRegisterPasswordConfirm ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+            👁
+          </button>
+        </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
           <button type="submit" class="btn btn-primary" [disabled]="isRegistering">
             {{ isRegistering ? 'Création...' : 'Créer' }}
@@ -163,6 +176,25 @@ import { RealtimeService } from './core/services/realtime.service';
     .rss-feed h3 { margin-top: 0; }
     .toast { position: fixed; bottom: 20px; right: 20px; background: #334155; color: white; padding: 12px 20px; border-radius: 40px; z-index: 2000; }
     .auth-form input { width: 100%; margin-bottom: 12px; padding: 12px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
+    .pw-wrap { position: relative; width: 100%; }
+    .pw-wrap input { padding-right: 48px; }
+    .pw-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pw-toggle:hover { border-color: var(--primary); }
     @media (max-width: 768px) {
       .navbar { padding: 12px 14px; }
       .container { padding: 14px; }
@@ -191,9 +223,12 @@ export class AppComponent implements OnInit, AfterViewInit {
   registerModalVisible = false;
   registerEmail = '';
   registerPassword = '';
+  registerPasswordConfirm = '';
   registerPseudo = '';
   registerFullName = '';
   isRegistering = false;
+  showRegisterPassword = false;
+  showRegisterPasswordConfirm = false;
   searchQuery = '';
   isAdminOrModerationRoute = false;
   isProfileRoute = false;
@@ -262,6 +297,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.registerFullName = '';
     this.registerEmail = '';
     this.registerPassword = '';
+    this.registerPasswordConfirm = '';
+    this.showRegisterPassword = false;
+    this.showRegisterPasswordConfirm = false;
     this.registerModalVisible = true;
   }
 
@@ -269,11 +307,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (event) event.preventDefault();
     const email = (this.registerEmail || '').trim();
     const password = (this.registerPassword || '').trim();
+    const confirmPassword = (this.registerPasswordConfirm || '').trim();
     const pseudo = (this.registerPseudo || '').trim();
     const fullName = (this.registerFullName || '').trim();
 
-    if (!email || !password || !pseudo || !fullName) {
-      this.showToast('Pseudo, nom complet, email et mot de passe requis');
+    if (!email || !password || !confirmPassword || !pseudo || !fullName) {
+      this.showToast('Pseudo, nom complet, email et mots de passe requis');
+      return;
+    }
+    if (password !== confirmPassword) {
+      this.showToast('Les mots de passe ne correspondent pas');
       return;
     }
 

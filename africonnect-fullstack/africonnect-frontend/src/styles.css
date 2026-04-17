@@ -286,6 +286,22 @@ p { margin-bottom: 1rem; }
   box-shadow: var(--shadow);
 }
 
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.items-grid > .item-card {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .items-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Media previews (images/videos) */
 .media-preview {
   width: 100%;

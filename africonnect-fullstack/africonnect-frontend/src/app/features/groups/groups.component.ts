@@ -17,25 +17,27 @@ import { RouterLink } from '@angular/router';
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
     </div>
     <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">Aucun élément</div>
-    <div *ngFor="let item of filteredItems" class="item-card">
-      <h3 style="margin-bottom: 6px;">
-        <a [routerLink]="['/groupes', item._id]" style="color: inherit; text-decoration: none;">
-          {{ item.title || item.name }}
-        </a>
-      </h3>
-      <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
-      <div class="text-muted" style="margin-top:6px;">
-        👥 {{ (item.members?.length || 0) }} membre(s)
-      </div>
-      <div *ngIf="getImages(item).length > 0" class="thumb-grid">
-        <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || item.name || 'Image'" (click)="openPreview(url)">
-      </div>
-      <div [innerHTML]="item.content || item.desc"></div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
-        <button *ngIf="isLoggedIn && !isMember(item)" class="btn btn-primary" (click)="join(item)">Rejoindre</button>
-        <button *ngIf="isLoggedIn && isMember(item)" class="btn btn-secondary" (click)="leave(item)">Quitter</button>
-        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
-        <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+    <div class="items-grid" *ngIf="filteredItems.length">
+      <div *ngFor="let item of filteredItems" class="item-card">
+        <h3 style="margin-bottom: 6px;">
+          <a [routerLink]="['/groupes', item._id]" style="color: inherit; text-decoration: none;">
+            {{ item.title || item.name }}
+          </a>
+        </h3>
+        <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
+        <div class="text-muted" style="margin-top:6px;">
+          👥 {{ (item.members?.length || 0) }} membre(s)
+        </div>
+        <div *ngIf="getImages(item).length > 0" class="thumb-grid">
+          <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || item.name || 'Image'" (click)="openPreview(url)">
+        </div>
+        <div [innerHTML]="item.content || item.desc"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
+          <button *ngIf="isLoggedIn && !isMember(item)" class="btn btn-primary" (click)="join(item)">Rejoindre</button>
+          <button *ngIf="isLoggedIn && isMember(item)" class="btn btn-secondary" (click)="leave(item)">Quitter</button>
+          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
+          <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+        </div>
       </div>
     </div>
 
