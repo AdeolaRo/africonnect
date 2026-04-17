@@ -92,14 +92,24 @@ import { RealtimeService } from './core/services/realtime.service';
           <input [type]="showRegisterPassword ? 'text' : 'password'" [(ngModel)]="registerPassword" placeholder="Mot de passe" name="registerPassword" required>
           <button class="pw-toggle" type="button" (click)="showRegisterPassword = !showRegisterPassword"
                   [attr.aria-label]="showRegisterPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
-            👁
+            <svg *ngIf="!showRegisterPassword" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5c-5.5 0-10 5.3-10 7s4.5 7 10 7 10-5.3 10-7-4.5-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5c2.77 0 5 2.24 5 5s-2.23 5-5 5zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+            </svg>
+            <svg *ngIf="showRegisterPassword" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2.1 3.51 3.51 2.1 21.9 20.49 20.49 21.9l-3.02-3.02c-1.57.73-3.35 1.12-5.47 1.12-5.5 0-10-5.3-10-7 0-1.04 1.69-3.28 4.36-4.92L2.1 3.51zm9.9 4.49c2.77 0 5 2.24 5 5 0 .54-.09 1.06-.25 1.55l-1.62-1.62c.05-.19.07-.39.07-.6a3 3 0 0 0-3-3c-.21 0-.41.02-.6.07L10.98 7.8c.49-.16 1.01-.25 1.52-.25zm-7.5 5c.93 1.24 2.97 3.59 5.98 4.43l-1.63-1.63a5 5 0 0 1-1.85-3.8c0-.67.13-1.31.36-1.9-1.23.87-2.21 1.94-2.86 2.9zm8.49 4.99c.33.03.67.01 1.01-.03l-1.73-1.73c.23.09.48.15.72.18zM12 5c2.12 0 3.9.39 5.47 1.12C20.24 7.76 22 9.99 22 11c0 .71-.71 2.01-1.86 3.34l-1.45-1.45c.76-.89 1.24-1.68 1.39-1.89-.93-1.25-3.52-4-8.08-4-.34 0-.67.02-.99.05L9.6 5.64c.76-.1 1.56-.14 2.4-.14z"/>
+            </svg>
           </button>
         </div>
         <div class="pw-wrap">
           <input [type]="showRegisterPasswordConfirm ? 'text' : 'password'" [(ngModel)]="registerPasswordConfirm" placeholder="Confirmer le mot de passe" name="registerPasswordConfirm" required>
           <button class="pw-toggle" type="button" (click)="showRegisterPasswordConfirm = !showRegisterPasswordConfirm"
                   [attr.aria-label]="showRegisterPasswordConfirm ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
-            👁
+            <svg *ngIf="!showRegisterPasswordConfirm" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5c-5.5 0-10 5.3-10 7s4.5 7 10 7 10-5.3 10-7-4.5-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5c2.77 0 5 2.24 5 5s-2.23 5-5 5zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+            </svg>
+            <svg *ngIf="showRegisterPasswordConfirm" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2.1 3.51 3.51 2.1 21.9 20.49 20.49 21.9l-3.02-3.02c-1.57.73-3.35 1.12-5.47 1.12-5.5 0-10-5.3-10-7 0-1.04 1.69-3.28 4.36-4.92L2.1 3.51zm9.9 4.49c2.77 0 5 2.24 5 5 0 .54-.09 1.06-.25 1.55l-1.62-1.62c.05-.19.07-.39.07-.6a3 3 0 0 0-3-3c-.21 0-.41.02-.6.07L10.98 7.8c.49-.16 1.01-.25 1.52-.25zm-7.5 5c.93 1.24 2.97 3.59 5.98 4.43l-1.63-1.63a5 5 0 0 1-1.85-3.8c0-.67.13-1.31.36-1.9-1.23.87-2.21 1.94-2.86 2.9zm8.49 4.99c.33.03.67.01 1.01-.03l-1.73-1.73c.23.09.48.15.72.18zM12 5c2.12 0 3.9.39 5.47 1.12C20.24 7.76 22 9.99 22 11c0 .71-.71 2.01-1.86 3.34l-1.45-1.45c.76-.89 1.24-1.68 1.39-1.89-.93-1.25-3.52-4-8.08-4-.34 0-.67.02-.99.05L9.6 5.64c.76-.1 1.56-.14 2.4-.14z"/>
+            </svg>
           </button>
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
@@ -195,6 +205,7 @@ import { RealtimeService } from './core/services/realtime.service';
       justify-content: center;
     }
     .pw-toggle:hover { border-color: var(--primary); }
+    .pw-toggle svg { width: 16px; height: 16px; fill: currentColor; display: block; }
     @media (max-width: 768px) {
       .navbar { padding: 12px 14px; }
       .container { padding: 14px; }
