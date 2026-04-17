@@ -1134,6 +1134,40 @@ select.form-control {
   min-width: 0;
 }
 
+@media (max-width: 768px) {
+  .profile-container { padding: 14px; }
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .profile-actions {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .profile-actions .btn {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+  .profile-content {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .profile-sidebar {
+    width: 100%;
+  }
+  .profile-stats { padding: 16px; }
+  .avatar-section { padding: 16px; margin-bottom: 14px; }
+  .avatar-large { width: 120px; height: 120px; margin-bottom: 12px; }
+}
+
 .avatar-section {
   background: var(--surface);
   border: 1px solid var(--border);

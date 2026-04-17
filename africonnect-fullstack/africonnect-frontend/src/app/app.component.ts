@@ -187,14 +187,16 @@ import { RealtimeService } from './core/services/realtime.service';
     .toast { position: fixed; bottom: 20px; right: 20px; background: #334155; color: white; padding: 12px 20px; border-radius: 40px; z-index: 2000; }
     .auth-form input { width: 100%; margin-bottom: 12px; padding: 12px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
     .pw-wrap { position: relative; width: 100%; }
-    .pw-wrap input { padding-right: 48px; }
+    .pw-wrap input { padding-right: 44px; }
     .pw-toggle {
       position: absolute;
       right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 36px;
-      height: 36px;
+      top: 0;
+      bottom: 12px; /* match .auth-form input margin-bottom */
+      margin: auto 0;
+      transform: none;
+      width: 32px;
+      height: 32px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--surface-2);
