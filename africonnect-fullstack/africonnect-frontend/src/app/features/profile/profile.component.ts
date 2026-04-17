@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, CityAutocompleteComponent],
   template: `
     <div class="profile-container">
       <div class="profile-header">
@@ -102,7 +103,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Ville</label>
-                <input type="text" [(ngModel)]="profile.city" class="form-control" placeholder="Votre ville">
+                <app-city-autocomplete [(ngModel)]="profile.city" name="city" placeholder="Votre ville"></app-city-autocomplete>
               </div>
               <div class="form-group">
                 <label class="form-label">Origine</label>

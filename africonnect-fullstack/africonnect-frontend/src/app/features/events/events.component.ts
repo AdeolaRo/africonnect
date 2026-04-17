@@ -5,12 +5,13 @@ import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
 import { QuillModule } from 'ngx-quill';
 
 @Component({
   selector: 'app-evenements',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, CityAutocompleteComponent],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
@@ -53,7 +54,7 @@ import { QuillModule } from 'ngx-quill';
           </div>
           <div class="form-group" style="flex:1;">
             <label class="form-label">Lieu</label>
-            <input type="text" formControlName="location" placeholder="Ex: Paris, France" class="form-control">
+            <app-city-autocomplete formControlName="location" placeholder="Ex: Paris, France"></app-city-autocomplete>
             <div class="text-muted" style="font-size:0.875rem; margin-top:4px;">Optionnel</div>
           </div>
         </div>

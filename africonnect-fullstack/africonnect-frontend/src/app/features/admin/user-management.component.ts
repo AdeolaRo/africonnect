@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, CityAutocompleteComponent],
   template: `
     <div class="admin-container">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
@@ -107,7 +108,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
         <div class="form-row" style="display: flex; gap: 20px; margin-bottom: 20px;">
           <div class="form-group" style="flex: 1;">
             <label class="form-label">Ville</label>
-            <input type="text" [(ngModel)]="form.city" name="city" class="form-control">
+            <app-city-autocomplete [(ngModel)]="form.city" name="city" placeholder="Ville"></app-city-autocomplete>
           </div>
           
           <div class="form-group" style="flex: 1;">
