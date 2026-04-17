@@ -275,8 +275,8 @@ p { margin-bottom: 1rem; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 20px;
+  padding: 18px;
+  margin-bottom: 14px;
   transition: var(--transition);
 }
 
@@ -1149,26 +1149,26 @@ select.form-control {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 32px;
-  margin-bottom: 24px;
+  padding: 22px;
+  margin-bottom: 16px;
 }
 
 .profile-sections {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
+  gap: 16px;
 }
 
 .section {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 18px;
 }
 
 .empty-section {
   text-align: center;
-  padding: 40px 20px;
+  padding: 26px 14px;
   color: var(--text-muted);
 }
 
@@ -1176,15 +1176,15 @@ select.form-control {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
 }
 
 .post-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .post-header h4 {
@@ -1198,9 +1198,9 @@ select.form-control {
 }
 
 .post-content {
-  font-size: 0.95rem;
+  font-size: 0.93rem;
   line-height: 1.5;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   color: var(--text-muted);
 }
 
@@ -1219,7 +1219,7 @@ select.form-control {
 
 /* Messaging Styles */
 .messaging-container {
-  padding: 24px;
+  padding: 18px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -1227,15 +1227,15 @@ select.form-control {
 .messaging-layout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
-  margin-top: 24px;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .new-message-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 18px;
   grid-column: 1 / -1;
 }
 
@@ -1243,7 +1243,7 @@ select.form-control {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 18px;
   max-height: 600px;
   overflow-y: auto;
 }
@@ -1252,15 +1252,15 @@ select.form-control {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
 }
 
 .message-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .message-subject {
