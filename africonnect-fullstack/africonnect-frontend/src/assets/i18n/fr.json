@@ -105,6 +105,23 @@
     "empty": "Aucun article RSS pour le moment.",
     "loadError": "Impossible de charger le flux RSS."
   },
+  "carousel": {
+    "spaceTitle": "Espace publicitaire",
+    "spaceSubtitle": "Contactez-nous pour promouvoir votre activité",
+    "comingSoon": "Bientôt disponible",
+    "learnMore": "En savoir plus",
+    "fallback1Title": "Offre spéciale",
+    "fallback1Desc": "Découvrez nos partenaires",
+    "fallback2Title": "Événement à venir",
+    "fallback2Desc": "Rencontre africaine à Paris",
+    "fallback2Button": "Je participe",
+    "fallback3Title": "Service à la une",
+    "fallback3Desc": "Transfert d'argent simplifié",
+    "fallback3Button": "Utiliser",
+    "ariaPrev": "Diapositive précédente",
+    "ariaNext": "Diapositive suivante",
+    "ariaDot": "Aller à la diapositive {{n}}"
+  },
   "notifications": {
     "title": "Notifications",
     "clearAll": "Effacer tout",

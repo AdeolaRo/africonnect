@@ -105,6 +105,23 @@
     "empty": "No RSS articles right now.",
     "loadError": "Could not load the RSS feed."
   },
+  "carousel": {
+    "spaceTitle": "Advertising space",
+    "spaceSubtitle": "Contact us to promote your activity",
+    "comingSoon": "Coming soon",
+    "learnMore": "Learn more",
+    "fallback1Title": "Special offer",
+    "fallback1Desc": "Discover our partners",
+    "fallback2Title": "Upcoming event",
+    "fallback2Desc": "African meet-up in Paris",
+    "fallback2Button": "I'm in",
+    "fallback3Title": "Featured service",
+    "fallback3Desc": "Simplified money transfers",
+    "fallback3Button": "Get started",
+    "ariaPrev": "Previous slide",
+    "ariaNext": "Next slide",
+    "ariaDot": "Go to slide {{n}}"
+  },
   "notifications": {
     "title": "Notifications",
     "clearAll": "Clear all",

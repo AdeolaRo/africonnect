@@ -2,19 +2,20 @@ import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { API_BASE_URL } from '../../../core/config/app.config';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-carousel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   template: `
     <div class="ad-carousel">
       <div *ngIf="ads.length === 0" class="carousel-slide">
-        <h3>Espace publicitaire</h3>
-        <p>Contactez-nous pour promouvoir votre activité</p>
-        <button class="btn btn-primary" disabled>Bientôt disponible</button>
+        <h3>{{ 'carousel.spaceTitle' | translate }}</h3>
+        <p>{{ 'carousel.spaceSubtitle' | translate }}</p>
+        <button class="btn btn-primary" disabled>{{ 'carousel.comingSoon' | translate }}</button>
       </div>
-      
+
       <div *ngIf="ads.length > 0">
         <div class="carousel-track" [style.transform]="'translateX(-' + currentSlide * 100 + '%)'">
           <div class="carousel-slide" *ngFor="let ad of ads">
@@ -26,41 +27,44 @@ import { API_BASE_URL } from '../../../core/config/app.config';
             </div>
             <h3>{{ ad.title }}</h3>
             <p *ngIf="ad.description">{{ ad.description }}</p>
-            <a *ngIf="ad.targetUrl" [href]="ad.targetUrl" target="_blank" class="btn btn-primary">{{ ad.buttonText || 'En savoir plus' }}</a>
-            <button *ngIf="!ad.targetUrl" class="btn btn-primary" disabled>{{ ad.buttonText || 'En savoir plus' }}</button>
+            <a *ngIf="ad.targetUrl" [href]="ad.targetUrl" target="_blank" class="btn btn-primary">{{ ad.buttonText || ('carousel.learnMore' | translate) }}</a>
+            <button *ngIf="!ad.targetUrl" class="btn btn-primary" disabled>{{ ad.buttonText || ('carousel.learnMore' | translate) }}</button>
           </div>
         </div>
-        
-        <button *ngIf="ads.length > 1" class="carousel-nav prev" (click)="prev()">❮</button>
-        <button *ngIf="ads.length > 1" class="carousel-nav next" (click)="next()">❯</button>
-        
+
+        <button *ngIf="ads.length > 1" class="carousel-nav prev" (click)="prev()" type="button" [attr.aria-label]="'carousel.ariaPrev' | translate">❮</button>
+        <button *ngIf="ads.length > 1" class="carousel-nav next" (click)="next()" type="button" [attr.aria-label]="'carousel.ariaNext' | translate">❯</button>
+
         <div *ngIf="ads.length > 1" class="carousel-dots">
-          <button *ngFor="let ad of ads; let i = index" class="dot" [class.active]="i === currentSlide" (click)="goTo(i)"></button>
+          <button *ngFor="let ad of ads; let i = index" class="dot" [class.active]="i === currentSlide" (click)="goTo(i)" type="button" [attr.aria-label]="'carousel.ariaDot' | translate:{ n: i + 1 }"></button>
         </div>
       </div>
     </div>
   `
 })
 export class CarouselComponent implements OnInit, OnDestroy {
-  @Input() section: string = 'forum'; // Section actuelle pour filtrer les pubs
-  
+  @Input() section: string = 'forum';
+
   ads: any[] = [];
   currentSlide = 0;
   private interval: any;
-  
-  constructor(private http: HttpClient) {}
-  
+
+  constructor(
+    private http: HttpClient,
+    private translate: TranslateService
+  ) {}
+
   ngOnInit() {
     this.loadAds();
     if (this.ads.length > 1) {
       this.interval = setInterval(() => this.next(), 8000);
     }
   }
-  
+
   ngOnDestroy() {
     if (this.interval) clearInterval(this.interval);
   }
-  
+
   loadAds() {
     const url = `${API_BASE_URL}/advertisements${this.section ? '?section=' + this.section : ''}`;
     this.http.get<any[]>(url).subscribe({
@@ -75,11 +79,23 @@ export class CarouselComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error loading ads:', err);
-        // Fallback aux pubs par défaut
+        const t = (k: string) => this.translate.instant(k);
         this.ads = [
-          { title: 'Offre spéciale', description: 'Découvrez nos partenaires', buttonText: 'En savoir plus' },
-          { title: 'Événement à venir', description: 'Rencontre africaine à Paris', buttonText: 'Je participe' },
-          { title: 'Service à la une', description: "Transfert d'argent simplifié", buttonText: 'Utiliser' }
+          {
+            title: t('carousel.fallback1Title'),
+            description: t('carousel.fallback1Desc'),
+            buttonText: t('carousel.learnMore')
+          },
+          {
+            title: t('carousel.fallback2Title'),
+            description: t('carousel.fallback2Desc'),
+            buttonText: t('carousel.fallback2Button')
+          },
+          {
+            title: t('carousel.fallback3Title'),
+            description: t('carousel.fallback3Desc'),
+            buttonText: t('carousel.fallback3Button')
+          }
         ];
       }
     });
@@ -87,26 +103,24 @@ export class CarouselComponent implements OnInit, OnDestroy {
 
   private normalizeMediaUrl(url?: string): string {
     if (!url) return '';
-    // Si l’API renvoie une URL relative, on la sert depuis le backend
     if (url.startsWith('/uploads/')) return `${API_BASE_URL.replace(/\/api$/, '')}${url}`;
     return url;
   }
-  
-  next() { 
+
+  next() {
     if (this.ads.length > 1) {
-      this.currentSlide = (this.currentSlide + 1) % this.ads.length; 
+      this.currentSlide = (this.currentSlide + 1) % this.ads.length;
     }
   }
-  
-  prev() { 
+
+  prev() {
     if (this.ads.length > 1) {
-      this.currentSlide = (this.currentSlide - 1 + this.ads.length) % this.ads.length; 
+      this.currentSlide = (this.currentSlide - 1 + this.ads.length) % this.ads.length;
     }
   }
-  
-  goTo(i: number) { 
-    this.currentSlide = i; 
-    // Réinitialiser le timer
+
+  goTo(i: number) {
+    this.currentSlide = i;
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = setInterval(() => this.next(), 8000);
