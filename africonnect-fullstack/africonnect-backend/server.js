@@ -62,6 +62,11 @@ app.use(express.urlencoded({ extended: true }));
 // Servir les fichiers statiques du dossier uploads
 app.use('/uploads', express.static('uploads'));
 
+// Health check (useful for VPS/Nginx monitoring)
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true });
+});
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
