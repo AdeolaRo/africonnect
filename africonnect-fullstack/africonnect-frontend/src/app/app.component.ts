@@ -332,11 +332,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     private realtime: RealtimeService,
     private translate: TranslateService
   ) {
-    // Default must be French; English only when user switches
-    const saved = (localStorage.getItem('lang') || '').toLowerCase();
-    this.lang = (saved === 'en' ? 'en' : 'fr');
+    // Requirement: French by default; English only after explicit click.
+    this.lang = 'fr';
     this.translate.setDefaultLang('fr');
-    this.translate.use(this.lang);
+    this.translate.use('fr');
   }
 
   setLang(lang: 'fr' | 'en') {
