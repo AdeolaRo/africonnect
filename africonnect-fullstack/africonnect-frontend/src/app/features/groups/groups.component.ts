@@ -25,17 +25,17 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             {{ item.title || item.name }}
           </a>
         </h3>
-        <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
+        <div style="color:var(--muted);">{{ 'common.metaBy' | translate:{ author: (item.authorName || ('forumUi.anonymous' | translate)) } }} — {{ item.createdAt | date }}</div>
         <div class="text-muted" style="margin-top:6px;">
-          👥 {{ (item.members?.length || 0) }} membre(s)
+          👥 {{ 'groupsList.membersCount' | translate:{ count: (item.members?.length || 0) } }}
         </div>
         <div *ngIf="getImages(item).length > 0" class="thumb-grid">
-          <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || item.name || 'Image'" (click)="openPreview(url)">
+          <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || item.name || ('groupsList.altGroupCover' | translate)" (click)="openPreview(url)">
         </div>
         <div [innerHTML]="item.content || item.desc"></div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
-          <button *ngIf="isLoggedIn && !isMember(item)" class="btn btn-primary" (click)="join(item)">Rejoindre</button>
-          <button *ngIf="isLoggedIn && isMember(item)" class="btn btn-secondary" (click)="leave(item)">Quitter</button>
+          <button *ngIf="isLoggedIn && !isMember(item)" class="btn btn-primary" (click)="join(item)">{{ 'groupDetail.join' | translate }}</button>
+          <button *ngIf="isLoggedIn && isMember(item)" class="btn btn-secondary" (click)="leave(item)">{{ 'groupDetail.leave' | translate }}</button>
           <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">{{ 'common.delete' | translate }}</button>
           <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
         </div>
@@ -45,27 +45,27 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <app-modal [(visible)]="modalVisible" [title]="'sections.groupsNew' | translate">
       <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
-          <label class="form-label">Nom du groupe *</label>
-          <input type="text" formControlName="name" placeholder="Ex: Entrepreneurs Africains Paris" class="form-control">
+          <label class="form-label">{{ 'groupsList.nameLabel' | translate }}</label>
+          <input type="text" formControlName="name" [placeholder]="'groupsList.namePlaceholder' | translate" class="form-control">
           <div *ngIf="itemForm.get('name')?.invalid && itemForm.get('name')?.touched" class="text-error">
-            Le nom est requis
+            {{ 'groupsList.nameRequired' | translate }}
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Description</label>
-          <textarea formControlName="description" placeholder="But du groupe, règles, thématiques..." rows="5" class="form-control"></textarea>
-          <div class="text-muted" style="font-size:0.875rem; margin-top:4px;">Optionnel</div>
+          <label class="form-label">{{ 'groupsList.descriptionLabel' | translate }}</label>
+          <textarea formControlName="description" [placeholder]="'groupsList.descriptionPlaceholder' | translate" rows="5" class="form-control"></textarea>
+          <div class="text-muted" style="font-size:0.875rem; margin-top:4px;">{{ 'groupsList.optionalHint' | translate }}</div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Catégorie</label>
-          <input type="text" formControlName="category" placeholder="Ex: Business, Culture, Sport..." class="form-control">
-          <div class="text-muted" style="font-size:0.875rem; margin-top:4px;">Optionnel</div>
+          <label class="form-label">{{ 'groupsList.categoryLabel' | translate }}</label>
+          <input type="text" formControlName="category" [placeholder]="'groupsList.categoryPlaceholder' | translate" class="form-control">
+          <div class="text-muted" style="font-size:0.875rem; margin-top:4px;">{{ 'groupsList.optionalHint' | translate }}</div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Image (optionnelle)</label>
+          <label class="form-label">{{ 'groupsList.imageOptional' | translate }}</label>
           <div class="file-upload">
             <input #imgInput type="file" accept="image/*" (change)="addFile($event)" style="display:none;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
@@ -76,12 +76,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             </div>
 
             <div *ngIf="selectedFileUrls.length === 0" class="text-muted" style="margin-top:10px; font-size:0.9rem;">
-              {{ fileDescription }}
+              {{ 'groupsList.imageHint' | translate }}
             </div>
 
             <div *ngIf="selectedFileUrls.length > 0" class="thumb-grid" style="margin-top:10px;">
               <div *ngFor="let url of selectedFileUrls; let i = index" style="position:relative;">
-                <img class="thumb" [src]="url" alt="Image sélectionnée" (click)="openPreview(url)">
+                <img class="thumb" [src]="url" [alt]="'groupsList.altSelectedImage' | translate" (click)="openPreview(url)">
                 <button type="button" class="btn btn-danger btn-sm"
                   (click)="removeFile(i)"
                   style="position:absolute; top:6px; right:6px; padding:6px 8px; border-radius:999px;">
@@ -127,10 +127,6 @@ export class GroupesComponent implements OnInit {
   currentUserRole = '';
   filteredItems: any[] = [];
   isSubmitting = false;
-
-  get fileDescription(): string {
-    return 'PNG, JPG, GIF jusqu\'à 5MB';
-  }
 
   constructor(
     private api: ApiService,

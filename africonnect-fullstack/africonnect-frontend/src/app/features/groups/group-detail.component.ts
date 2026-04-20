@@ -19,7 +19,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <div class="text-muted" style="margin-top:6px;">
             {{ group.visibility === 'private' ? ('🔒 ' + ('groupDetail.private' | translate)) : ('🌍 ' + ('groupDetail.public' | translate)) }}
             • 👥 {{ group.members?.length || 0 }} {{ 'groupDetail.membersCount' | translate }}
-            • {{ 'groupDetail.by' | translate }} {{ group.authorName || '—' }}
+            • {{ 'groupDetail.by' | translate }} {{ group.authorName || ('forumUi.anonymous' | translate) }}
           </div>
         </div>
         <button class="btn btn-secondary" (click)="goBack()">{{ 'groupDetail.back' | translate }}</button>
@@ -40,7 +40,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="settingsVisible = true">⚙️ {{ 'groupDetail.settings' | translate }}</button>
         <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="membersVisible = true">👥 {{ 'groupDetail.members' | translate }}</button>
         <button *ngIf="isLoggedIn && canManage && group.visibility === 'private'" class="btn btn-secondary" (click)="requestsVisible = true">
-          ✅ {{ 'groupDetail.requests' | translate }} ({{ group.joinRequests?.length || 0 }})
+          {{ 'groupDetail.requestsBadge' | translate:{ count: group.joinRequests?.length || 0 } }}
         </button>
         <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="invitesVisible = true">✉️ {{ 'groupDetail.invite' | translate }}</button>
       </div>
@@ -56,18 +56,18 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
       <div *ngFor="let p of posts" style="margin-top:14px; padding:14px; border:1px solid var(--border); border-radius:16px; background:var(--surface);">
         <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-          <div style="font-weight:700;">{{ p.authorName || '—' }}</div>
+          <div style="font-weight:700;">{{ p.authorName || ('forumUi.anonymous' | translate) }}</div>
           <div class="text-muted" style="font-size:0.9rem;">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
         </div>
         <div style="margin-top:8px; white-space:pre-wrap;">{{ p.content }}</div>
 
         <div *ngIf="(p.imageUrls || []).length" class="thumb-grid" style="margin-top:10px;">
-          <img *ngFor="let url of p.imageUrls" class="thumb" [src]="url" (click)="openPreview(url)" alt="image">
+          <img *ngFor="let url of p.imageUrls" class="thumb" [src]="url" (click)="openPreview(url)" [attr.alt]="'groupDetail.altPostImage' | translate">
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center;">
           <button class="btn" (click)="likePost(p)">❤️ {{ p.likes?.length || 0 }}</button>
-          <button class="btn btn-secondary" (click)="toggleComments(p)">💬 {{ p.comments?.length || 0 }}</button>
+          <button class="btn btn-secondary" (click)="toggleComments(p)">💬 {{ 'groupDetail.commentsWithCount' | translate:{ count: p.comments?.length || 0 } }}</button>
           <button *ngIf="canDeletePost(p)" class="btn btn-secondary btn-sm" (click)="editPost(p)">{{ 'common.edit' | translate }}</button>
           <button *ngIf="canDeletePost(p)" class="btn btn-danger btn-sm" (click)="deletePost(p)">{{ 'common.delete' | translate }}</button>
         </div>
@@ -75,33 +75,33 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <div *ngIf="p.__showComments" style="margin-top:12px;">
           <div *ngFor="let c of (p.comments || [])" style="padding:10px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); margin-top:8px;">
             <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-              <div style="font-weight:700;">{{ c.authorName || '—' }}</div>
+              <div style="font-weight:700;">{{ c.authorName || ('forumUi.anonymous' | translate) }}</div>
               <div class="text-muted" style="font-size:0.85rem;">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
             </div>
             <div style="margin-top:6px; white-space:pre-wrap;">{{ c.content }}</div>
           </div>
 
           <div *ngIf="isLoggedIn && isMember" style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-            <textarea class="form-control" rows="2" [(ngModel)]="commentDraft[p._id]" placeholder="Écrire un commentaire..." style="flex:1; min-width: 220px;"></textarea>
-            <button class="btn btn-primary" (click)="addComment(p)" [disabled]="!(commentDraft[p._id]||'').trim()">Envoyer</button>
+            <textarea class="form-control" rows="2" [(ngModel)]="commentDraft[p._id]" [placeholder]="'groupDetail.commentPlaceholder' | translate" style="flex:1; min-width: 220px;"></textarea>
+            <button class="btn btn-primary" (click)="addComment(p)" [disabled]="!(commentDraft[p._id]||'').trim()">{{ 'groupDetail.sendComment' | translate }}</button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Settings modal -->
-    <app-modal [(visible)]="settingsVisible" title="Paramètres du groupe">
+    <app-modal [(visible)]="settingsVisible" [title]="'groupDetail.settingsTitle' | translate">
       <div *ngIf="group" class="auth-form">
-        <label class="form-label">Nom</label>
+        <label class="form-label">{{ 'groupDetail.fieldName' | translate }}</label>
         <input class="form-control" [(ngModel)]="edit.name">
-        <label class="form-label">Description</label>
+        <label class="form-label">{{ 'groupDetail.fieldDescription' | translate }}</label>
         <textarea class="form-control" rows="3" [(ngModel)]="edit.description"></textarea>
-        <label class="form-label">Visibilité</label>
+        <label class="form-label">{{ 'groupDetail.fieldVisibility' | translate }}</label>
         <select class="form-control" [(ngModel)]="edit.visibility">
-          <option value="public">Public</option>
-          <option value="private">Privé</option>
+          <option value="public">{{ 'groupDetail.visibilityPublic' | translate }}</option>
+          <option value="private">{{ 'groupDetail.visibilityPrivate' | translate }}</option>
         </select>
-        <label class="form-label">Règles</label>
+        <label class="form-label">{{ 'groupDetail.fieldRules' | translate }}</label>
         <textarea class="form-control" rows="4" [(ngModel)]="edit.rules"></textarea>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
           <button class="btn btn-secondary" (click)="settingsVisible=false">{{ 'common.cancel' | translate }}</button>
@@ -111,23 +111,23 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     </app-modal>
 
     <!-- Members modal -->
-    <app-modal [(visible)]="membersVisible" title="Membres">
+    <app-modal [(visible)]="membersVisible" [title]="'groupDetail.membersTitle' | translate">
       <div *ngIf="group">
         <div class="text-muted" style="margin-bottom:10px;">
-          Créateur: {{ group.authorName || '—' }}
+          {{ 'groupDetail.creatorLine' | translate:{ name: group.authorName || ('forumUi.anonymous' | translate) } }}
         </div>
         <div *ngFor="let uid of (group.members || [])" style="display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); align-items:center;">
           <div style="min-width:0;">
             <div style="font-weight:700;">{{ userLabel(uid) }}</div>
             <div class="text-muted" style="font-size:0.9rem;">
-              {{ isCreatorId(uid) ? 'Créateur' : (isModeratorId(uid) ? 'Modérateur' : 'Membre') }}
+              {{ isCreatorId(uid) ? ('groupDetail.creator' | translate) : (isModeratorId(uid) ? ('groupDetail.moderator' | translate) : ('groupDetail.member' | translate)) }}
             </div>
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-            <button *ngIf="canManage && !isCreatorId(uid) && !isModeratorId(uid)" class="btn btn-secondary btn-sm" (click)="promote(uid)">Nommer mod</button>
-            <button *ngIf="canManage && !isCreatorId(uid) && isModeratorId(uid)" class="btn btn-secondary btn-sm" (click)="demote(uid)">Retirer mod</button>
-            <button *ngIf="canManage && !isCreatorId(uid)" class="btn btn-danger btn-sm" (click)="ban(uid)">Bannir</button>
-            <button *ngIf="canManage && !isCreatorId(uid)" class="btn btn-secondary btn-sm" (click)="remove(uid)">Retirer</button>
+            <button *ngIf="canManage && !isCreatorId(uid) && !isModeratorId(uid)" class="btn btn-secondary btn-sm" (click)="promote(uid)">{{ 'groupDetail.promoteMod' | translate }}</button>
+            <button *ngIf="canManage && !isCreatorId(uid) && isModeratorId(uid)" class="btn btn-secondary btn-sm" (click)="demote(uid)">{{ 'groupDetail.demoteMod' | translate }}</button>
+            <button *ngIf="canManage && !isCreatorId(uid)" class="btn btn-danger btn-sm" (click)="ban(uid)">{{ 'groupDetail.banMember' | translate }}</button>
+            <button *ngIf="canManage && !isCreatorId(uid)" class="btn btn-secondary btn-sm" (click)="remove(uid)">{{ 'groupDetail.removeMemberBtn' | translate }}</button>
           </div>
         </div>
       </div>
@@ -151,7 +151,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <app-modal [(visible)]="invitesVisible" [title]="'groupDetail.invite' | translate">
       <div class="auth-form">
         <label class="form-label">{{ 'groupDetail.emailUser' | translate }}</label>
-        <input class="form-control" [(ngModel)]="inviteEmail" placeholder="ex: user@gmail.com">
+        <input class="form-control" [(ngModel)]="inviteEmail" [placeholder]="'groupDetail.inviteEmailPlaceholder' | translate">
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
           <button class="btn btn-secondary" (click)="invitesVisible=false">{{ 'groupDetail.close' | translate }}</button>
           <button class="btn btn-primary" (click)="sendInvite()" [disabled]="!(inviteEmail||'').trim()">{{ 'groupDetail.send' | translate }}</button>
@@ -176,7 +176,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
         <div *ngIf="postFileUrls.length > 0" class="thumb-grid" style="margin-top:10px;">
           <div *ngFor="let url of postFileUrls; let i = index" style="position:relative;">
-            <img class="thumb" [src]="url" (click)="openPreview(url)" alt="image">
+            <img class="thumb" [src]="url" (click)="openPreview(url)" [attr.alt]="'groupDetail.altPostImage' | translate">
             <button type="button" class="btn btn-danger btn-sm"
               (click)="removePostFile(i)"
               style="position:absolute; top:6px; right:6px; padding:6px 8px; border-radius:999px;">
@@ -404,7 +404,7 @@ export class GroupDetailComponent implements OnInit {
     const email = (this.inviteEmail || '').trim();
     if (!email) return;
     this.api.post(`groups/${this.group._id}/invites`, { email }).subscribe({
-      next: (g: any) => { this.group = g; this.inviteEmail = ''; alert(this.translate.instant('common.send')); },
+      next: (g: any) => { this.group = g; this.inviteEmail = ''; alert(this.translate.instant('groupDetail.inviteSentOk')); },
       error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
