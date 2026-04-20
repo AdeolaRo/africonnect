@@ -32,8 +32,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <a routerLink="/groupes" routerLinkActive="active">{{ 'nav.groups' | translate }}</a>
       </div>
       <div class="toolbar">
-        <button class="lang-btn" type="button" (click)="setLang('fr')" [class.active]="lang==='fr'">🇫🇷 {{ 'lang.fr' | translate }}</button>
-        <button class="lang-btn" type="button" (click)="setLang('en')" [class.active]="lang==='en'">🇬🇧 {{ 'lang.en' | translate }}</button>
+        <button class="lang-btn" type="button" (click)="setLang('fr')" [class.active]="lang==='fr'">🇫🇷 FR</button>
+        <button class="lang-btn" type="button" (click)="setLang('en')" [class.active]="lang==='en'">🇬🇧 EN</button>
         <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openNotifications()" aria-label="Notifications">
           🔔
           <span *ngIf="unreadNotifications > 0" class="badge">{{ unreadNotifications }}</span>
@@ -336,12 +336,44 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.lang = 'fr';
     this.translate.setDefaultLang('fr');
     this.translate.use('fr');
+    // Ensure translations are loaded even if the HTTP loader fails behind Nginx caching/rewrite.
+    this.ensureTranslationsLoaded('fr');
   }
 
   setLang(lang: 'fr' | 'en') {
     this.lang = lang;
     localStorage.setItem('lang', lang);
+    this.ensureTranslationsLoaded(lang);
     this.translate.use(lang);
+  }
+
+  private loadedLangs = new Set<string>();
+  private async ensureTranslationsLoaded(lang: 'fr' | 'en') {
+    if (this.loadedLangs.has(lang)) return;
+    try {
+      const res = await fetch(`/assets/i18n/${lang}.json`, { cache: 'no-store' });
+      const txt = await res.text();
+      const json = JSON.parse(txt);
+      this.translate.setTranslation(lang, json, true);
+      this.loadedLangs.add(lang);
+    } catch {
+      // Minimal fallback so UI doesn't show keys
+      const fallback = lang === 'en'
+        ? {
+            nav: { forum: 'Forum', marketplace: 'Marketplace', jobs: 'Jobs', solutions: 'Solutions', solidarity: 'Solidarity', events: 'Events', groups: 'Groups', profile: 'Profile', login: 'Login', logout: 'Logout' },
+            search: { placeholder: 'Search the whole site...' },
+            auth: { email: 'Email', password: 'Password', login: 'Login', createAccount: 'Create account', forgot: 'Forgot password?', registerTitle: 'Create account', pseudo: 'Username', fullName: 'Full name', confirmPassword: 'Confirm password', create: 'Create', cancel: 'Cancel', acceptPrefix: 'I have read and accept the', terms: 'Terms', and: 'and the', conditions: 'Terms of use' },
+            footer: { copyright: 'Copyright @ Adéola 2026 CIA' }
+          }
+        : {
+            nav: { forum: 'Forum', marketplace: 'Ventes/Achats', jobs: 'Emploi', solutions: 'Solutions', solidarity: 'Solidarité', events: 'Événements', groups: 'Groupes', profile: 'Profil', login: 'Connexion', logout: 'Déconnexion' },
+            search: { placeholder: 'Rechercher sur tout le site...' },
+            auth: { email: 'Email', password: 'Mot de passe', login: 'Se connecter', createAccount: 'Créer un compte', forgot: 'Mot de passe oublié ?', registerTitle: 'Créer un compte', pseudo: 'Pseudo', fullName: 'Nom complet', confirmPassword: 'Confirmer le mot de passe', create: 'Créer', cancel: 'Annuler', acceptPrefix: 'J’ai lu et j’accepte les', terms: 'Termes', and: 'et les', conditions: "Conditions d'utilisation" },
+            footer: { copyright: 'Copyright @ Adéola 2026 CIA' }
+          };
+      this.translate.setTranslation(lang, fallback as any, true);
+      this.loadedLangs.add(lang);
+    }
   }
 
   ngOnInit() {
