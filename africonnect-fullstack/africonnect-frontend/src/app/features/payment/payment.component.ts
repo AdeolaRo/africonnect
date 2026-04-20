@@ -2,28 +2,29 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-payment',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   template: `
     <div class="admin-container">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 16px;">
-        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
-        <h1 style="margin:0;">Paiement</h1>
+        <button class="btn btn-secondary" (click)="goBack()">{{ 'common.back' | translate }}</button>
+        <h1 style="margin:0;">{{ 'common.pay' | translate }}</h1>
       </div>
 
       <div class="card" style="padding:16px; border:1px solid var(--border); border-radius:16px; background: var(--surface);">
         <p class="text-muted">
-          Choisis un moyen de paiement.
+          {{ 'common.pay' | translate }}
         </p>
 
         <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top: 12px;">
           <a class="btn btn-primary" [href]="paypalLink" target="_blank" (click)="selectedMethod='paypal'">PayPal</a>
           <a class="btn btn-primary" [href]="revolutLink" target="_blank" (click)="selectedMethod='revolut'">Revolut</a>
           <button class="btn btn-primary" type="button" (click)="payByCard()" [disabled]="isSubmitting || !requestId">
-            {{ isSubmitting ? 'Redirection...' : 'Carte bancaire (Stripe)' }}
+            {{ isSubmitting ? ('common.sending' | translate) : 'Carte bancaire (Stripe)' }}
           </button>
         </div>
 
@@ -39,7 +40,7 @@ import { ApiService } from '../../core/services/api.service';
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top: 16px;">
-          <button class="btn btn-secondary" (click)="goProfile()">Retour profil</button>
+          <button class="btn btn-secondary" (click)="goProfile()">{{ 'nav.profile' | translate }}</button>
         </div>
       </div>
     </div>
@@ -56,7 +57,7 @@ export class PaymentComponent implements OnInit {
   paypalLink = 'https://www.paypal.com/';
   revolutLink = 'https://www.revolut.com/';
 
-  constructor(private route: ActivatedRoute, private router: Router, private api: ApiService) {}
+  constructor(private route: ActivatedRoute, private router: Router, private api: ApiService, private translate: TranslateService) {}
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -84,7 +85,7 @@ export class PaymentComponent implements OnInit {
       window.location.href = url;
     } catch (e) {
       console.error(e);
-      alert('Erreur Stripe: vérifiez la configuration.');
+      alert(this.translate.instant('errors.generic'));
       this.isSubmitting = false;
     }
   }

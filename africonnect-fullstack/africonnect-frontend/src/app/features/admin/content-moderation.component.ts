@@ -3,16 +3,17 @@ import { CommonModule, NgClass } from '@angular/common';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-content-moderation',
   standalone: true,
-  imports: [CommonModule, NgClass],
+  imports: [CommonModule, NgClass, TranslateModule],
   template: `
     <div class="admin-container">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 12px;">
-        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
-        <h1 style="margin:0;">Modération des contenus</h1>
+        <button class="btn btn-secondary" (click)="goBack()">{{ 'common.back' | translate }}</button>
+        <h1 style="margin:0;">{{ 'moderation.title' | translate }}</h1>
       </div>
       
       <div class="tabs" style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border);">
@@ -26,13 +27,13 @@ import { AuthService } from '../../core/services/auth.service';
       </div>
       
       <div *ngIf="isLoading" class="loading">
-        Chargement des contenus...
+        {{ 'moderation.loading' | translate }}
       </div>
       
       <div *ngIf="!isLoading && contents.length === 0" class="empty-state">
         <div style="font-size: 3rem; margin-bottom: 16px;">📝</div>
-        <h3>Aucun contenu à modérer</h3>
-        <p>Tout est propre !</p>
+        <h3>{{ 'moderation.emptyTitle' | translate }}</h3>
+        <p>{{ 'moderation.emptySubtitle' | translate }}</p>
       </div>
       
       <div *ngIf="!isLoading && contents.length > 0" class="content-list">
@@ -43,9 +44,10 @@ import { AuthService } from '../../core/services/auth.service';
                 {{ getTypeLabel(activeTab) }}
               </div>
               <div>
-                <h4 style="margin: 0;">{{ item.title || item.subject || 'Sans titre' }}</h4>
+                <h4 style="margin: 0;">{{ item.title || item.subject || ('moderation.untitled' | translate) }}</h4>
                 <div style="font-size: 0.875rem; color: var(--text-muted);">
-                  Par: {{ item.author?.email || item.createdBy?.email || 'Anonyme' }} • 
+                  {{ 'moderation.by' | translate }}:
+                  {{ item.authorName || item.createdByName || item.author?.pseudo || item.createdBy?.pseudo || ('moderation.anonymous' | translate) }} •
                   {{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}
                 </div>
               </div>
@@ -53,10 +55,10 @@ import { AuthService } from '../../core/services/auth.service';
             
             <div class="item-actions">
               <button class="btn btn-secondary btn-sm" (click)="viewDetails(item)">
-                👁️ Voir
+                👁️ {{ 'moderation.view' | translate }}
               </button>
               <button class="btn btn-danger btn-sm" (click)="deleteContent(item)">
-                🗑️ Supprimer
+                🗑️ {{ 'moderation.delete' | translate }}
               </button>
             </div>
           </div>
@@ -79,11 +81,11 @@ export class ContentModerationComponent implements OnInit {
   tabs = [
     { id: 'forum', label: 'Forum' },
     { id: 'marketplace', label: 'Marketplace' },
-    { id: 'jobs', label: 'Emplois' },
+    { id: 'jobs', label: 'Jobs' },
     { id: 'solutions', label: 'Solutions' },
-    { id: 'solidarity', label: 'Solidarité' },
-    { id: 'events', label: 'Événements' },
-    { id: 'groups', label: 'Groupes' }
+    { id: 'solidarity', label: 'Solidarity' },
+    { id: 'events', label: 'Events' },
+    { id: 'groups', label: 'Groups' }
   ];
   
   activeTab = 'forum';
@@ -91,7 +93,7 @@ export class ContentModerationComponent implements OnInit {
   isLoading = false;
   counts: any = {};
 
-  constructor(private api: ApiService, private auth: AuthService, private router: Router) {}
+  constructor(private api: ApiService, private auth: AuthService, private router: Router, private translate: TranslateService) {}
 
   ngOnInit() {
     this.loadContent();
@@ -158,22 +160,29 @@ export class ContentModerationComponent implements OnInit {
   }
 
   viewDetails(item: any) {
-    // Pour l'instant, affichons simplement une alerte
-    alert(`Détails:\nTitre: ${item.title || item.subject}\nAuteur: ${item.author?.email || item.createdBy?.email}\nDate: ${new Date(item.createdAt).toLocaleString()}`);
+    const title = item.title || item.subject || this.translate.instant('moderation.untitled');
+    const author = item.authorName || item.createdByName || item.author?.pseudo || item.createdBy?.pseudo || this.translate.instant('moderation.anonymous');
+    const date = new Date(item.createdAt).toLocaleString();
+    alert(
+      `${this.translate.instant('moderation.detailsTitle')}:\n` +
+      `${this.translate.instant('moderation.detailsLabelTitle')}: ${title}\n` +
+      `${this.translate.instant('moderation.detailsLabelAuthor')}: ${author}\n` +
+      `${this.translate.instant('moderation.detailsLabelDate')}: ${date}`
+    );
   }
 
   deleteContent(item: any) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce contenu ? Cette action est irréversible.')) {
+    if (confirm(this.translate.instant('moderation.deleteConfirm'))) {
       const endpoint = this.getEndpoint();
       this.api.delete(`${endpoint}/${item._id}`).subscribe({
         next: () => {
           this.contents = this.contents.filter(c => c._id !== item._id);
           this.counts[this.activeTab] = (this.counts[this.activeTab] || 1) - 1;
-          alert('Contenu supprimé avec succès');
+          alert(this.translate.instant('moderation.deletedOk'));
         },
         error: (err) => {
           console.error('Error deleting content:', err);
-          alert('Erreur lors de la suppression');
+          alert(this.translate.instant('moderation.deleteErr'));
         }
       });
     }

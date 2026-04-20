@@ -6,23 +6,24 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent, CityAutocompleteComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, CityAutocompleteComponent, TranslateModule],
   template: `
     <div class="profile-container">
       <div class="profile-header">
-        <h1>Mon Profil</h1>
+        <h1>{{ 'profile.title' | translate }}</h1>
         <div class="profile-actions">
-          <button class="btn btn-secondary" (click)="openMessaging()">💬 Messagerie</button>
-          <button class="btn btn-secondary" (click)="openAdRequest()">📣 Publicité</button>
-          <button class="btn btn-secondary" *ngIf="isModerator || isAdmin" (click)="openModeration()">🛡️ Modération</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminUsers()">👥 Utilisateurs</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 Publicités</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAdRequests()">📣 Demandes pub</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminRss()">📰 RSS</button>
+          <button class="btn btn-secondary" (click)="openMessaging()">💬 {{ 'profile.messaging' | translate }}</button>
+          <button class="btn btn-secondary" (click)="openAdRequest()">📣 {{ 'profile.ads' | translate }}</button>
+          <button class="btn btn-secondary" *ngIf="isModerator || isAdmin" (click)="openModeration()">🛡️ {{ 'profile.moderation' | translate }}</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminUsers()">👥 {{ 'profile.users' | translate }}</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 {{ 'profile.adminAds' | translate }}</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAdRequests()">📣 {{ 'profile.adminAdRequests' | translate }}</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminRss()">📰 {{ 'profile.rss' | translate }}</button>
         </div>
       </div>
       
@@ -40,8 +41,8 @@ import { CityAutocompleteComponent } from '../../shared/components/city-autocomp
                 <div class="summary-meta" *ngIf="profile.origin">🌍 {{ profile.origin }}</div>
               </div>
               <div style="display:flex; gap:10px; margin-top: 12px;">
-                <button class="btn btn-primary" (click)="startEdit()">✏️ Modifier</button>
-                <button class="btn btn-danger" (click)="deleteAccount()">🗑️ Supprimer</button>
+                <button class="btn btn-primary" (click)="startEdit()">✏️ {{ 'profile.edit' | translate }}</button>
+                <button class="btn btn-danger" (click)="deleteAccount()">🗑️ {{ 'profile.deleteAccount' | translate }}</button>
               </div>
             </div>
 
@@ -56,25 +57,25 @@ import { CityAutocompleteComponent } from '../../shared/components/city-autocomp
               </div>
               <div style="display:flex; gap:10px; width:100%; margin-top: 12px;">
                 <button class="btn btn-primary" (click)="saveProfile()" [disabled]="isSaving">
-                  {{ isSaving ? 'Enregistrement...' : '💾 Enregistrer' }}
+                  {{ isSaving ? ('profile.saveProgress' | translate) : ('💾 ' + ('profile.saveButton' | translate)) }}
                 </button>
-                <button class="btn btn-secondary" (click)="cancelEdit()" [disabled]="isSaving">Annuler</button>
+                <button class="btn btn-secondary" (click)="cancelEdit()" [disabled]="isSaving">{{ 'common.cancel' | translate }}</button>
               </div>
             </div>
           </div>
           
           <div class="profile-stats">
-            <h3>Statistiques</h3>
+            <h3>{{ 'profile.stats' | translate }}</h3>
             <div class="stat-item">
-              <div class="stat-label">Publications</div>
+              <div class="stat-label">{{ 'profile.posts' | translate }}</div>
               <div class="stat-value">{{ myPosts.length }}</div>
             </div>
             <div class="stat-item">
-              <div class="stat-label">Sauvegardés</div>
+              <div class="stat-label">{{ 'profile.saved' | translate }}</div>
               <div class="stat-value">{{ savedPosts.length }}</div>
             </div>
             <div class="stat-item">
-              <div class="stat-label">Membre depuis</div>
+              <div class="stat-label">{{ 'profile.memberSince' | translate }}</div>
               <div class="stat-value">{{ profile.createdAt | date:'MM/yyyy' }}</div>
             </div>
           </div>
@@ -82,52 +83,52 @@ import { CityAutocompleteComponent } from '../../shared/components/city-autocomp
         
         <div class="profile-main">
           <div class="profile-form" *ngIf="isEditing">
-            <h2>Informations personnelles</h2>
+            <h2>{{ 'profile.personalInfo' | translate }}</h2>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Email</label>
+                <label class="form-label">{{ 'profile.email' | translate }}</label>
                 <input type="email" [(ngModel)]="profile.email" class="form-control" disabled>
-                <div class="text-muted" style="font-size: 0.875rem; margin-top: 4px;">L'email ne peut pas être modifié</div>
+                <div class="text-muted" style="font-size: 0.875rem; margin-top: 4px;">{{ 'profile.emailLocked' | translate }}</div>
               </div>
               <div class="form-group">
-                <label class="form-label">Pseudo *</label>
-                <input type="text" [(ngModel)]="profile.pseudo" class="form-control" placeholder="Votre pseudo" required>
+                <label class="form-label">{{ 'profile.pseudo' | translate }}</label>
+                <input type="text" [(ngModel)]="profile.pseudo" class="form-control" [placeholder]="'profile.pseudoPlaceholder' | translate" required>
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Nom complet</label>
-              <input type="text" [(ngModel)]="profile.fullName" class="form-control" placeholder="Prénom Nom">
+              <label class="form-label">{{ 'profile.fullName' | translate }}</label>
+              <input type="text" [(ngModel)]="profile.fullName" class="form-control" [placeholder]="'profile.fullNamePlaceholder' | translate">
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Ville</label>
-                <app-city-autocomplete [(ngModel)]="profile.city" name="city" placeholder="Votre ville"></app-city-autocomplete>
+                <label class="form-label">{{ 'profile.city' | translate }}</label>
+                <app-city-autocomplete [(ngModel)]="profile.city" name="city" [placeholder]="'profile.cityPlaceholder' | translate"></app-city-autocomplete>
               </div>
               <div class="form-group">
-                <label class="form-label">Origine</label>
-                <input type="text" [(ngModel)]="profile.origin" class="form-control" placeholder="Pays d'origine">
+                <label class="form-label">{{ 'profile.origin' | translate }}</label>
+                <input type="text" [(ngModel)]="profile.origin" class="form-control" [placeholder]="'profile.originPlaceholder' | translate">
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Passions et centres d'intérêt</label>
-              <textarea [(ngModel)]="profile.passions" class="form-control" rows="3" placeholder="Sports, musique, arts, technologie..."></textarea>
+              <label class="form-label">{{ 'profile.passions' | translate }}</label>
+              <textarea [(ngModel)]="profile.passions" class="form-control" rows="3" [placeholder]="'profile.passionsPlaceholder' | translate"></textarea>
             </div>
 
             <div class="form-group">
-              <label class="form-label">À propos de moi</label>
-              <textarea [(ngModel)]="profile.bio" class="form-control" rows="4" placeholder="Parlez-nous de vous..."></textarea>
+              <label class="form-label">{{ 'profile.bio' | translate }}</label>
+              <textarea [(ngModel)]="profile.bio" class="form-control" rows="4" [placeholder]="'profile.bioPlaceholder' | translate"></textarea>
             </div>
           </div>
           
           <div class="profile-sections">
             <div class="section">
-              <h3>Mes publications récentes</h3>
+              <h3>{{ 'profile.recentPosts' | translate }}</h3>
               <div *ngIf="myPosts.length === 0" class="empty-section">
-                <p>Vous n'avez pas encore publié de contenu</p>
-                <button class="btn btn-primary" (click)="publishOnForum()">Publier sur le forum</button>
+                <p>{{ 'profile.noPosts' | translate }}</p>
+                <button class="btn btn-primary" (click)="publishOnForum()">{{ 'profile.publishForum' | translate }}</button>
               </div>
               <div *ngFor="let post of myPosts" class="post-card">
                 <div class="post-header">
@@ -136,53 +137,53 @@ import { CityAutocompleteComponent } from '../../shared/components/city-autocomp
                 </div>
                 <div class="post-content">{{ (post.content || post.desc || '').slice(0, 150) }}...</div>
                 <div class="post-actions">
-                  <button class="btn btn-secondary btn-sm" (click)="openPost(post)">Voir</button>
-                  <button class="btn btn-danger btn-sm" (click)="deletePost(post._id)">Supprimer</button>
+                  <button class="btn btn-secondary btn-sm" (click)="openPost(post)">{{ 'profile.view' | translate }}</button>
+                  <button class="btn btn-danger btn-sm" (click)="deletePost(post._id)">{{ 'common.delete' | translate }}</button>
                 </div>
               </div>
             </div>
             
             <div class="section">
-              <h3>Publications sauvegardées</h3>
+              <h3>{{ 'profile.savedPosts' | translate }}</h3>
               <div *ngIf="savedPosts.length === 0" class="empty-section">
-                <p>Vous n'avez pas encore sauvegardé de publications</p>
+                <p>{{ 'profile.noSaved' | translate }}</p>
               </div>
               <div *ngFor="let saved of savedPosts" class="post-card">
                 <div class="post-header">
                   <h4>{{ saved.title || saved.subject || 'Sans titre' }}</h4>
-                  <button class="btn btn-secondary btn-sm" (click)="unsave(saved._id)">Retirer</button>
+                  <button class="btn btn-secondary btn-sm" (click)="unsave(saved._id)">{{ 'profile.remove' | translate }}</button>
                 </div>
                 <div class="post-content">{{ (saved.content || saved.desc || '').slice(0, 150) }}...</div>
               </div>
             </div>
 
             <div class="section">
-              <h3>Mes demandes de publicité</h3>
+              <h3>{{ 'profile.adRequests' | translate }}</h3>
               <div *ngIf="adRequests.length === 0" class="empty-section">
-                <p>Aucune demande pour le moment</p>
-                <button class="btn btn-primary" (click)="openAdRequest()">Faire une demande</button>
+                <p>{{ 'profile.noAdRequests' | translate }}</p>
+                <button class="btn btn-primary" (click)="openAdRequest()">{{ 'profile.makeRequest' | translate }}</button>
               </div>
               <div *ngFor="let r of adRequests" class="post-card">
                 <div class="post-header">
                   <h4 style="margin:0;">
-                    {{ r.option === 'create_and_publish' ? 'Création + publication' : 'Publication seulement' }}
+                    {{ r.option === 'create_and_publish' ? ('profile.createAndPublish' | translate) : ('profile.publishOnly' | translate) }}
                   </h4>
                   <span class="post-date">{{ r.createdAt | date:'dd/MM/yyyy' }}</span>
                 </div>
                 <div class="text-muted" style="margin-top:6px;">
-                  Statut: <strong>{{ r.status }}</strong>
+                  {{ 'profile.status' | translate }}: <strong>{{ r.status }}</strong>
                 </div>
                 <div class="post-content" style="margin-top:6px;">{{ (r.message || '').slice(0, 150) }}{{ (r.message || '').length > 150 ? '...' : '' }}</div>
 
                 <div *ngIf="r.adminMessage" style="margin-top:8px; padding:10px; border-radius:12px; border:1px solid rgba(245,101,101,.25); background: rgba(245,101,101,.08); white-space:pre-wrap;">
-                  <strong>Message admin</strong>: {{ r.adminMessage }}
+                  <strong>{{ 'profile.adminMessage' | translate }}</strong>: {{ r.adminMessage }}
                 </div>
 
                 <div class="post-actions" style="align-items:center;">
-                  <a *ngIf="r.mediaUrl" class="btn btn-secondary btn-sm" [href]="r.mediaUrl" target="_blank">Voir média</a>
+                  <a *ngIf="r.mediaUrl" class="btn btn-secondary btn-sm" [href]="r.mediaUrl" target="_blank">{{ 'profile.viewMedia' | translate }}</a>
 
                   <label *ngIf="r.status === 'needs_resubmission'" class="btn btn-primary btn-sm" style="cursor:pointer;">
-                    Renvoyer média
+                    {{ 'profile.resendMedia' | translate }}
                     <input type="file" style="display:none;" accept="image/*,video/*" (change)="onResubmitSelected($event, r)">
                   </label>
                 </div>
@@ -193,7 +194,7 @@ import { CityAutocompleteComponent } from '../../shared/components/city-autocomp
       </div>
     </div>
 
-    <app-modal [(visible)]="postModalVisible" title="Publication">
+    <app-modal [(visible)]="postModalVisible" [title]="'profile.posts' | translate">
       <div *ngIf="selectedPost">
         <h3 style="margin-top:0;">{{ selectedPost.title || selectedPost.subject || 'Sans titre' }}</h3>
         <div class="text-muted" style="margin-top:6px;">
@@ -207,14 +208,14 @@ import { CityAutocompleteComponent } from '../../shared/components/city-autocomp
         <div style="margin-top:12px;" [innerHTML]="selectedPost.content || selectedPost.desc || ''"></div>
 
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; flex-wrap:wrap;">
-          <button class="btn btn-secondary" (click)="postModalVisible=false">Fermer</button>
-          <button class="btn btn-primary" (click)="goToOriginal(selectedPost)">Ouvrir</button>
+          <button class="btn btn-secondary" (click)="postModalVisible=false">{{ 'common.close' | translate }}</button>
+          <button class="btn btn-primary" (click)="goToOriginal(selectedPost)">{{ 'profile.open' | translate }}</button>
         </div>
       </div>
     </app-modal>
 
-    <app-modal [(visible)]="previewVisible" title="Aperçu">
-      <img *ngIf="previewUrl" [src]="previewUrl" alt="Aperçu" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
+    <app-modal [(visible)]="previewVisible" [title]="'common.preview' | translate">
+      <img *ngIf="previewUrl" [src]="previewUrl" [alt]="'common.preview' | translate" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
     </app-modal>
   `
 })
@@ -253,7 +254,8 @@ export class ProfileComponent implements OnInit {
   constructor(
     private api: ApiService, 
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   publishOnForum() {
@@ -358,14 +360,14 @@ export class ProfileComponent implements OnInit {
     this.isSaving = true;
     this.api.put('user/profile', this.profile).subscribe({
       next: () => {
-        alert('✅ Profil mis à jour avec succès !');
+        alert('✅ ' + this.translate.instant('common.save'));
         this.isSaving = false;
         this.profileSnapshot = { ...this.profile };
         this.isEditing = false;
       },
       error: (err) => {
         console.error('Error saving profile:', err);
-        alert('❌ Erreur lors de la sauvegarde du profil');
+        alert('❌ ' + this.translate.instant('common.notAvailableNow'));
         this.isSaving = false;
       }
     });
@@ -402,18 +404,18 @@ export class ProfileComponent implements OnInit {
       const mediaUrl = upload?.url || '';
       if (!mediaUrl) throw new Error('upload failed');
       await this.api.post(`ad-requests/${req._id}/resubmit`, { mediaUrl }).toPromise();
-      alert('Média renvoyé. Merci !');
+      alert(this.translate.instant('profile.resendOk'));
       this.loadAdRequests();
     } catch (e) {
       console.error(e);
-      alert('Erreur lors du renvoi du média.');
+      alert(this.translate.instant('profile.resendErr'));
     } finally {
       try { event.target.value = ''; } catch {}
     }
   }
 
   deletePost(postId: string) { 
-    if (confirm('Voulez-vous vraiment supprimer cette publication ?')) {
+    if (confirm(this.translate.instant('profile.deletePostConfirm'))) {
       this.api.delete(`user/posts/${postId}`).subscribe({
         next: () => {
           this.postModalVisible = false;
@@ -460,16 +462,16 @@ export class ProfileComponent implements OnInit {
   }
 
   deleteAccount() {
-    if (confirm('⚠️ ATTENTION : Voulez-vous vraiment supprimer votre profil ? Cette action est irréversible et supprimera votre compte.')) {
+    if (confirm(this.translate.instant('profile.deleteAccountConfirm'))) {
       this.api.delete('user/account').subscribe({
         next: () => {
           this.auth.logout();
           this.router.navigate(['/']);
-          alert('Votre profil a été supprimé. Redirection vers l’accueil.');
+          alert(this.translate.instant('profile.deletedAccount'));
         },
         error: (err) => {
           console.error('Error deleting account:', err);
-          alert('Erreur lors de la suppression du compte');
+          alert(this.translate.instant('profile.deleteAccountErr'));
         }
       });
     }

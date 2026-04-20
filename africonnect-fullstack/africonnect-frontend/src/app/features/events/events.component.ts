@@ -7,16 +7,17 @@ import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
 import { QuillModule } from 'ngx-quill';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-evenements',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, CityAutocompleteComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, CityAutocompleteComponent, TranslateModule],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
-      <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
+      <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">{{ 'common.new' | translate }}</button>
     </div>
-    <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">Aucun élément</div>
+    <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">{{ 'common.none' | translate }}</div>
     <div class="items-grid" *ngIf="filteredItems.length">
       <div *ngFor="let item of filteredItems" class="item-card">
         <h3>{{ item.title || item.name }}</h3>
@@ -26,14 +27,14 @@ import { QuillModule } from 'ngx-quill';
         </div>
         <div [innerHTML]="item.content || item.desc"></div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
-          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="editItem(item)">Modifier</button>
-          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
+          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="editItem(item)">{{ 'common.edit' | translate }}</button>
+          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">{{ 'common.delete' | translate }}</button>
           <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
         </div>
       </div>
     </div>
 
-    <app-modal [(visible)]="modalVisible" [title]="editingItem ? 'Modifier l\\'événement' : 'Nouvel événement'">
+    <app-modal [(visible)]="modalVisible" [title]="(editingItem ? 'sections.eventsEdit' : 'sections.eventsNew') | translate">
       <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
           <label class="form-label">Titre *</label>
@@ -94,18 +95,18 @@ import { QuillModule } from 'ngx-quill';
 
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:32px;">
           <button type="button" class="btn btn-secondary" (click)="modalVisible = false" [disabled]="isSubmitting">
-            Annuler
+            {{ 'common.cancel' | translate }}
           </button>
           <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || isSubmitting">
-            <span *ngIf="!isSubmitting">Publier</span>
-            <span *ngIf="isSubmitting">Publication en cours...</span>
+            <span *ngIf="!isSubmitting">{{ 'common.publish' | translate }}</span>
+            <span *ngIf="isSubmitting">{{ 'common.sending' | translate }}</span>
           </button>
         </div>
       </form>
     </app-modal>
 
-    <app-modal [(visible)]="previewVisible" title="Aperçu">
-      <img *ngIf="previewUrl" [src]="previewUrl" alt="Aperçu" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
+    <app-modal [(visible)]="previewVisible" [title]="'common.preview' | translate">
+      <img *ngIf="previewUrl" [src]="previewUrl" [alt]="'common.preview' | translate" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
     </app-modal>
   `
 })
@@ -134,7 +135,13 @@ export class EvenementsComponent implements OnInit {
     return 'PNG, JPG, GIF jusqu\'à 5MB';
   }
 
-  constructor(private api: ApiService, private fb: FormBuilder, private searchService: SearchService, private auth: AuthService) {}
+  constructor(
+    private api: ApiService,
+    private fb: FormBuilder,
+    private searchService: SearchService,
+    private auth: AuthService,
+    private translate: TranslateService
+  ) {}
 
   ngOnInit() {
     this.auth.currentUser.subscribe(u => {
@@ -224,12 +231,14 @@ export class EvenementsComponent implements OnInit {
       this.selectedFiles = [];
     } catch (error) {
       console.error('Error submitting event:', error);
-      alert('Une erreur est survenue lors de la publication. Veuillez réessayer.');
+      alert(this.translate.instant('errors.publishFailed'));
     } finally {
       this.isSubmitting = false;
     }
   }
-  deleteItem(id: string) { if (confirm('Supprimer ?')) this.api.delete('events/' + id).subscribe(() => this.loadItems()); }
+  deleteItem(id: string) {
+    if (confirm(this.translate.instant('common.delete') + ' ?')) this.api.delete('events/' + id).subscribe(() => this.loadItems());
+  }
   canDelete(item: any) {
     if (!this.isLoggedIn) return false;
     if (this.currentUserRole === 'admin' || this.currentUserRole === 'moderator') return true;
@@ -238,14 +247,14 @@ export class EvenementsComponent implements OnInit {
 
   toggleLike(item: any) {
     if (!this.isLoggedIn) {
-      alert('Connectez-vous pour liker.');
+      alert(this.translate.instant('errors.likeLogin'));
       return;
     }
     this.api.post('events/' + item._id + '/like', {}).subscribe({
       next: (updated: any) => item.likes = updated?.likes || item.likes,
       error: (err) => {
         console.error('Error liking event:', err);
-        alert('Impossible de liker pour le moment.');
+        alert(this.translate.instant('errors.likeFailed'));
       }
     });
   }

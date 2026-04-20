@@ -5,53 +5,54 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-group-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, TranslateModule],
   template: `
     <div class="item-card" *ngIf="group">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
         <div>
           <h2 style="margin:0;">{{ group.name }}</h2>
           <div class="text-muted" style="margin-top:6px;">
-            {{ group.visibility === 'private' ? '🔒 Privé' : '🌍 Public' }}
-            • 👥 {{ group.members?.length || 0 }} membre(s)
-            • Par {{ group.authorName || '—' }}
+            {{ group.visibility === 'private' ? ('🔒 ' + ('groupDetail.private' | translate)) : ('🌍 ' + ('groupDetail.public' | translate)) }}
+            • 👥 {{ group.members?.length || 0 }} {{ 'groupDetail.membersCount' | translate }}
+            • {{ 'groupDetail.by' | translate }} {{ group.authorName || '—' }}
           </div>
         </div>
-        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
+        <button class="btn btn-secondary" (click)="goBack()">{{ 'groupDetail.back' | translate }}</button>
       </div>
 
       <div *ngIf="group.description" style="margin-top:12px;" class="text-muted">{{ group.description }}</div>
       <div *ngIf="group.rules" style="margin-top:12px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2);">
-        <strong>Règles</strong>
+        <strong>{{ 'groupDetail.rules' | translate }}</strong>
         <div style="white-space:pre-wrap; margin-top:6px;">{{ group.rules }}</div>
       </div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center;">
         <button *ngIf="isLoggedIn && !isMember && !joinRequested" class="btn btn-primary" (click)="joinOrRequest()">
-          {{ group.visibility === 'private' ? 'Demander à rejoindre' : 'Rejoindre' }}
+          {{ group.visibility === 'private' ? ('groupDetail.requestJoin' | translate) : ('groupDetail.join' | translate) }}
         </button>
-        <button *ngIf="isLoggedIn && joinRequested" class="btn btn-secondary" disabled>Demande envoyée</button>
-        <button *ngIf="isLoggedIn && isMember && !isCreator" class="btn btn-secondary" (click)="leave()">Quitter</button>
-        <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="settingsVisible = true">⚙️ Paramètres</button>
-        <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="membersVisible = true">👥 Membres</button>
+        <button *ngIf="isLoggedIn && joinRequested" class="btn btn-secondary" disabled>{{ 'groupDetail.requestSent' | translate }}</button>
+        <button *ngIf="isLoggedIn && isMember && !isCreator" class="btn btn-secondary" (click)="leave()">{{ 'groupDetail.leave' | translate }}</button>
+        <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="settingsVisible = true">⚙️ {{ 'groupDetail.settings' | translate }}</button>
+        <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="membersVisible = true">👥 {{ 'groupDetail.members' | translate }}</button>
         <button *ngIf="isLoggedIn && canManage && group.visibility === 'private'" class="btn btn-secondary" (click)="requestsVisible = true">
-          ✅ Demandes ({{ group.joinRequests?.length || 0 }})
+          ✅ {{ 'groupDetail.requests' | translate }} ({{ group.joinRequests?.length || 0 }})
         </button>
-        <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="invitesVisible = true">✉️ Inviter</button>
+        <button *ngIf="isLoggedIn && canManage" class="btn btn-secondary" (click)="invitesVisible = true">✉️ {{ 'groupDetail.invite' | translate }}</button>
       </div>
     </div>
 
     <div class="item-card" style="margin-top:16px;" *ngIf="group">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-        <h3 style="margin:0;">Posts du groupe</h3>
-        <button *ngIf="isLoggedIn && isMember" class="btn btn-primary" (click)="openPostModalForCreate()">+ Publier</button>
+        <h3 style="margin:0;">{{ 'groupDetail.postsTitle' | translate }}</h3>
+        <button *ngIf="isLoggedIn && isMember" class="btn btn-primary" (click)="openPostModalForCreate()">+ {{ 'groupDetail.postNew' | translate }}</button>
       </div>
 
-      <div *ngIf="posts.length === 0" class="text-muted" style="padding:16px;">Aucun post pour le moment.</div>
+      <div *ngIf="posts.length === 0" class="text-muted" style="padding:16px;">{{ 'groupDetail.noPosts' | translate }}</div>
 
       <div *ngFor="let p of posts" style="margin-top:14px; padding:14px; border:1px solid var(--border); border-radius:16px; background:var(--surface);">
         <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
@@ -67,7 +68,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center;">
           <button class="btn" (click)="likePost(p)">❤️ {{ p.likes?.length || 0 }}</button>
           <button class="btn btn-secondary" (click)="toggleComments(p)">💬 {{ p.comments?.length || 0 }}</button>
-          <button *ngIf="canDeletePost(p)" class="btn btn-secondary btn-sm" (click)="editPost(p)">Modifier</button>
+          <button *ngIf="canDeletePost(p)" class="btn btn-secondary btn-sm" (click)="editPost(p)">{{ 'common.edit' | translate }}</button>
           <button *ngIf="canDeletePost(p)" class="btn btn-danger btn-sm" (click)="deletePost(p)">Supprimer</button>
         </div>
 
@@ -103,8 +104,8 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
         <label class="form-label">Règles</label>
         <textarea class="form-control" rows="4" [(ngModel)]="edit.rules"></textarea>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
-          <button class="btn btn-secondary" (click)="settingsVisible=false">Annuler</button>
-          <button class="btn btn-primary" (click)="saveSettings()">Enregistrer</button>
+          <button class="btn btn-secondary" (click)="settingsVisible=false">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-primary" (click)="saveSettings()">{{ 'common.save' | translate }}</button>
         </div>
       </div>
     </app-modal>
@@ -133,42 +134,42 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
     </app-modal>
 
     <!-- Requests modal -->
-    <app-modal [(visible)]="requestsVisible" title="Demandes d’adhésion">
+    <app-modal [(visible)]="requestsVisible" [title]="'groupDetail.joinRequestsTitle' | translate">
       <div *ngIf="group">
-        <div *ngIf="(group.joinRequests || []).length === 0" class="text-muted">Aucune demande.</div>
+        <div *ngIf="(group.joinRequests || []).length === 0" class="text-muted">{{ 'groupDetail.noRequests' | translate }}</div>
         <div *ngFor="let uid of (group.joinRequests || [])" style="display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); align-items:center;">
           <div style="font-weight:700;">{{ userLabel(uid) }}</div>
           <div style="display:flex; gap:10px;">
-            <button class="btn btn-primary btn-sm" (click)="approve(uid)">Accepter</button>
-            <button class="btn btn-secondary btn-sm" (click)="deny(uid)">Refuser</button>
+            <button class="btn btn-primary btn-sm" (click)="approve(uid)">{{ 'groupDetail.accept' | translate }}</button>
+            <button class="btn btn-secondary btn-sm" (click)="deny(uid)">{{ 'groupDetail.deny' | translate }}</button>
           </div>
         </div>
       </div>
     </app-modal>
 
     <!-- Invites modal -->
-    <app-modal [(visible)]="invitesVisible" title="Inviter">
+    <app-modal [(visible)]="invitesVisible" [title]="'groupDetail.invite' | translate">
       <div class="auth-form">
-        <label class="form-label">Email utilisateur (déjà inscrit)</label>
+        <label class="form-label">{{ 'groupDetail.emailUser' | translate }}</label>
         <input class="form-control" [(ngModel)]="inviteEmail" placeholder="ex: user@gmail.com">
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
-          <button class="btn btn-secondary" (click)="invitesVisible=false">Fermer</button>
-          <button class="btn btn-primary" (click)="sendInvite()" [disabled]="!(inviteEmail||'').trim()">Envoyer</button>
+          <button class="btn btn-secondary" (click)="invitesVisible=false">{{ 'groupDetail.close' | translate }}</button>
+          <button class="btn btn-primary" (click)="sendInvite()" [disabled]="!(inviteEmail||'').trim()">{{ 'groupDetail.send' | translate }}</button>
         </div>
         <div class="text-muted" style="margin-top:10px;">
-          L’utilisateur recevra une notification et pourra accepter depuis la cloche.
+          {{ 'groupDetail.inviteHelp' | translate }}
         </div>
       </div>
     </app-modal>
 
     <!-- Post modal -->
-    <app-modal [(visible)]="postVisible" [title]="editingPost ? 'Modifier le post' : 'Publier dans le groupe'">
+    <app-modal [(visible)]="postVisible" [title]="(editingPost ? 'sections.groupsPostEdit' : 'sections.groupsPostNew') | translate">
       <div class="auth-form">
-        <textarea class="form-control" rows="5" [(ngModel)]="newPostContent" placeholder="Écrire quelque chose..."></textarea>
+        <textarea class="form-control" rows="5" [(ngModel)]="newPostContent" [placeholder]="'groupDetail.postPlaceholder' | translate"></textarea>
         <input #postImgInput type="file" accept="image/*" (change)="addPostFile($event)" style="display:none;">
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
           <button type="button" class="btn btn-secondary" (click)="postImgInput.click()" [disabled]="postFiles.length >= 3">
-            + Ajouter une photo
+            {{ 'groupDetail.addPhoto' | translate }}
           </button>
           <div class="text-muted" style="font-size:0.9rem;">{{ postFiles.length }}/3</div>
         </div>
@@ -184,16 +185,16 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
           </div>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
-          <button class="btn btn-secondary" (click)="postVisible=false">Annuler</button>
+          <button class="btn btn-secondary" (click)="postVisible=false">{{ 'common.cancel' | translate }}</button>
           <button class="btn btn-primary" (click)="submitPost()" [disabled]="!canCreatePost()">
-            {{ editingPost ? 'Enregistrer' : 'Publier' }}
+            {{ editingPost ? ('common.save' | translate) : ('common.publish' | translate) }}
           </button>
         </div>
       </div>
     </app-modal>
 
-    <app-modal [(visible)]="previewVisible" title="Aperçu">
-      <img *ngIf="previewUrl" [src]="previewUrl" alt="Aperçu" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
+    <app-modal [(visible)]="previewVisible" [title]="'common.preview' | translate">
+      <img *ngIf="previewUrl" [src]="previewUrl" [alt]="'common.preview' | translate" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
     </app-modal>
   `
 })
@@ -234,7 +235,8 @@ export class GroupDetailComponent implements OnInit {
     private api: ApiService,
     private auth: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -372,17 +374,17 @@ export class GroupDetailComponent implements OnInit {
     });
   }
   remove(uid: string) {
-    if (!confirm('Retirer ce membre ?')) return;
+    if (!confirm(this.translate.instant('groupDetail.removeMemberConfirm'))) return;
     this.api.post(`groups/${this.group._id}/members/${uid}/remove`, {}).subscribe({
       next: (g: any) => { this.group = g; this.recomputeFlags(); },
-      error: (err) => alert(err?.error?.error || 'Erreur')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
   ban(uid: string) {
-    if (!confirm('Bannir ce membre ?')) return;
+    if (!confirm(this.translate.instant('groupDetail.banMemberConfirm'))) return;
     this.api.post(`groups/${this.group._id}/members/${uid}/ban`, {}).subscribe({
       next: (g: any) => { this.group = g; this.recomputeFlags(); },
-      error: (err) => alert(err?.error?.error || 'Erreur')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
   promote(uid: string) {
@@ -402,8 +404,8 @@ export class GroupDetailComponent implements OnInit {
     const email = (this.inviteEmail || '').trim();
     if (!email) return;
     this.api.post(`groups/${this.group._id}/invites`, { email }).subscribe({
-      next: (g: any) => { this.group = g; this.inviteEmail = ''; alert('Invitation envoyée'); },
-      error: (err) => alert(err?.error?.error || 'Erreur')
+      next: (g: any) => { this.group = g; this.inviteEmail = ''; alert(this.translate.instant('common.send')); },
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
 
@@ -455,7 +457,7 @@ export class GroupDetailComponent implements OnInit {
         error: (err) => alert(err?.error?.error || 'Erreur')
       });
     } catch (e) {
-      alert('Erreur upload');
+      alert(this.translate.instant('errors.uploadFailed'));
     }
   }
 
@@ -484,7 +486,7 @@ export class GroupDetailComponent implements OnInit {
         error: (err) => alert(err?.error?.error || 'Erreur')
       });
     } catch (e) {
-      alert('Erreur upload');
+      alert(this.translate.instant('errors.uploadFailed'));
     }
   }
 
@@ -516,10 +518,10 @@ export class GroupDetailComponent implements OnInit {
   }
 
   deletePost(p: any) {
-    if (!confirm('Supprimer ce post ?')) return;
+    if (!confirm(this.translate.instant('groupDetail.deletePostConfirm'))) return;
     this.api.delete(`groups/posts/${p._id}`).subscribe({
       next: () => this.posts = this.posts.filter(x => x._id !== p._id),
-      error: () => alert('Erreur')
+      error: () => alert(this.translate.instant('errors.generic'))
     });
   }
 

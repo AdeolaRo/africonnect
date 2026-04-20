@@ -3,15 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-ad-request',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   template: `
     <div class="admin-container">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 16px;">
-        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
+        <button class="btn btn-secondary" (click)="goBack()">{{ 'common.back' | translate }}</button>
         <h1 style="margin:0;">Demande de publicité</h1>
       </div>
 
@@ -113,7 +114,7 @@ export class AdRequestComponent {
   message = '';
   isSubmitting = false;
 
-  constructor(private api: ApiService, private router: Router) {}
+  constructor(private api: ApiService, private router: Router, private translate: TranslateService) {}
 
   goBack() {
     this.router.navigate(['/profile']);
@@ -172,7 +173,7 @@ export class AdRequestComponent {
       }
     } catch (e) {
       console.error(e);
-      alert('Erreur lors de la création de la demande.');
+      alert(this.translate.instant('errors.generic'));
     } finally {
       this.isSubmitting = false;
     }

@@ -6,50 +6,51 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { RealtimeService } from '../../core/services/realtime.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-messaging',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, TranslateModule],
   template: `
     <div class="messaging-container">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 16px;">
-        <button class="btn btn-secondary" (click)="goBack()">← Retour</button>
-        <h1 style="margin:0;">Messagerie interne</h1>
+        <button class="btn btn-secondary" (click)="goBack()">{{ 'common.back' | translate }}</button>
+        <h1 style="margin:0;">{{ 'messaging.title' | translate }}</h1>
       </div>
       
       <div class="messaging-layout">
         <!-- Nouveau message -->
         <div class="new-message-card">
-          <h3>📨 Nouveau message</h3>
+          <h3>📨 {{ 'messaging.newMessage' | translate }}</h3>
           <div class="form-group">
-            <label class="form-label">Destinataire</label>
+            <label class="form-label">{{ 'messaging.recipient' | translate }}</label>
             <select [(ngModel)]="newMessage.recipient" class="form-control">
-              <option value="">Sélectionnez un destinataire</option>
-              <option *ngFor="let user of users" [value]="user._id">{{ user.pseudo || 'Utilisateur' }}</option>
+              <option value="">{{ 'messaging.selectRecipient' | translate }}</option>
+              <option *ngFor="let user of users" [value]="user._id">{{ user.pseudo || ('messaging.user' | translate) }}</option>
             </select>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Objet</label>
-            <input type="text" [(ngModel)]="newMessage.subject" class="form-control" placeholder="Objet du message">
+            <label class="form-label">{{ 'messaging.subject' | translate }}</label>
+            <input type="text" [(ngModel)]="newMessage.subject" class="form-control" [placeholder]="'messaging.subjectPlaceholder' | translate">
           </div>
           
           <div class="form-group">
-            <label class="form-label">Message</label>
-            <textarea [(ngModel)]="newMessage.content" class="form-control" rows="5" placeholder="Votre message..."></textarea>
+            <label class="form-label">{{ 'messaging.message' | translate }}</label>
+            <textarea [(ngModel)]="newMessage.content" class="form-control" rows="5" [placeholder]="'messaging.messagePlaceholder' | translate"></textarea>
           </div>
           
           <button class="btn btn-primary" (click)="sendNewMessage()" [disabled]="!canSendMessage()">
-            📤 Envoyer le message
+            📤 {{ 'messaging.send' | translate }}
           </button>
         </div>
         
         <!-- Messages reçus -->
         <div class="messages-section">
-          <h3>📥 Messages reçus</h3>
+          <h3>📥 {{ 'messaging.inbox' | translate }}</h3>
           <div *ngIf="receivedMessages.length === 0" class="empty-section">
-            <p>Vous n'avez pas encore reçu de messages</p>
+            <p>{{ 'messaging.noInbox' | translate }}</p>
           </div>
           
           <button *ngFor="let msg of receivedMessages"
@@ -59,7 +60,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
             <div style="min-width:0;">
               <div style="font-weight:800;">{{ getSenderName(msg.from) }}</div>
               <div class="text-muted" style="font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                {{ msg.subject || 'Sans objet' }}
+                {{ msg.subject || ('messaging.noSubject' | translate) }}
               </div>
             </div>
             <div class="text-muted" style="font-size:0.85rem; white-space:nowrap;">
@@ -70,9 +71,9 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
         
         <!-- Messages envoyés -->
         <div class="messages-section">
-          <h3>📤 Messages envoyés</h3>
+          <h3>📤 {{ 'messaging.sent' | translate }}</h3>
           <div *ngIf="sentMessages.length === 0" class="empty-section">
-            <p>Vous n'avez pas encore envoyé de messages</p>
+            <p>{{ 'messaging.noSent' | translate }}</p>
           </div>
           
           <button *ngFor="let msg of sentMessages"
@@ -82,7 +83,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
             <div style="min-width:0;">
               <div style="font-weight:800;">{{ getRecipientName(msg.to) }}</div>
               <div class="text-muted" style="font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                {{ msg.subject || 'Sans objet' }}
+                {{ msg.subject || ('messaging.noSubject' | translate) }}
               </div>
             </div>
             <div class="text-muted" style="font-size:0.85rem; white-space:nowrap;">
@@ -96,21 +97,21 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
     <app-modal [(visible)]="messageModalVisible" [title]="messageModalTitle">
       <div *ngIf="selectedMessage">
         <div class="text-muted" style="margin-bottom:10px;">
-          <div *ngIf="selectedBox === 'received'"><strong>De</strong>: {{ getSenderName(selectedMessage.from) }}</div>
-          <div *ngIf="selectedBox === 'sent'"><strong>À</strong>: {{ getRecipientName(selectedMessage.to) }}</div>
-          <div><strong>Date</strong>: {{ selectedMessage.timestamp | date:'dd/MM/yyyy HH:mm' }}</div>
+          <div *ngIf="selectedBox === 'received'"><strong>{{ 'messaging.from' | translate }}</strong>: {{ getSenderName(selectedMessage.from) }}</div>
+          <div *ngIf="selectedBox === 'sent'"><strong>{{ 'messaging.to' | translate }}</strong>: {{ getRecipientName(selectedMessage.to) }}</div>
+          <div><strong>{{ 'messaging.date' | translate }}</strong>: {{ selectedMessage.timestamp | date:'dd/MM/yyyy HH:mm' }}</div>
         </div>
-        <div style="font-weight:900; margin-bottom:10px;">{{ selectedMessage.subject || 'Sans objet' }}</div>
+        <div style="font-weight:900; margin-bottom:10px;">{{ selectedMessage.subject || ('messaging.noSubject' | translate) }}</div>
         <div style="white-space:pre-wrap; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2);">
           {{ selectedMessage.content }}
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; margin-top:12px;">
-          <button class="btn btn-danger btn-sm" (click)="deleteMessage(selectedMessage._id)">🗑️ Supprimer</button>
+          <button class="btn btn-danger btn-sm" (click)="deleteMessage(selectedMessage._id)">🗑️ {{ 'common.delete' | translate }}</button>
           <button *ngIf="selectedBox === 'received'" class="btn btn-primary btn-sm" (click)="replyToMessage(selectedMessage)">
-            ↩️ Répondre
+            ↩️ {{ 'messaging.reply' | translate }}
           </button>
-          <button class="btn btn-secondary btn-sm" (click)="messageModalVisible=false">Fermer</button>
+          <button class="btn btn-secondary btn-sm" (click)="messageModalVisible=false">{{ 'common.close' | translate }}</button>
         </div>
       </div>
     </app-modal>
@@ -130,9 +131,15 @@ export class MessagingComponent implements OnInit {
   messageModalVisible = false;
   selectedMessage: any = null;
   selectedBox: 'received' | 'sent' = 'received';
-  messageModalTitle = 'Message';
+  messageModalTitle = '';
 
-  constructor(private api: ApiService, private auth: AuthService, private router: Router, private realtime: RealtimeService) {}
+  constructor(
+    private api: ApiService,
+    private auth: AuthService,
+    private router: Router,
+    private realtime: RealtimeService,
+    private translate: TranslateService
+  ) {}
 
   ngOnInit() {
     this.loadUsers();
@@ -173,12 +180,12 @@ export class MessagingComponent implements OnInit {
 
   getSenderName(userId: string): string {
     const user = this.users.find(u => u._id === userId);
-    return user ? (user.pseudo || 'Utilisateur') : 'Utilisateur inconnu';
+    return user ? (user.pseudo || this.translate.instant('messaging.user')) : this.translate.instant('messaging.unknownUser');
   }
 
   getRecipientName(userId: string): string {
     const user = this.users.find(u => u._id === userId);
-    return user ? (user.pseudo || 'Utilisateur') : 'Utilisateur inconnu';
+    return user ? (user.pseudo || this.translate.instant('messaging.user')) : this.translate.instant('messaging.unknownUser');
   }
 
   canSendMessage(): boolean {
@@ -198,11 +205,11 @@ export class MessagingComponent implements OnInit {
       next: (created: any) => {
         this.sentMessages.unshift(created);
         this.newMessage = { recipient: '', subject: '', content: '' };
-        alert('✅ Message envoyé avec succès !');
+        alert('✅ ' + this.translate.instant('messaging.sentOk'));
       },
       error: (err) => {
         console.error('Error sending message:', err);
-        alert('❌ Erreur lors de l’envoi du message');
+        alert('❌ ' + this.translate.instant('messaging.sentErr'));
       }
     });
   }
@@ -222,12 +229,14 @@ export class MessagingComponent implements OnInit {
   openMessage(msg: any, box: 'received' | 'sent') {
     this.selectedMessage = msg;
     this.selectedBox = box;
-    this.messageModalTitle = box === 'received' ? 'Message reçu' : 'Message envoyé';
+    this.messageModalTitle = box === 'received'
+      ? this.translate.instant('messaging.modalReceived')
+      : this.translate.instant('messaging.modalSent');
     this.messageModalVisible = true;
   }
 
   deleteMessage(messageId: string) {
-    if (confirm('Voulez-vous vraiment supprimer ce message ?')) {
+    if (confirm(this.translate.instant('messaging.deleteConfirm'))) {
       this.api.delete(`messages/${messageId}`).subscribe({
         next: () => {
           this.receivedMessages = this.receivedMessages.filter(msg => msg._id !== messageId);
@@ -236,11 +245,11 @@ export class MessagingComponent implements OnInit {
             this.messageModalVisible = false;
             this.selectedMessage = null;
           }
-          alert('Message supprimé');
+          alert(this.translate.instant('messaging.deleted'));
         },
         error: (err) => {
           console.error('Error deleting message:', err);
-          alert('❌ Erreur lors de la suppression');
+          alert('❌ ' + this.translate.instant('messaging.deleteErr'));
         }
       });
     }

@@ -8,16 +8,17 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-forum',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, FormsModule, TranslateModule],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
-      <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
+      <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">{{ 'common.new' | translate }}</button>
     </div>
-    <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">Aucun élément</div>
+    <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">{{ 'common.none' | translate }}</div>
     <div *ngFor="let item of filteredItems" class="item-card">
       <h3>{{ item.title || item.name }}</h3>
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
@@ -26,8 +27,8 @@ import { ActivatedRoute } from '@angular/router';
       </div>
       <div [innerHTML]="item.content || item.desc"></div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
-        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="editItem(item)">Modifier</button>
-        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
+        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="editItem(item)">{{ 'common.edit' | translate }}</button>
+        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">{{ 'common.delete' | translate }}</button>
         <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
         <button class="btn btn-secondary" (click)="toggleReplies(item)" type="button">
           💬 Réponses ({{ item.comments?.length || 0 }})
@@ -63,7 +64,7 @@ import { ActivatedRoute } from '@angular/router';
       </div>
     </div>
 
-    <app-modal [(visible)]="modalVisible" [title]="editingItem ? 'Modifier le sujet' : 'Nouveau sujet de forum'">
+    <app-modal [(visible)]="modalVisible" [title]="(editingItem ? 'sections.forumEdit' : 'sections.forumNew') | translate">
       <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
           <label class="form-label">Titre *</label>
@@ -111,18 +112,18 @@ import { ActivatedRoute } from '@angular/router';
         
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
           <button type="button" class="btn btn-secondary" (click)="modalVisible = false">
-            Annuler
+            {{ 'common.cancel' | translate }}
           </button>
           <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || isSubmitting">
-            <span *ngIf="!isSubmitting">Publier le sujet</span>
-            <span *ngIf="isSubmitting">Publication en cours...</span>
+            <span *ngIf="!isSubmitting">{{ 'sections.forumPublish' | translate }}</span>
+            <span *ngIf="isSubmitting">{{ 'common.sending' | translate }}</span>
           </button>
         </div>
       </form>
     </app-modal>
 
-    <app-modal [(visible)]="previewVisible" title="Aperçu">
-      <img *ngIf="previewUrl" [src]="previewUrl" alt="Aperçu" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
+    <app-modal [(visible)]="previewVisible" [title]="'common.preview' | translate">
+      <img *ngIf="previewUrl" [src]="previewUrl" [alt]="'common.preview' | translate" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
     </app-modal>
   `
 })
@@ -157,7 +158,8 @@ export class ForumComponent implements OnInit {
     private fb: FormBuilder,
     private searchService: SearchService,
     private auth: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -263,7 +265,9 @@ export class ForumComponent implements OnInit {
       this.isSubmitting = false;
     }
   }
-  deleteItem(id: string) { if (confirm('Supprimer ?')) this.api.delete('forum/' + id).subscribe(() => this.loadItems()); }
+  deleteItem(id: string) {
+    if (confirm(this.translate.instant('common.delete') + ' ?')) this.api.delete('forum/' + id).subscribe(() => this.loadItems());
+  }
   canDelete(item: any) {
     if (!this.isLoggedIn) return false;
     if (this.currentUserRole === 'admin' || this.currentUserRole === 'moderator') return true;
