@@ -13,7 +13,7 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes),
     provideHttpClient(),
     ...provideTranslateHttpLoader({
-      prefix: './assets/i18n/',
+      prefix: '/assets/i18n/',
       suffix: '.json'
     }),
     importProvidersFrom(
