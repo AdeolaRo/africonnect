@@ -16,7 +16,12 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + '-' + safe);
   }
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 60 * 1024 * 1024 // 60MB
+  }
+});
 
 router.post('/', upload.fields([
   { name: 'image', maxCount: 1 },      // compat: ancien front
