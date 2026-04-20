@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,10 +25,29 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <h3>📨 {{ 'messaging.newMessage' | translate }}</h3>
           <div class="form-group">
             <label class="form-label">{{ 'messaging.recipient' | translate }}</label>
-            <select [(ngModel)]="newMessage.recipient" class="form-control">
-              <option value="">{{ 'messaging.selectRecipient' | translate }}</option>
-              <option *ngFor="let user of users" [value]="user._id">{{ user.pseudo || ('messaging.user' | translate) }}</option>
-            </select>
+            <div style="position:relative;">
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="recipientQuery"
+                (input)="onRecipientInput()"
+                (focus)="onRecipientFocus()"
+                [placeholder]="'messaging.recipientPseudoPlaceholder' | translate"
+                autocomplete="off">
+
+              <div *ngIf="recipientOpen" class="city-list" style="top: calc(100% + 6px);">
+                <button
+                  *ngFor="let u of recipientSuggestions"
+                  type="button"
+                  class="city-item"
+                  (click)="selectRecipient(u)">
+                  {{ u.pseudo }}
+                </button>
+                <div *ngIf="recipientSuggestions.length === 0" class="text-muted" style="padding:10px 12px;">
+                  {{ 'messaging.pseudoNotFound' | translate }}
+                </div>
+              </div>
+            </div>
           </div>
           
           <div class="form-group">
@@ -117,13 +136,16 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     </app-modal>
   `
 })
-export class MessagingComponent implements OnInit {
+export class MessagingComponent implements OnInit, OnDestroy {
   users: any[] = [];
   receivedMessages: any[] = [];
   sentMessages: any[] = [];
+  recipientQuery = '';
+  recipientId = '';
+  recipientOpen = false;
+  recipientSuggestions: any[] = [];
   
   newMessage = {
-    recipient: '',
     subject: '',
     content: ''
   };
@@ -145,7 +167,20 @@ export class MessagingComponent implements OnInit {
     this.loadUsers();
     this.loadMessages();
     this.realtime.clearMessagesBadge();
+    document.addEventListener('click', this.onDocClick, true);
   }
+
+  ngOnDestroy() {
+    document.removeEventListener('click', this.onDocClick, true);
+  }
+
+  private onDocClick = (ev: any) => {
+    const target = ev?.target as HTMLElement | null;
+    if (!target) return;
+    // Close if click outside the recipient input/dropdown
+    const root = target.closest('.new-message-card');
+    if (!root) this.recipientOpen = false;
+  };
 
   goBack() {
     this.router.navigate(['/profile']);
@@ -189,14 +224,47 @@ export class MessagingComponent implements OnInit {
   }
 
   canSendMessage(): boolean {
-    return !!this.newMessage.recipient && !!this.newMessage.content.trim();
+    return !!this.recipientId && !!this.newMessage.content.trim();
+  }
+
+  onRecipientFocus() {
+    this.recipientOpen = true;
+    this.computeRecipientSuggestions();
+  }
+
+  onRecipientInput() {
+    this.recipientOpen = true;
+    this.recipientId = '';
+    this.computeRecipientSuggestions();
+  }
+
+  private computeRecipientSuggestions() {
+    const q = String(this.recipientQuery || '').trim().toLowerCase();
+    const list = Array.isArray(this.users) ? this.users : [];
+    const filtered = q
+      ? list.filter(u => String(u?.pseudo || '').toLowerCase().includes(q))
+      : list.slice(0, 12);
+    // keep only users having a pseudo
+    this.recipientSuggestions = filtered
+      .filter(u => String(u?.pseudo || '').trim())
+      .slice(0, 12);
+  }
+
+  selectRecipient(u: any) {
+    this.recipientId = String(u?._id || '');
+    this.recipientQuery = String(u?.pseudo || '');
+    this.recipientOpen = false;
   }
 
   sendNewMessage() {
     if (!this.canSendMessage()) return;
+    if (!this.recipientId) {
+      alert(this.translate.instant('messaging.pseudoNotFound'));
+      return;
+    }
 
     const payload = {
-      to: this.newMessage.recipient,
+      to: this.recipientId,
       subject: this.newMessage.subject || '',
       content: this.newMessage.content
     };
@@ -204,7 +272,9 @@ export class MessagingComponent implements OnInit {
     this.api.post('messages', payload).subscribe({
       next: (created: any) => {
         this.sentMessages.unshift(created);
-        this.newMessage = { recipient: '', subject: '', content: '' };
+        this.newMessage = { subject: '', content: '' };
+        this.recipientId = '';
+        this.recipientQuery = '';
         alert('✅ ' + this.translate.instant('messaging.sentOk'));
       },
       error: (err) => {
@@ -215,7 +285,8 @@ export class MessagingComponent implements OnInit {
   }
 
   replyToMessage(msg: any) {
-    this.newMessage.recipient = msg.from;
+    this.recipientId = String(msg.from || '');
+    this.recipientQuery = this.getSenderName(String(msg.from || ''));
     this.newMessage.subject = `Re: ${msg.subject}`;
     this.newMessage.content = `\n\n--- Message original ---\n${msg.content}\n\n`;
     this.messageModalVisible = false;
