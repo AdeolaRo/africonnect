@@ -21,7 +21,8 @@ router.post('/', upload.fields([
 
   if (!files.length) return res.status(400).json({ error: 'Aucun fichier' });
 
-  const urls = files.slice(0, 3).map(f => `${req.protocol}://${req.get('host')}/uploads/${f.filename}`);
+  // Return relative URLs to avoid mixed-content issues behind HTTPS proxies
+  const urls = files.slice(0, 3).map(f => `/uploads/${f.filename}`);
   res.json({ url: urls[0], urls });
 });
 

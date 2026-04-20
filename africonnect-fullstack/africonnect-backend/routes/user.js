@@ -32,13 +32,78 @@ router.get('/users', auth, async (req, res) => {
 
 // Obtenir les publications de l'utilisateur (tous types)
 router.get('/posts', auth, async (req, res) => {
-  const models = [ForumPost, MarketplaceItem, Job, Solution, Solidarity, Event, Group];
+  const models = [
+    { key: 'forum', Model: ForumPost },
+    { key: 'marketplace', Model: MarketplaceItem },
+    { key: 'jobs', Model: Job },
+    { key: 'solutions', Model: Solution },
+    { key: 'solidarity', Model: Solidarity },
+    { key: 'events', Model: Event },
+    { key: 'groups', Model: Group }
+  ];
   let allPosts = [];
-  for (const Model of models) {
-    const posts = await Model.find({ userId: req.userId }).sort({ createdAt: -1 });
-    allPosts.push(...posts);
+  for (const entry of models) {
+    const posts = await entry.Model.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const tagged = posts.map(p => ({ ...p.toObject(), _type: entry.key }));
+    allPosts.push(...tagged);
   }
+  allPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   res.json(allPosts);
+});
+
+async function findPostById(postId) {
+  const list = [
+    { key: 'forum', Model: ForumPost },
+    { key: 'marketplace', Model: MarketplaceItem },
+    { key: 'jobs', Model: Job },
+    { key: 'solutions', Model: Solution },
+    { key: 'solidarity', Model: Solidarity },
+    { key: 'events', Model: Event },
+    { key: 'groups', Model: Group }
+  ];
+  for (const entry of list) {
+    const doc = await entry.Model.findById(postId);
+    if (doc) return { key: entry.key, doc };
+  }
+  return null;
+}
+
+// Supprimer une publication (tous types) - owner ou admin/moderator
+router.delete('/posts/:postId', auth, async (req, res) => {
+  const found = await findPostById(req.params.postId);
+  if (!found) return res.status(404).json({ error: 'Non trouvé' });
+  const { doc } = found;
+  if (
+    String(doc.userId) !== String(req.userId) &&
+    req.role !== 'admin' &&
+    req.role !== 'moderator'
+  ) return res.status(403).json({ error: 'Non autorisé' });
+  await doc.deleteOne();
+  res.json({ message: 'Supprimé' });
+});
+
+// Modifier une publication (tous types) - owner ou admin/moderator
+router.put('/posts/:postId', auth, async (req, res) => {
+  const found = await findPostById(req.params.postId);
+  if (!found) return res.status(404).json({ error: 'Non trouvé' });
+  const { doc } = found;
+  if (
+    String(doc.userId) !== String(req.userId) &&
+    req.role !== 'admin' &&
+    req.role !== 'moderator'
+  ) return res.status(403).json({ error: 'Non autorisé' });
+
+  const body = { ...(req.body || {}) };
+  if (Array.isArray(body.imageUrls)) body.imageUrls = body.imageUrls.filter(Boolean).slice(0, 3);
+  else if (body.imageUrl && !body.imageUrls) body.imageUrls = [body.imageUrl].filter(Boolean).slice(0, 3);
+
+  // Only allow updating known fields (best-effort per model)
+  const allowed = ['title', 'subject', 'content', 'desc', 'price', 'location', 'company', 'contact', 'category', 'eventDate', 'rules', 'name', 'description', 'imageUrls', 'imageUrl'];
+  for (const k of allowed) {
+    if (body[k] !== undefined) doc[k] = body[k];
+  }
+  await doc.save();
+  res.json(doc);
 });
 
 // Sauvegarder un post

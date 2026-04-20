@@ -24,6 +24,7 @@ const geoRoutes = require('./routes/geo');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: '*' } });
 app.set('io', io);

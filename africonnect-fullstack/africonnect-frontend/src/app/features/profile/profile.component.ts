@@ -269,7 +269,16 @@ export class ProfileComponent implements OnInit {
     const urls = Array.isArray(post?.imageUrls) && post.imageUrls.length
       ? post.imageUrls
       : (post?.imageUrl ? [post.imageUrl] : []);
-    return urls.filter(Boolean).slice(0, 3);
+    return urls
+      .filter(Boolean)
+      .map((u: string) => {
+        const s = String(u || '');
+        if (typeof window !== 'undefined' && window.location?.protocol === 'https:' && s.startsWith('http://')) {
+          return s.replace(/^http:\/\//, 'https://');
+        }
+        return s;
+      })
+      .slice(0, 3);
   }
 
   openPreview(url: string) {
@@ -278,9 +287,18 @@ export class ProfileComponent implements OnInit {
   }
 
   goToOriginal(post: any) {
-    // Best-effort: open forum for now (works for forum posts). For other types, keep user on forum.
     this.postModalVisible = false;
-    this.router.navigate(['/forum']);
+    const t = String(post?._type || '').toLowerCase();
+    const map: any = {
+      forum: '/forum',
+      marketplace: '/marketplace',
+      jobs: '/emploi',
+      solutions: '/solutions',
+      solidarity: '/solidarite',
+      events: '/evenements',
+      groups: '/groupes'
+    };
+    this.router.navigate([map[t] || '/forum']);
   }
 
   ngOnInit() {
@@ -397,7 +415,10 @@ export class ProfileComponent implements OnInit {
   deletePost(postId: string) { 
     if (confirm('Voulez-vous vraiment supprimer cette publication ?')) {
       this.api.delete(`user/posts/${postId}`).subscribe({
-        next: () => this.loadMyPosts(),
+        next: () => {
+          this.postModalVisible = false;
+          this.loadMyPosts();
+        },
         error: (err) => console.error('Error deleting post:', err)
       }); 
     }
