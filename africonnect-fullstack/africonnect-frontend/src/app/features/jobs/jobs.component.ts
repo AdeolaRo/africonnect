@@ -19,6 +19,10 @@ import { QuillModule } from 'ngx-quill';
     <div *ngFor="let item of filteredItems" class="item-card">
       <h3>{{ item.title || item.name }}</h3>
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
+      <div class="item-meta" *ngIf="item.company || item.contact" style="margin-top:6px;">
+        <span *ngIf="item.company">🏢 {{ item.company }}</span>
+        <span *ngIf="item.contact">📩 {{ item.contact }}</span>
+      </div>
       <div *ngIf="getImages(item).length > 0" class="thumb-grid">
         <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || 'Image'" (click)="openPreview(url)">
       </div>

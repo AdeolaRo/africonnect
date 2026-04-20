@@ -112,13 +112,64 @@ import { RealtimeService } from './core/services/realtime.service';
             </svg>
           </button>
         </div>
+        <label class="terms-line">
+          <input type="checkbox" [(ngModel)]="registerAcceptTerms" name="registerAcceptTerms">
+          <span>
+            J’ai lu et j’accepte les
+            <button type="button" class="link-btn" (click)="openTerms()">Termes</button>
+            et les
+            <button type="button" class="link-btn" (click)="openConditions()">Conditions d'utilisation</button>.
+          </span>
+        </label>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button type="submit" class="btn btn-primary" [disabled]="isRegistering">
+          <button type="submit" class="btn btn-primary" [disabled]="isRegistering || !registerAcceptTerms">
             {{ isRegistering ? 'Création...' : 'Créer' }}
           </button>
           <button type="button" class="btn btn-secondary" (click)="registerModalVisible = false" [disabled]="isRegistering">Annuler</button>
         </div>
       </form>
+    </app-modal>
+
+    <app-modal [(visible)]="termsVisible" title="Termes">
+      <div class="legal-text">
+        <p><strong>African Connect</strong> est une plateforme communautaire destinée à faciliter les échanges (forum, groupes, annonces, offres, événements) entre membres.</p>
+        <p>En utilisant le service, vous acceptez notamment :</p>
+        <ul>
+          <li>de publier des informations exactes et de respecter les autres utilisateurs ;</li>
+          <li>de ne pas publier de contenu illégal, haineux, diffamatoire, harcelant, ou à caractère sexuel explicite ;</li>
+          <li>de ne pas usurper l’identité d’une autre personne ;</li>
+          <li>de ne pas tenter d’exploiter des failles, contourner la sécurité, ou perturber le service.</li>
+        </ul>
+        <p>Nous pouvons, à notre discrétion, modérer, retirer ou limiter l’accès à des contenus/compte en cas d’abus, afin de protéger la communauté.</p>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+        <button class="btn btn-secondary" type="button" (click)="termsVisible=false">Fermer</button>
+      </div>
+    </app-modal>
+
+    <app-modal [(visible)]="conditionsVisible" title="Conditions d'utilisation">
+      <div class="legal-text">
+        <p><strong>1) Compte</strong></p>
+        <ul>
+          <li>Vous êtes responsable de la confidentialité de votre mot de passe et des actions effectuées depuis votre compte.</li>
+          <li>Vous pouvez supprimer votre compte depuis votre profil. Certaines données peuvent rester en sauvegarde technique un temps limité.</li>
+        </ul>
+        <p><strong>2) Contenus</strong></p>
+        <ul>
+          <li>Vous restez propriétaire de vos contenus, mais vous nous autorisez à les afficher sur la plateforme.</li>
+          <li>Les contenus peuvent être modérés (suppression/masquage) en cas de violation des règles ou signalement.</li>
+        </ul>
+        <p><strong>3) Annonces & publicités</strong></p>
+        <ul>
+          <li>Les demandes de publicité et les médias peuvent être vérifiés avant publication.</li>
+          <li>En cas de non-conformité (droit d’auteur, contenu interdit, etc.), une nouvelle version peut être demandée.</li>
+        </ul>
+        <p><strong>4) Responsabilité</strong></p>
+        <p>Le service est fourni “en l’état”. Nous mettons tout en œuvre pour assurer la disponibilité, sans garantie d’absence d’interruptions.</p>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+        <button class="btn btn-secondary" type="button" (click)="conditionsVisible=false">Fermer</button>
+      </div>
     </app-modal>
 
     <app-modal [(visible)]="notificationsVisible" title="Notifications">
@@ -208,6 +259,13 @@ import { RealtimeService } from './core/services/realtime.service';
     }
     .pw-toggle:hover { border-color: var(--primary); }
     .pw-toggle svg { width: 16px; height: 16px; fill: currentColor; display: block; }
+    .terms-line { display:flex; gap:10px; align-items:flex-start; margin: 6px 0 12px; color: var(--text-muted); font-size: 0.92rem; }
+    .terms-line input { margin-top: 3px; }
+    .link-btn { background: transparent; border: none; padding: 0; color: var(--primary); cursor: pointer; font-weight: 700; }
+    .link-btn:hover { text-decoration: underline; }
+    .legal-text { color: var(--text); }
+    .legal-text p { margin: 0 0 10px; }
+    .legal-text ul { margin: 0 0 10px; padding-left: 18px; }
     @media (max-width: 768px) {
       .navbar { padding: 12px 14px; }
       .container { padding: 14px; }
@@ -242,6 +300,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   isRegistering = false;
   showRegisterPassword = false;
   showRegisterPasswordConfirm = false;
+  registerAcceptTerms = false;
+  termsVisible = false;
+  conditionsVisible = false;
   searchQuery = '';
   isAdminOrModerationRoute = false;
   isProfileRoute = false;
@@ -313,8 +374,12 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.registerPasswordConfirm = '';
     this.showRegisterPassword = false;
     this.showRegisterPasswordConfirm = false;
+    this.registerAcceptTerms = false;
     this.registerModalVisible = true;
   }
+
+  openTerms() { this.termsVisible = true; }
+  openConditions() { this.conditionsVisible = true; }
 
   async submitRegister(event?: Event) {
     if (event) event.preventDefault();
@@ -330,6 +395,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
     if (password !== confirmPassword) {
       this.showToast('Les mots de passe ne correspondent pas');
+      return;
+    }
+    if (!this.registerAcceptTerms) {
+      this.showToast("Veuillez accepter les Termes et Conditions d'utilisation");
       return;
     }
 

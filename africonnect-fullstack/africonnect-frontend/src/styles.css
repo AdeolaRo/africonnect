@@ -704,6 +704,38 @@ select.form-control {
   h3 { font-size: 1.1rem; }
 }
 
+/* Moderation mobile improvements */
+@media (max-width: 768px) {
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+  .content-list .moderation-item {
+    padding: 12px;
+  }
+  .content-list .item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .content-list .item-actions {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+  }
+  .content-list .item-actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
 /* Error States */
 .text-error {
   color: var(--danger);
