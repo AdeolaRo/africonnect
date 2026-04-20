@@ -19,7 +19,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <nav class="navbar">
       <a routerLink="/" class="brand-link" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text);">
         <img src="assets/favicon/favicon-96x96.png" alt="Logo" style="width:40px;height:40px;border-radius:16px;display:block;border:1px solid rgba(255,255,255,0.12); object-fit: cover;">
-        <strong style="font-size:1.4rem;">{{ 'brand.name' | translate }}</strong>
+        <strong style="font-size:1.4rem;">African Connect</strong>
       </a>
       <button class="nav-toggle" type="button" (click)="toggleNav()" aria-label="Menu">☰</button>
       <div class="nav-links" [class.open]="isNavOpen">
