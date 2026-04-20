@@ -16,18 +16,23 @@ import { QuillModule } from 'ngx-quill';
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
     </div>
     <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">Aucun élément</div>
-    <div *ngFor="let item of filteredItems" class="item-card">
-      <h3>{{ item.title || item.name }}</h3>
-      <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
-      <div *ngIf="getImages(item).length > 0" class="thumb-grid">
-        <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || 'Image'" (click)="openPreview(url)">
+    <div class="items-grid" *ngIf="filteredItems.length">
+      <div *ngFor="let item of filteredItems" class="item-card">
+        <h3>{{ item.title || item.name }}</h3>
+        <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
+        <div *ngIf="getImages(item).length > 0" class="thumb-grid">
+          <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || 'Image'" (click)="openPreview(url)">
+        </div>
+        <div [innerHTML]="item.content || item.desc"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
+          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="editItem(item)">Modifier</button>
+          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
+          <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+        </div>
       </div>
-      <div [innerHTML]="item.content || item.desc"></div>
-      <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)" style="margin-top:12px;">Supprimer</button>
-      <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
     </div>
 
-    <app-modal [(visible)]="modalVisible" title="Nouvelle solution">
+    <app-modal [(visible)]="modalVisible" [title]="editingItem ? 'Modifier la solution' : 'Nouvelle solution'">
       <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
           <label class="form-label">Titre *</label>
@@ -110,6 +115,7 @@ export class SolutionsComponent implements OnInit {
   currentUserRole = '';
   filteredItems: any[] = [];
   isSubmitting = false;
+  editingItem: any = null;
 
   get fileDescription(): string {
     return 'PNG, JPG, GIF jusqu\'à 5MB';
@@ -130,7 +136,23 @@ export class SolutionsComponent implements OnInit {
     });
   }
   loadItems() { this.api.get('solutions').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
-  openModal() { this.modalVisible = true; }
+  openModal() {
+    this.editingItem = null;
+    this.itemForm.reset({ title: '', category: '', desc: '', image: '' });
+    this.selectedFiles = [];
+    this.modalVisible = true;
+  }
+
+  editItem(item: any) {
+    this.editingItem = item;
+    this.itemForm.patchValue({
+      title: item?.title || '',
+      category: item?.category || '',
+      desc: item?.desc || item?.content || ''
+    });
+    this.selectedFiles = [];
+    this.modalVisible = true;
+  }
   onFileSelected(event: any) {
     const files = Array.from(event?.target?.files || []) as File[];
     this.selectedFiles = files.slice(0, 3);
@@ -152,13 +174,18 @@ export class SolutionsComponent implements OnInit {
     this.isSubmitting = true;
     try {
       const formValue: any = this.itemForm.value;
+      if (this.editingItem?.imageUrls && !formValue.imageUrls) formValue.imageUrls = this.editingItem.imageUrls;
       if (this.selectedFiles.length > 0) {
         const fd = new FormData();
         this.selectedFiles.forEach(f => fd.append('images', f));
         const upload: any = await this.api.post('upload', fd).toPromise();
         formValue.imageUrls = Array.isArray(upload?.urls) ? upload.urls : (upload?.url ? [upload.url] : []);
       }
-      await this.api.post('solutions', formValue).toPromise();
+      if (this.editingItem?._id) {
+        await this.api.put(`user/posts/${this.editingItem._id}`, formValue).toPromise();
+      } else {
+        await this.api.post('solutions', formValue).toPromise();
+      }
       this.modalVisible = false;
       this.loadItems();
       this.itemForm.reset();

@@ -16,7 +16,8 @@ import { QuillModule } from 'ngx-quill';
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">+ Nouveau</button>
     </div>
     <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">Aucun élément</div>
-    <div *ngFor="let item of filteredItems" class="item-card">
+    <div class="items-grid" *ngIf="filteredItems.length">
+      <div *ngFor="let item of filteredItems" class="item-card">
       <h3>{{ item.title || item.name }}</h3>
       <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
       <div class="item-meta" *ngIf="item.company || item.contact" style="margin-top:6px;">
@@ -27,11 +28,15 @@ import { QuillModule } from 'ngx-quill';
         <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || 'Image'" (click)="openPreview(url)">
       </div>
       <div [innerHTML]="item.content || item.desc"></div>
-      <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)" style="margin-top:12px;">Supprimer</button>
-      <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="editItem(item)">Modifier</button>
+        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
+        <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+      </div>
+      </div>
     </div>
 
-    <app-modal [(visible)]="modalVisible" title="Nouvelle offre d'emploi">
+    <app-modal [(visible)]="modalVisible" [title]="editingItem ? 'Modifier l\\'offre d\\'emploi' : 'Nouvelle offre d\\'emploi'">
       <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
           <label class="form-label">Intitulé du poste *</label>
@@ -122,6 +127,7 @@ export class EmploiComponent implements OnInit {
   currentUserRole = '';
   filteredItems: any[] = [];
   isSubmitting = false;
+  editingItem: any = null;
 
   get fileDescription(): string {
     return 'PNG, JPG, GIF jusqu\'à 5MB';
@@ -142,7 +148,24 @@ export class EmploiComponent implements OnInit {
     });
   }
   loadItems() { this.api.get('jobs').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
-  openModal() { this.modalVisible = true; }
+  openModal() {
+    this.editingItem = null;
+    this.itemForm.reset({ title: '', company: '', desc: '', contact: '', image: '' });
+    this.selectedFiles = [];
+    this.modalVisible = true;
+  }
+
+  editItem(item: any) {
+    this.editingItem = item;
+    this.itemForm.patchValue({
+      title: item?.title || '',
+      company: item?.company || '',
+      contact: item?.contact || '',
+      desc: item?.desc || item?.content || ''
+    });
+    this.selectedFiles = [];
+    this.modalVisible = true;
+  }
   onFileSelected(event: any) {
     const files = Array.from(event?.target?.files || []) as File[];
     this.selectedFiles = files.slice(0, 3);
@@ -164,6 +187,8 @@ export class EmploiComponent implements OnInit {
     this.isSubmitting = true;
     try {
       const formValue: any = this.itemForm.value;
+      // keep existing images unless user selects new ones
+      if (this.editingItem?.imageUrls && !formValue.imageUrls) formValue.imageUrls = this.editingItem.imageUrls;
       if (this.selectedFiles.length > 0) {
         const fd = new FormData();
         this.selectedFiles.forEach(f => fd.append('images', f));
@@ -171,7 +196,11 @@ export class EmploiComponent implements OnInit {
         formValue.imageUrls = Array.isArray(upload?.urls) ? upload.urls : (upload?.url ? [upload.url] : []);
       }
 
-      await this.api.post('jobs', formValue).toPromise();
+      if (this.editingItem?._id) {
+        await this.api.put(`user/posts/${this.editingItem._id}`, formValue).toPromise();
+      } else {
+        await this.api.post('jobs', formValue).toPromise();
+      }
       this.modalVisible = false;
       this.loadItems();
       this.itemForm.reset();
