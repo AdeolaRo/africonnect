@@ -24,12 +24,15 @@
     "login": "Se connecter",
     "createAccount": "Créer un compte",
     "forgot": "Mot de passe oublié ?",
+    "forgotTitle": "Mot de passe oublié",
+    "forgotHelp": "Vous recevrez un email avec un lien pour définir un nouveau mot de passe.",
     "registerTitle": "Créer un compte",
     "pseudo": "Pseudo",
     "fullName": "Nom complet",
     "confirmPassword": "Confirmer le mot de passe",
     "create": "Créer",
     "cancel": "Annuler",
+    "acceptRequired": "Veuillez accepter les Termes et Conditions d'utilisation",
     "acceptPrefix": "J’ai lu et j’accepte les",
     "terms": "Termes",
     "and": "et les",
@@ -37,6 +40,51 @@
   },
   "footer": {
     "copyright": "Copyright @ Adéola 2026 CIA"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "send": "Envoyer",
+    "sending": "Envoi...",
+    "accept": "Accepter",
+    "view": "Voir",
+    "pay": "Payer",
+    "notAvailableNow": "Impossible pour le moment"
+  },
+  "rss": {
+    "title": "Flux RSS"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "clearAll": "Effacer tout",
+    "clearAllConfirm": "Effacer toutes les notifications ?",
+    "cleared": "Notifications effacées",
+    "none": "Aucune notification.",
+    "defaultTitle": "Notification",
+    "markRead": "Marquer comme lu"
+  },
+  "legal": {
+    "termsTitle": "Termes",
+    "conditionsTitle": "Conditions d'utilisation",
+    "termsP1": "African Connect est une plateforme communautaire destinée à faciliter les échanges (forum, groupes, annonces, offres, événements) entre membres.",
+    "termsP2": "En utilisant le service, vous acceptez notamment :",
+    "termsL1": "de publier des informations exactes et de respecter les autres utilisateurs ;",
+    "termsL2": "de ne pas publier de contenu illégal, haineux, diffamatoire, harcelant, ou à caractère sexuel explicite ;",
+    "termsL3": "de ne pas usurper l’identité d’une autre personne ;",
+    "termsL4": "de ne pas tenter d’exploiter des failles, contourner la sécurité, ou perturber le service.",
+    "termsP3": "Nous pouvons, à notre discrétion, modérer, retirer ou limiter l’accès à des contenus/compte en cas d’abus, afin de protéger la communauté.",
+    "conditionsS1Title": "1) Compte",
+    "conditionsS1L1": "Vous êtes responsable de la confidentialité de votre mot de passe et des actions effectuées depuis votre compte.",
+    "conditionsS1L2": "Vous pouvez supprimer votre compte depuis votre profil. Certaines données peuvent rester en sauvegarde technique un temps limité.",
+    "conditionsS2Title": "2) Contenus",
+    "conditionsS2L1": "Vous restez propriétaire de vos contenus, mais vous nous autorisez à les afficher sur la plateforme.",
+    "conditionsS2L2": "Les contenus peuvent être modérés (suppression/masquage) en cas de violation des règles ou signalement.",
+    "conditionsS3Title": "3) Annonces & publicités",
+    "conditionsS3L1": "Les demandes de publicité et les médias peuvent être vérifiés avant publication.",
+    "conditionsS3L2": "En cas de non-conformité (droit d’auteur, contenu interdit, etc.), une nouvelle version peut être demandée.",
+    "conditionsS4Title": "4) Responsabilité",
+    "conditionsS4P1": "Le service est fourni “en l’état”. Nous mettons tout en œuvre pour assurer la disponibilité, sans garantie d’absence d’interruptions."
   },
   "lang": {
     "fr": "FR",

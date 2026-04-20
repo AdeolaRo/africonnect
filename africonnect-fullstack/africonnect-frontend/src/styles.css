@@ -47,11 +47,31 @@ body {
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .navbar {
-    padding: 12px 16px;
-    gap: 12px;
-    flex-wrap: nowrap;
+    padding: 10px 12px;
+    gap: 10px;
+    flex-wrap: wrap;
     position: sticky;
+    top: 0;
+    z-index: 2000;
   }
+
+  /* Re-layout navbar for small screens */
+  .navbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "brand toggle"
+      "links links"
+      "tools tools";
+    align-items: center;
+  }
+  .brand-link { grid-area: brand; min-width: 0; }
+  .nav-toggle { grid-area: toggle; justify-self: end; }
+  .nav-links { grid-area: links; }
+  .toolbar { grid-area: tools; }
+
+  .brand-link strong { font-size: 1.05rem !important; }
+  .brand-link img { width: 34px !important; height: 34px !important; border-radius: 12px !important; }
 
   /* Burger menu */
   .nav-toggle {
@@ -89,6 +109,23 @@ body {
   .nav-links.open { display: flex; }
 
   .nav-links a { padding: 10px 12px; }
+
+  /* Toolbar: keep on one line, scroll if needed */
+  .toolbar {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    gap: 8px;
+    flex-wrap: nowrap !important;
+  }
+  .toolbar::-webkit-scrollbar { height: 0; }
+  .toolbar > * { flex: 0 0 auto; }
+  .user-pseudo { display: none !important; } /* avoid overflow */
+  .profile-chip span { display: none; } /* icon/avatar only */
+  .profile-chip { padding: 8px 10px; }
+  .lang-btn { padding: 8px 10px; border-radius: 14px; }
 
   .container {
     padding: 16px;

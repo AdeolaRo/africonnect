@@ -65,14 +65,14 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <aside class="sidebar-right" *ngIf="!isAdminOrModerationRoute && !isProfileRoute">
           <app-carousel></app-carousel>
           <div class="rss-feed">
-            <h3>Flux RSS</h3>
-            <div id="rssFeedList">Chargement...</div>
+            <h3>{{ 'rss.title' | translate }}</h3>
+            <div id="rssFeedList">{{ 'common.loading' | translate }}</div>
           </div>
         </aside>
       </div>
     </div>
 
-    <app-modal [(visible)]="authModalVisible" title="Connexion / Inscription">
+    <app-modal [(visible)]="authModalVisible" [title]="'auth.title' | translate">
       <form (ngSubmit)="login($event)" class="auth-form">
         <input type="email" [(ngModel)]="authEmail" [placeholder]="'auth.email' | translate" name="authEmail" required>
         <input type="password" [(ngModel)]="authPassword" [placeholder]="'auth.password' | translate" name="authPassword" required>
@@ -133,80 +133,80 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       </form>
     </app-modal>
 
-    <app-modal [(visible)]="termsVisible" title="Termes">
+    <app-modal [(visible)]="termsVisible" [title]="'legal.termsTitle' | translate">
       <div class="legal-text">
-        <p><strong>African Connect</strong> est une plateforme communautaire destinée à faciliter les échanges (forum, groupes, annonces, offres, événements) entre membres.</p>
-        <p>En utilisant le service, vous acceptez notamment :</p>
+        <p>{{ 'legal.termsP1' | translate }}</p>
+        <p>{{ 'legal.termsP2' | translate }}</p>
         <ul>
-          <li>de publier des informations exactes et de respecter les autres utilisateurs ;</li>
-          <li>de ne pas publier de contenu illégal, haineux, diffamatoire, harcelant, ou à caractère sexuel explicite ;</li>
-          <li>de ne pas usurper l’identité d’une autre personne ;</li>
-          <li>de ne pas tenter d’exploiter des failles, contourner la sécurité, ou perturber le service.</li>
+          <li>{{ 'legal.termsL1' | translate }}</li>
+          <li>{{ 'legal.termsL2' | translate }}</li>
+          <li>{{ 'legal.termsL3' | translate }}</li>
+          <li>{{ 'legal.termsL4' | translate }}</li>
         </ul>
-        <p>Nous pouvons, à notre discrétion, modérer, retirer ou limiter l’accès à des contenus/compte en cas d’abus, afin de protéger la communauté.</p>
+        <p>{{ 'legal.termsP3' | translate }}</p>
       </div>
       <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-        <button class="btn btn-secondary" type="button" (click)="termsVisible=false">Fermer</button>
+        <button class="btn btn-secondary" type="button" (click)="termsVisible=false">{{ 'common.close' | translate }}</button>
       </div>
     </app-modal>
 
-    <app-modal [(visible)]="conditionsVisible" title="Conditions d'utilisation">
+    <app-modal [(visible)]="conditionsVisible" [title]="'legal.conditionsTitle' | translate">
       <div class="legal-text">
-        <p><strong>1) Compte</strong></p>
+        <p><strong>{{ 'legal.conditionsS1Title' | translate }}</strong></p>
         <ul>
-          <li>Vous êtes responsable de la confidentialité de votre mot de passe et des actions effectuées depuis votre compte.</li>
-          <li>Vous pouvez supprimer votre compte depuis votre profil. Certaines données peuvent rester en sauvegarde technique un temps limité.</li>
+          <li>{{ 'legal.conditionsS1L1' | translate }}</li>
+          <li>{{ 'legal.conditionsS1L2' | translate }}</li>
         </ul>
-        <p><strong>2) Contenus</strong></p>
+        <p><strong>{{ 'legal.conditionsS2Title' | translate }}</strong></p>
         <ul>
-          <li>Vous restez propriétaire de vos contenus, mais vous nous autorisez à les afficher sur la plateforme.</li>
-          <li>Les contenus peuvent être modérés (suppression/masquage) en cas de violation des règles ou signalement.</li>
+          <li>{{ 'legal.conditionsS2L1' | translate }}</li>
+          <li>{{ 'legal.conditionsS2L2' | translate }}</li>
         </ul>
-        <p><strong>3) Annonces & publicités</strong></p>
+        <p><strong>{{ 'legal.conditionsS3Title' | translate }}</strong></p>
         <ul>
-          <li>Les demandes de publicité et les médias peuvent être vérifiés avant publication.</li>
-          <li>En cas de non-conformité (droit d’auteur, contenu interdit, etc.), une nouvelle version peut être demandée.</li>
+          <li>{{ 'legal.conditionsS3L1' | translate }}</li>
+          <li>{{ 'legal.conditionsS3L2' | translate }}</li>
         </ul>
-        <p><strong>4) Responsabilité</strong></p>
-        <p>Le service est fourni “en l’état”. Nous mettons tout en œuvre pour assurer la disponibilité, sans garantie d’absence d’interruptions.</p>
+        <p><strong>{{ 'legal.conditionsS4Title' | translate }}</strong></p>
+        <p>{{ 'legal.conditionsS4P1' | translate }}</p>
       </div>
       <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-        <button class="btn btn-secondary" type="button" (click)="conditionsVisible=false">Fermer</button>
+        <button class="btn btn-secondary" type="button" (click)="conditionsVisible=false">{{ 'common.close' | translate }}</button>
       </div>
     </app-modal>
 
-    <app-modal [(visible)]="notificationsVisible" title="Notifications">
+    <app-modal [(visible)]="notificationsVisible" [title]="'notifications.title' | translate">
       <div style="display:flex; justify-content:flex-end; margin-bottom:10px;" *ngIf="notifications.length > 0">
-        <button class="btn btn-danger btn-sm" (click)="clearAllNotifications()">Effacer tout</button>
+        <button class="btn btn-danger btn-sm" (click)="clearAllNotifications()">{{ 'notifications.clearAll' | translate }}</button>
       </div>
-      <div *ngIf="notifications.length === 0" class="text-muted">Aucune notification.</div>
+      <div *ngIf="notifications.length === 0" class="text-muted">{{ 'notifications.none' | translate }}</div>
       <div *ngFor="let n of notifications" class="notif-card" [class.read]="!!n.read">
         <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
-          <div style="font-weight:800;">{{ n.title || 'Notification' }}</div>
-          <button *ngIf="!n.read" class="btn btn-secondary btn-sm" (click)="markNotifRead(n)">Marquer comme lu</button>
+          <div style="font-weight:800;">{{ n.title || ('notifications.defaultTitle' | translate) }}</div>
+          <button *ngIf="!n.read" class="btn btn-secondary btn-sm" (click)="markNotifRead(n)">{{ 'notifications.markRead' | translate }}</button>
         </div>
         <div class="text-muted" style="margin-top:6px;">{{ n.body }}</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;" *ngIf="n.type === 'group_invite' && n.data?.groupId">
-          <button class="btn btn-primary btn-sm" (click)="acceptInvite(n)">Accepter</button>
-          <button class="btn btn-secondary btn-sm" (click)="openGroup(n.data.groupId)">Voir</button>
+          <button class="btn btn-primary btn-sm" (click)="acceptInvite(n)">{{ 'common.accept' | translate }}</button>
+          <button class="btn btn-secondary btn-sm" (click)="openGroup(n.data.groupId)">{{ 'common.view' | translate }}</button>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;" *ngIf="n.type === 'ad_payment_link' && n.data?.url">
-          <a class="btn btn-primary btn-sm" [href]="n.data.url" target="_blank">Payer</a>
+          <a class="btn btn-primary btn-sm" [href]="n.data.url" target="_blank">{{ 'common.pay' | translate }}</a>
         </div>
       </div>
     </app-modal>
 
-    <app-modal [(visible)]="forgotModalVisible" title="Mot de passe oublié">
+    <app-modal [(visible)]="forgotModalVisible" [title]="'auth.forgotTitle' | translate">
       <form (ngSubmit)="submitForgotPassword($event)" class="auth-form">
-        <input type="email" [(ngModel)]="forgotEmail" placeholder="Votre email" name="forgotEmail" required>
+        <input type="email" [(ngModel)]="forgotEmail" [placeholder]="'auth.email' | translate" name="forgotEmail" required>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
           <button type="submit" class="btn btn-primary" [disabled]="isSendingForgot">
-            {{ isSendingForgot ? 'Envoi...' : 'Envoyer' }}
+            {{ isSendingForgot ? ('common.sending' | translate) : ('common.send' | translate) }}
           </button>
-          <button type="button" class="btn btn-secondary" (click)="forgotModalVisible = false" [disabled]="isSendingForgot">Annuler</button>
+          <button type="button" class="btn btn-secondary" (click)="forgotModalVisible = false" [disabled]="isSendingForgot">{{ 'common.cancel' | translate }}</button>
         </div>
         <div class="text-muted" style="margin-top:10px; font-size:0.9rem;">
-          Vous recevrez un email avec un lien pour définir un nouveau mot de passe.
+          {{ 'auth.forgotHelp' | translate }}
         </div>
       </form>
     </app-modal>
@@ -460,7 +460,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       return;
     }
     if (!this.registerAcceptTerms) {
-      this.showToast("Veuillez accepter les Termes et Conditions d'utilisation");
+      this.showToast(this.translate.instant('auth.acceptRequired'));
       return;
     }
 
@@ -580,14 +580,14 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   clearAllNotifications() {
-    if (!confirm('Effacer toutes les notifications ?')) return;
+    if (!confirm(this.translate.instant('notifications.clearAllConfirm'))) return;
     this.api.delete('notifications/mine').subscribe({
       next: () => {
         this.notifications = [];
         this.realtime.clearNotificationsCache();
-        this.showToast('Notifications effacées');
+        this.showToast(this.translate.instant('notifications.cleared'));
       },
-      error: () => this.showToast('Impossible pour le moment')
+      error: () => this.showToast(this.translate.instant('common.notAvailableNow'))
     });
   }
 

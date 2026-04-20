@@ -24,12 +24,15 @@
     "login": "Login",
     "createAccount": "Create account",
     "forgot": "Forgot password?",
+    "forgotTitle": "Forgot password",
+    "forgotHelp": "You will receive an email with a link to set a new password.",
     "registerTitle": "Create account",
     "pseudo": "Username",
     "fullName": "Full name",
     "confirmPassword": "Confirm password",
     "create": "Create",
     "cancel": "Cancel",
+    "acceptRequired": "Please accept the Terms and Terms of use",
     "acceptPrefix": "I have read and accept the",
     "terms": "Terms",
     "and": "and the",
@@ -37,6 +40,51 @@
   },
   "footer": {
     "copyright": "Copyright @ Adéola 2026 CIA"
+  },
+  "common": {
+    "loading": "Loading...",
+    "close": "Close",
+    "cancel": "Cancel",
+    "send": "Send",
+    "sending": "Sending...",
+    "accept": "Accept",
+    "view": "View",
+    "pay": "Pay",
+    "notAvailableNow": "Not available right now"
+  },
+  "rss": {
+    "title": "RSS feed"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "clearAll": "Clear all",
+    "clearAllConfirm": "Clear all notifications?",
+    "cleared": "Notifications cleared",
+    "none": "No notifications.",
+    "defaultTitle": "Notification",
+    "markRead": "Mark as read"
+  },
+  "legal": {
+    "termsTitle": "Terms",
+    "conditionsTitle": "Terms of use",
+    "termsP1": "African Connect is a community platform designed to make it easier for members to connect (forum, groups, ads, jobs, events).",
+    "termsP2": "By using the service, you agree in particular to:",
+    "termsL1": "publish accurate information and respect other users;",
+    "termsL2": "not publish illegal, hateful, defamatory, harassing, or sexually explicit content;",
+    "termsL3": "not impersonate another person;",
+    "termsL4": "not attempt to exploit vulnerabilities, bypass security, or disrupt the service.",
+    "termsP3": "We may, at our discretion, moderate, remove or limit access to content/accounts in case of abuse to protect the community.",
+    "conditionsS1Title": "1) Account",
+    "conditionsS1L1": "You are responsible for keeping your password confidential and for actions performed through your account.",
+    "conditionsS1L2": "You can delete your account from your profile. Some data may remain in technical backups for a limited time.",
+    "conditionsS2Title": "2) Content",
+    "conditionsS2L1": "You remain the owner of your content, but you authorize us to display it on the platform.",
+    "conditionsS2L2": "Content may be moderated (removed/hidden) if it violates rules or is reported.",
+    "conditionsS3Title": "3) Ads & advertising",
+    "conditionsS3L1": "Advertising requests and media may be reviewed before publication.",
+    "conditionsS3L2": "In case of non-compliance (copyright, prohibited content, etc.), a new version may be requested.",
+    "conditionsS4Title": "4) Liability",
+    "conditionsS4P1": "The service is provided “as is”. We do our best to ensure availability, without guaranteeing it will be uninterrupted."
   },
   "lang": {
     "fr": "FR",
