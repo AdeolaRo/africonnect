@@ -36,23 +36,29 @@ import { ApiService } from '../../core/services/api.service';
         <div class="form-group" *ngIf="option === 'publish_only'">
           <label class="form-label">Votre média (image ou vidéo) *</label>
           <div class="file-upload">
-            <input type="file" (change)="onFileSelected($event)" accept="image/*,video/*">
-            <div *ngIf="!selectedFile">
-              <div style="font-size: 3rem; margin-bottom: 10px;">📺</div>
-              <div>Cliquez pour sélectionner votre pub</div>
-              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">PNG/JPG/GIF/MP4/WebM jusqu’à ~50MB</div>
+            <input #pubInput type="file" accept="image/*,video/*" (change)="addPublishOnlyFile($event)" style="display:none;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <button type="button" class="btn btn-secondary" (click)="pubInput.click()" [disabled]="!!selectedFile">
+                + Ajouter une image/vidéo
+              </button>
+              <div class="text-muted" style="font-size: 0.9rem;">1 média requis</div>
             </div>
-            <div *ngIf="selectedFile" class="file-selected">
+
+            <div *ngIf="!selectedFile" class="text-muted" style="margin-top:10px; font-size:0.9rem;">
+              PNG/JPG/GIF/MP4/WebM jusqu’à ~50MB
+            </div>
+
+            <div *ngIf="selectedFile" class="file-selected" style="margin-top:10px;">
               <div style="display:flex; align-items:center; gap:12px;">
                 <div style="font-size:2rem;">✅</div>
-                <div>
-                  <div>{{ selectedFile.name }}</div>
+                <div style="min-width:0;">
+                  <div style="word-break:break-word;">{{ selectedFile.name }}</div>
                   <div class="text-muted" style="font-size: 0.9rem;">
                     {{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB
                   </div>
                 </div>
-                <button type="button" class="btn btn-secondary" (click)="selectedFile = null" style="margin-left:auto;">
-                  Retirer
+                <button type="button" class="btn btn-danger btn-sm" (click)="removePublishOnlyFile()" style="margin-left:auto;">
+                  ✕
                 </button>
               </div>
             </div>
@@ -62,23 +68,29 @@ import { ApiService } from '../../core/services/api.service';
         <div class="form-group" *ngIf="option === 'create_and_publish'">
           <label class="form-label">Pièce jointe (optionnel) : exemple image/vidéo</label>
           <div class="file-upload">
-            <input type="file" (change)="onAttachmentSelected($event)" accept="image/*,video/*">
-            <div *ngIf="!attachmentFile">
-              <div style="font-size: 3rem; margin-bottom: 10px;">📎</div>
-              <div>Ajouter un exemple (optionnel)</div>
-              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">PNG/JPG/GIF/MP4/WebM</div>
+            <input #attInput type="file" accept="image/*,video/*" (change)="addAttachmentFile($event)" style="display:none;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <button type="button" class="btn btn-secondary" (click)="attInput.click()" [disabled]="!!attachmentFile">
+                + Ajouter un exemple
+              </button>
+              <div class="text-muted" style="font-size: 0.9rem;">Optionnel</div>
             </div>
-            <div *ngIf="attachmentFile" class="file-selected">
+
+            <div *ngIf="!attachmentFile" class="text-muted" style="margin-top:10px; font-size:0.9rem;">
+              PNG/JPG/GIF/MP4/WebM
+            </div>
+
+            <div *ngIf="attachmentFile" class="file-selected" style="margin-top:10px;">
               <div style="display:flex; align-items:center; gap:12px;">
                 <div style="font-size:2rem;">✅</div>
-                <div>
-                  <div>{{ attachmentFile.name }}</div>
+                <div style="min-width:0;">
+                  <div style="word-break:break-word;">{{ attachmentFile.name }}</div>
                   <div class="text-muted" style="font-size: 0.9rem;">
                     {{ (attachmentFile.size / 1024 / 1024).toFixed(2) }} MB
                   </div>
                 </div>
-                <button type="button" class="btn btn-secondary" (click)="attachmentFile = null" style="margin-left:auto;">
-                  Retirer
+                <button type="button" class="btn btn-danger btn-sm" (click)="removeAttachmentFile()" style="margin-left:auto;">
+                  ✕
                 </button>
               </div>
             </div>
@@ -107,12 +119,28 @@ export class AdRequestComponent {
     this.router.navigate(['/profile']);
   }
 
-  onFileSelected(event: any) {
-    this.selectedFile = event?.target?.files?.[0] || null;
+  addPublishOnlyFile(event: any) {
+    const input = event?.target as HTMLInputElement;
+    const file = input?.files?.[0] || null;
+    if (!file) return;
+    this.selectedFile = file;
+    if (input) input.value = '';
   }
 
-  onAttachmentSelected(event: any) {
-    this.attachmentFile = event?.target?.files?.[0] || null;
+  removePublishOnlyFile() {
+    this.selectedFile = null;
+  }
+
+  addAttachmentFile(event: any) {
+    const input = event?.target as HTMLInputElement;
+    const file = input?.files?.[0] || null;
+    if (!file) return;
+    this.attachmentFile = file;
+    if (input) input.value = '';
+  }
+
+  removeAttachmentFile() {
+    this.attachmentFile = null;
   }
 
   async submit() {

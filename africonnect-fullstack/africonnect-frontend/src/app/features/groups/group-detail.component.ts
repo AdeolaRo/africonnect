@@ -165,8 +165,24 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
     <app-modal [(visible)]="postVisible" [title]="editingPost ? 'Modifier le post' : 'Publier dans le groupe'">
       <div class="auth-form">
         <textarea class="form-control" rows="5" [(ngModel)]="newPostContent" placeholder="Écrire quelque chose..."></textarea>
-        <input type="file" (change)="onPostFiles($event)" multiple accept="image/*" style="margin-top:10px;">
-        <div class="text-muted" style="margin-top:8px;" *ngIf="postFiles.length">({{ postFiles.length }} fichier(s) sélectionné(s), max 3)</div>
+        <input #postImgInput type="file" accept="image/*" (change)="addPostFile($event)" style="display:none;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+          <button type="button" class="btn btn-secondary" (click)="postImgInput.click()" [disabled]="postFiles.length >= 3">
+            + Ajouter une photo
+          </button>
+          <div class="text-muted" style="font-size:0.9rem;">{{ postFiles.length }}/3</div>
+        </div>
+
+        <div *ngIf="postFileUrls.length > 0" class="thumb-grid" style="margin-top:10px;">
+          <div *ngFor="let url of postFileUrls; let i = index" style="position:relative;">
+            <img class="thumb" [src]="url" (click)="openPreview(url)" alt="image">
+            <button type="button" class="btn btn-danger btn-sm"
+              (click)="removePostFile(i)"
+              style="position:absolute; top:6px; right:6px; padding:6px 8px; border-radius:999px;">
+              ✕
+            </button>
+          </div>
+        </div>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
           <button class="btn btn-secondary" (click)="postVisible=false">Annuler</button>
           <button class="btn btn-primary" (click)="submitPost()" [disabled]="!canCreatePost()">
@@ -206,6 +222,7 @@ export class GroupDetailComponent implements OnInit {
 
   newPostContent = '';
   postFiles: File[] = [];
+  postFileUrls: string[] = [];
   editingPost: any = null;
 
   commentDraft: Record<string, string> = {};
@@ -276,14 +293,14 @@ export class GroupDetailComponent implements OnInit {
   openPostModalForCreate() {
     this.editingPost = null;
     this.newPostContent = '';
-    this.postFiles = [];
+    this.clearPostFiles();
     this.postVisible = true;
   }
 
   editPost(p: any) {
     this.editingPost = p;
     this.newPostContent = String(p?.content || '');
-    this.postFiles = [];
+    this.clearPostFiles();
     this.postVisible = true;
   }
 
@@ -390,9 +407,27 @@ export class GroupDetailComponent implements OnInit {
     });
   }
 
-  onPostFiles(event: any) {
-    const files = Array.from(event?.target?.files || []) as File[];
-    this.postFiles = files.slice(0, 3);
+  addPostFile(event: any) {
+    const input = event?.target as HTMLInputElement;
+    const file = input?.files?.[0];
+    if (!file) return;
+    if (this.postFiles.length >= 3) return;
+    this.postFiles.push(file);
+    this.postFileUrls.push(URL.createObjectURL(file));
+    if (input) input.value = '';
+  }
+
+  removePostFile(index: number) {
+    const url = this.postFileUrls[index];
+    if (url) URL.revokeObjectURL(url);
+    this.postFiles.splice(index, 1);
+    this.postFileUrls.splice(index, 1);
+  }
+
+  clearPostFiles() {
+    this.postFileUrls.forEach(u => { try { URL.revokeObjectURL(u); } catch {} });
+    this.postFiles = [];
+    this.postFileUrls = [];
   }
 
   canCreatePost() {
@@ -414,7 +449,7 @@ export class GroupDetailComponent implements OnInit {
           this.posts.unshift(p);
           this.postVisible = false;
           this.newPostContent = '';
-          this.postFiles = [];
+          this.clearPostFiles();
           this.editingPost = null;
         },
         error: (err) => alert(err?.error?.error || 'Erreur')
@@ -443,7 +478,7 @@ export class GroupDetailComponent implements OnInit {
           if (idx >= 0) this.posts[idx] = updated;
           this.postVisible = false;
           this.newPostContent = '';
-          this.postFiles = [];
+          this.clearPostFiles();
           this.editingPost = null;
         },
         error: (err) => alert(err?.error?.error || 'Erreur')

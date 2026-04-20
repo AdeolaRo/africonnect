@@ -143,13 +143,12 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
         <div class="form-group">
           <label class="form-label">Média *</label>
           <div *ngIf="!selectedFile && !form.mediaUrl" class="file-upload">
-            <input type="file" (change)="onFileSelected($event)" [accept]="form.mediaType === 'video' ? 'video/*' : 'image/*'">
-            <div>
-              <div style="font-size: 3rem; margin-bottom: 10px;">
-                {{ form.mediaType === 'video' ? '🎬' : '🖼️' }}
-              </div>
-              <div>Cliquez pour sélectionner un fichier</div>
-              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">
+            <input #mediaInput type="file" (change)="addMediaFile($event)" [accept]="form.mediaType === 'video' ? 'video/*' : 'image/*'" style="display:none;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <button type="button" class="btn btn-secondary" (click)="mediaInput.click()" [disabled]="!!selectedFile">
+                + Ajouter {{ form.mediaType === 'video' ? 'une vidéo' : 'une image' }}
+              </button>
+              <div class="text-muted" style="font-size: 0.9rem;">
                 {{ form.mediaType === 'video' ? videoFileDescription : imageFileDescription }}
               </div>
             </div>
@@ -166,8 +165,8 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
                   {{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB
                 </div>
               </div>
-              <button type="button" class="btn btn-secondary" (click)="clearFile()" style="margin-left: auto;">
-                Supprimer
+              <button type="button" class="btn btn-danger btn-sm" (click)="clearFile()" style="margin-left: auto;">
+                ✕
               </button>
             </div>
           </div>
@@ -322,16 +321,15 @@ export class AdManagementComponent implements OnInit {
     this.selectedFile = null;
   }
 
-  onFileSelected(event: any) {
-    this.selectedFile = event.target.files[0];
-    if (this.selectedFile) {
-      // Détecter le type de média
-      if (this.selectedFile.type.startsWith('video/')) {
-        this.form.mediaType = 'video';
-      } else if (this.selectedFile.type.startsWith('image/')) {
-        this.form.mediaType = 'image';
-      }
-    }
+  addMediaFile(event: any) {
+    const input = event?.target as HTMLInputElement;
+    const file = input?.files?.[0] || null;
+    if (!file) return;
+    this.selectedFile = file;
+    // Harmoniser mediaType si l'utilisateur choisit un fichier opposé
+    if (file.type.startsWith('video/')) this.form.mediaType = 'video';
+    if (file.type.startsWith('image/')) this.form.mediaType = 'image';
+    if (input) input.value = '';
   }
 
   clearFile() {

@@ -66,21 +66,25 @@ import { RouterLink } from '@angular/router';
         <div class="form-group">
           <label class="form-label">Image (optionnelle)</label>
           <div class="file-upload">
-            <input type="file" (change)="onFileSelected($event)" accept="image/*" multiple>
-            <div *ngIf="selectedFiles.length === 0">
-              <div style="font-size: 3rem; margin-bottom: 10px;">🖼️</div>
-              <div>Cliquez pour sélectionner jusqu’à 3 images</div>
-              <div class="text-muted" style="font-size: 0.9rem; margin-top: 8px;">{{ fileDescription }}</div>
+            <input #imgInput type="file" accept="image/*" (change)="addFile($event)" style="display:none;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <button type="button" class="btn btn-secondary" (click)="imgInput.click()" [disabled]="selectedFiles.length >= 3">
+                + Ajouter une photo
+              </button>
+              <div class="text-muted" style="font-size: 0.9rem;">{{ selectedFiles.length }}/3</div>
             </div>
-            <div *ngIf="selectedFiles.length > 0" class="file-selected">
-              <div style="display:flex; align-items:center; gap:12px;">
-                <div style="font-size:2rem;">📷</div>
-                <div>
-                  <div>{{ selectedFiles.length }} image(s) sélectionnée(s)</div>
-                  <div class="text-muted" style="font-size: 0.9rem;">Max 3 images</div>
-                </div>
-                <button type="button" class="btn btn-secondary" (click)="clearFiles()" style="margin-left:auto;">
-                  Supprimer
+
+            <div *ngIf="selectedFileUrls.length === 0" class="text-muted" style="margin-top:10px; font-size:0.9rem;">
+              {{ fileDescription }}
+            </div>
+
+            <div *ngIf="selectedFileUrls.length > 0" class="thumb-grid" style="margin-top:10px;">
+              <div *ngFor="let url of selectedFileUrls; let i = index" style="position:relative;">
+                <img class="thumb" [src]="url" alt="Image sélectionnée" (click)="openPreview(url)">
+                <button type="button" class="btn btn-danger btn-sm"
+                  (click)="removeFile(i)"
+                  style="position:absolute; top:6px; right:6px; padding:6px 8px; border-radius:999px;">
+                  ✕
                 </button>
               </div>
             </div>
@@ -114,6 +118,7 @@ export class GroupesComponent implements OnInit {
       category: ['', null],
   });
   selectedFiles: File[] = [];
+  selectedFileUrls: string[] = [];
   previewVisible = false;
   previewUrl = '';
   isLoggedIn = false;
@@ -141,12 +146,34 @@ export class GroupesComponent implements OnInit {
     });
   }
   loadItems() { this.api.get('groups').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
-  openModal() { this.modalVisible = true; }
-  onFileSelected(event: any) {
-    const files = Array.from(event?.target?.files || []) as File[];
-    this.selectedFiles = files.slice(0, 3);
+  openModal() {
+    this.itemForm.reset({ name: '', description: '', category: '' });
+    this.clearFiles();
+    this.modalVisible = true;
   }
-  clearFiles() { this.selectedFiles = []; }
+
+  addFile(event: any) {
+    const input = event?.target as HTMLInputElement;
+    const file = input?.files?.[0];
+    if (!file) return;
+    if (this.selectedFiles.length >= 3) return;
+    this.selectedFiles.push(file);
+    this.selectedFileUrls.push(URL.createObjectURL(file));
+    if (input) input.value = '';
+  }
+
+  removeFile(index: number) {
+    const url = this.selectedFileUrls[index];
+    if (url) URL.revokeObjectURL(url);
+    this.selectedFiles.splice(index, 1);
+    this.selectedFileUrls.splice(index, 1);
+  }
+
+  clearFiles() {
+    this.selectedFileUrls.forEach(u => { try { URL.revokeObjectURL(u); } catch {} });
+    this.selectedFiles = [];
+    this.selectedFileUrls = [];
+  }
   getImages(item: any): string[] {
     const urls = Array.isArray(item?.imageUrls) && item.imageUrls.length
       ? item.imageUrls
@@ -173,7 +200,7 @@ export class GroupesComponent implements OnInit {
       this.modalVisible = false;
       this.loadItems();
       this.itemForm.reset();
-      this.selectedFiles = [];
+      this.clearFiles();
     } catch (error) {
       console.error('Error submitting group:', error);
       alert('Une erreur est survenue lors de la création. Veuillez réessayer.');
