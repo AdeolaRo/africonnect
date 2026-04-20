@@ -18,10 +18,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   template: `
     <nav class="navbar">
       <a routerLink="/" class="brand-link" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text);">
-        <img src="assets/favicon/favicon-96x96.png" alt="Logo" style="width:40px;height:40px;border-radius:16px;display:block;border:1px solid rgba(255,255,255,0.12); object-fit: cover;">
+        <img src="assets/favicon/favicon-96x96.png" [attr.alt]="'a11y.logo' | translate" style="width:40px;height:40px;border-radius:16px;display:block;border:1px solid rgba(255,255,255,0.12); object-fit: cover;">
         <strong style="font-size:1.4rem;">African Connect</strong>
       </a>
-      <button class="nav-toggle" type="button" (click)="toggleNav()" aria-label="Menu">☰</button>
+      <button class="nav-toggle" type="button" (click)="toggleNav()" [attr.aria-label]="'a11y.menu' | translate">☰</button>
       <div class="nav-links" [class.open]="isNavOpen">
         <a routerLink="/forum" routerLinkActive="active">{{ 'nav.forum' | translate }}</a>
         <a routerLink="/marketplace" routerLinkActive="active">{{ 'nav.marketplace' | translate }}</a>
@@ -34,16 +34,16 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       <div class="toolbar">
         <button class="lang-btn" type="button" (click)="setLang('fr')" [class.active]="lang==='fr'">🇫🇷 FR</button>
         <button class="lang-btn" type="button" (click)="setLang('en')" [class.active]="lang==='en'">🇬🇧 EN</button>
-        <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openNotifications()" aria-label="Notifications">
+        <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openNotifications()" [attr.aria-label]="'a11y.notifications' | translate">
           🔔
           <span *ngIf="unreadNotifications > 0" class="badge">{{ unreadNotifications }}</span>
         </button>
-        <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openMessaging()" aria-label="Messages">
+        <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openMessaging()" [attr.aria-label]="'a11y.messages' | translate">
           💬
           <span *ngIf="unreadMessages > 0" class="badge">{{ unreadMessages }}</span>
         </button>
         <button *ngIf="isLoggedIn" class="profile-chip" type="button" (click)="goProfile()">
-          <img *ngIf="userAvatar" [src]="userAvatar" class="avatar-mini" alt="Avatar">
+          <img *ngIf="userAvatar" [src]="userAvatar" class="avatar-mini" [attr.alt]="'a11y.logo' | translate">
           <span>{{ 'nav.profile' | translate }}</span>
         </button>
         <span *ngIf="userPseudo" class="user-pseudo">{{ userPseudo }}</span>
@@ -94,7 +94,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <div class="pw-wrap">
           <input [type]="showRegisterPassword ? 'text' : 'password'" [(ngModel)]="registerPassword" [placeholder]="'auth.password' | translate" name="registerPassword" required>
           <button class="pw-toggle" type="button" (click)="showRegisterPassword = !showRegisterPassword"
-                  [attr.aria-label]="showRegisterPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+                  [attr.aria-label]="showRegisterPassword ? ('a11y.hidePassword' | translate) : ('a11y.showPassword' | translate)">
             <svg *ngIf="!showRegisterPassword" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 5c-5.5 0-10 5.3-10 7s4.5 7 10 7 10-5.3 10-7-4.5-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5c2.77 0 5 2.24 5 5s-2.23 5-5 5zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
             </svg>
@@ -106,7 +106,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <div class="pw-wrap">
           <input [type]="showRegisterPasswordConfirm ? 'text' : 'password'" [(ngModel)]="registerPasswordConfirm" [placeholder]="'auth.confirmPassword' | translate" name="registerPasswordConfirm" required>
           <button class="pw-toggle" type="button" (click)="showRegisterPasswordConfirm = !showRegisterPasswordConfirm"
-                  [attr.aria-label]="showRegisterPasswordConfirm ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+                  [attr.aria-label]="showRegisterPasswordConfirm ? ('a11y.hidePassword' | translate) : ('a11y.showPassword' | translate)">
             <svg *ngIf="!showRegisterPasswordConfirm" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 5c-5.5 0-10 5.3-10 7s4.5 7 10 7 10-5.3 10-7-4.5-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5c2.77 0 5 2.24 5 5s-2.23 5-5 5zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
             </svg>
@@ -126,7 +126,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         </label>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
           <button type="submit" class="btn btn-primary" [disabled]="isRegistering || !registerAcceptTerms">
-            {{ isRegistering ? '...' : ('auth.create' | translate) }}
+            {{ isRegistering ? ('common.ellipsis' | translate) : ('auth.create' | translate) }}
           </button>
           <button type="button" class="btn btn-secondary" (click)="registerModalVisible = false" [disabled]="isRegistering">{{ 'auth.cancel' | translate }}</button>
         </div>
@@ -452,11 +452,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     const fullName = (this.registerFullName || '').trim();
 
     if (!email || !password || !confirmPassword || !pseudo || !fullName) {
-      this.showToast('Pseudo, nom complet, email et mots de passe requis');
+      this.showToast(this.translate.instant('auth.toastRegisterFieldsRequired'));
       return;
     }
     if (password !== confirmPassword) {
-      this.showToast('Les mots de passe ne correspondent pas');
+      this.showToast(this.translate.instant('auth.toastPasswordMismatch'));
       return;
     }
     if (!this.registerAcceptTerms) {
@@ -468,14 +468,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     try {
       await this.auth.register(email, password, { pseudo, fullName });
       this.registerModalVisible = false;
-      this.showToast('Compte créé, vérifiez votre email');
+      this.showToast(this.translate.instant('auth.toastAccountCreated'));
       // Retour à la fenêtre de login
       this.authEmail = email;
       this.authPassword = '';
       this.authModalVisible = true;
     } catch (e) {
       console.error('Register error:', e);
-      this.showToast("Erreur lors de l'inscription: " + (e.message || e));
+      this.showToast(this.translate.instant('auth.toastRegisterErr', { detail: (e as any)?.message || String(e) }));
     } finally {
       this.isRegistering = false;
     }
@@ -485,7 +485,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (event) event.preventDefault();
     const email = (this.forgotEmail || '').trim();
     if (!email) {
-      this.showToast('Email requis');
+      this.showToast(this.translate.instant('auth.toastEmailRequired'));
       return;
     }
     this.isSendingForgot = true;
@@ -493,14 +493,14 @@ export class AppComponent implements OnInit, AfterViewInit {
       next: () => {
         this.isSendingForgot = false;
         this.forgotModalVisible = false;
-        this.showToast('Email envoyé (si le compte existe).');
+        this.showToast(this.translate.instant('auth.toastForgotSent'));
       },
       error: (err) => {
         console.error('Forgot password error:', err);
         this.isSendingForgot = false;
         // Ne pas révéler si l’email existe ou non
         this.forgotModalVisible = false;
-        this.showToast('Email envoyé (si le compte existe).');
+        this.showToast(this.translate.instant('auth.toastForgotSent'));
       }
     });
   }
@@ -511,16 +511,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
     console.log('Login attempt:', this.authEmail, this.authPassword);
     if (!this.authEmail || !this.authPassword) {
-      this.showToast('Veuillez remplir tous les champs');
+      this.showToast(this.translate.instant('auth.toastLoginFields'));
       return;
     }
     try {
       await this.auth.login(this.authEmail, this.authPassword);
       this.authModalVisible = false;
-      this.showToast('Connecté');
+      this.showToast(this.translate.instant('auth.toastLoggedIn'));
     } catch(e) {
       console.error('Login error:', e);
-      this.showToast('Erreur de connexion: ' + (e.message || e));
+      this.showToast(this.translate.instant('auth.toastLoginError', { detail: (e as any)?.message || String(e) }));
     }
   }
 
@@ -528,7 +528,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   async logout() {
     await this.auth.logout();
-    this.showToast('Déconnecté');
+    this.showToast(this.translate.instant('auth.toastLoggedOut'));
     this.router.navigate(['/']);
   }
 
@@ -556,11 +556,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (!gid) return;
     this.api.post(`groups/${gid}/invites/accept`, {}).subscribe({
       next: () => {
-        this.showToast('Invitation acceptée');
+        this.showToast(this.translate.instant('auth.toastInviteAccepted'));
         this.markNotifRead(n);
         this.openGroup(gid);
       },
-      error: (err) => this.showToast(err?.error?.error || 'Erreur')
+      error: (err) => this.showToast(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
 
@@ -615,7 +615,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       .then((data: any) => {
         const items = Array.isArray(data?.items) ? data.items : [];
         if (!items.length) {
-          container.innerHTML = 'Aucun article RSS pour le moment.';
+          container.innerHTML = this.translate.instant('rss.empty');
           return;
         }
         container.innerHTML = items.map(item => `
@@ -626,7 +626,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         `).join('');
       })
       .catch(() => {
-        container.innerHTML = 'Impossible de charger le flux RSS.';
+        container.innerHTML = this.translate.instant('rss.loadError');
       });
   }
 }

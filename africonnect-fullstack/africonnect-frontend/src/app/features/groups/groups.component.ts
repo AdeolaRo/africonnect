@@ -36,7 +36,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
           <button *ngIf="isLoggedIn && !isMember(item)" class="btn btn-primary" (click)="join(item)">Rejoindre</button>
           <button *ngIf="isLoggedIn && isMember(item)" class="btn btn-secondary" (click)="leave(item)">Quitter</button>
-          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
+          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">{{ 'common.delete' | translate }}</button>
           <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
         </div>
       </div>
@@ -70,7 +70,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             <input #imgInput type="file" accept="image/*" (change)="addFile($event)" style="display:none;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <button type="button" class="btn btn-secondary" (click)="imgInput.click()" [disabled]="selectedFiles.length >= 3">
-                + Ajouter une photo
+                {{ 'common.addPhoto' | translate }}
               </button>
               <div class="text-muted" style="font-size: 0.9rem;">{{ selectedFiles.length }}/3</div>
             </div>
@@ -97,7 +97,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             {{ 'common.cancel' | translate }}
           </button>
           <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || isSubmitting">
-            <span *ngIf="!isSubmitting">Créer le groupe</span>
+            <span *ngIf="!isSubmitting">{{ 'common.createGroup' | translate }}</span>
             <span *ngIf="isSubmitting">{{ 'common.sending' | translate }}</span>
           </button>
         </div>
@@ -210,13 +210,13 @@ export class GroupesComponent implements OnInit {
       this.clearFiles();
     } catch (error) {
       console.error('Error submitting group:', error);
-      alert('Une erreur est survenue lors de la création. Veuillez réessayer.');
+      alert(this.translate.instant('errors.groupsCreateFailed'));
     } finally {
       this.isSubmitting = false;
     }
   }
   deleteItem(id: string) {
-    if (confirm(this.translate.instant('common.delete') + ' ?')) this.api.delete('groups/' + id).subscribe(() => this.loadItems());
+    if (confirm(this.translate.instant('common.confirmDelete'))) this.api.delete('groups/' + id).subscribe(() => this.loadItems());
   }
   canDelete(item: any) {
     if (!this.isLoggedIn) return false;
@@ -226,14 +226,14 @@ export class GroupesComponent implements OnInit {
 
   toggleLike(item: any) {
     if (!this.isLoggedIn) {
-      alert('Connectez-vous pour liker.');
+      alert(this.translate.instant('errors.likeLogin'));
       return;
     }
     this.api.post('groups/' + item._id + '/like', {}).subscribe({
       next: (updated: any) => item.likes = updated?.likes || item.likes,
       error: (err) => {
         console.error('Error liking group:', err);
-        alert('Impossible de liker pour le moment.');
+        alert(this.translate.instant('errors.likeFailed'));
       }
     });
   }
@@ -251,7 +251,7 @@ export class GroupesComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error joining group:', err);
-        alert('Impossible de rejoindre ce groupe.');
+        alert(this.translate.instant('errors.joinGroupFailed'));
       }
     });
   }
@@ -263,7 +263,7 @@ export class GroupesComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error leaving group:', err);
-        alert('Impossible de quitter ce groupe.');
+        alert(this.translate.instant('errors.leaveGroupFailed'));
       }
     });
   }

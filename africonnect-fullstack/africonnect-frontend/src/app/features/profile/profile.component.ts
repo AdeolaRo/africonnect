@@ -360,14 +360,14 @@ export class ProfileComponent implements OnInit {
     this.isSaving = true;
     this.api.put('user/profile', this.profile).subscribe({
       next: () => {
-        alert('✅ ' + this.translate.instant('common.save'));
+        alert(this.translate.instant('common.save'));
         this.isSaving = false;
         this.profileSnapshot = { ...this.profile };
         this.isEditing = false;
       },
       error: (err) => {
         console.error('Error saving profile:', err);
-        alert('❌ ' + this.translate.instant('common.notAvailableNow'));
+        alert(this.translate.instant('common.notAvailableNow'));
         this.isSaving = false;
       }
     });

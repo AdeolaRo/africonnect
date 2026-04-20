@@ -21,7 +21,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">{{ 'common.none' | translate }}</div>
     <div *ngFor="let item of filteredItems" class="item-card">
       <h3>{{ item.title || item.name }}</h3>
-      <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
+      <div style="color:var(--muted);">{{ 'common.metaBy' | translate:{ author: (item.authorName || ('forumUi.anonymous' | translate)) } }} — {{ item.createdAt | date }}</div>
       <div *ngIf="getImages(item).length > 0" class="thumb-grid">
         <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || item.name || 'Image'" (click)="openPreview(url)">
       </div>
@@ -31,35 +31,35 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">{{ 'common.delete' | translate }}</button>
         <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
         <button class="btn btn-secondary" (click)="toggleReplies(item)" type="button">
-          💬 Réponses ({{ item.comments?.length || 0 }})
+          💬 {{ 'forumUi.replies' | translate:{ count: item.comments?.length || 0 } }}
         </button>
       </div>
 
       <div *ngIf="isRepliesOpen(item)" style="margin-top:14px;">
         <div *ngIf="(item.comments?.length || 0) === 0" class="text-muted" style="padding:12px; background:var(--surface-2); border-radius:12px; border:1px solid var(--border);">
-          Aucune réponse pour le moment.
+          {{ 'forumUi.noReplies' | translate }}
         </div>
 
         <div *ngFor="let c of (item.comments || [])" style="margin-top:10px; padding:12px; background:var(--surface-2); border-radius:12px; border:1px solid var(--border);">
           <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
-            <div style="font-weight:700;">{{ c.authorName || 'Anonyme' }}</div>
+            <div style="font-weight:700;">{{ c.authorName || ('forumUi.anonymous' | translate) }}</div>
             <div class="text-muted" style="font-size:0.85rem;">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
           </div>
           <div style="margin-top:6px; white-space:pre-wrap;">{{ c.content }}</div>
         </div>
 
         <div style="margin-top:12px;" *ngIf="isLoggedIn">
-          <label class="form-label">Répondre</label>
-          <textarea class="form-control" rows="3" [(ngModel)]="replyDraft[item._id]" placeholder="Écrivez votre réponse..."></textarea>
+          <label class="form-label">{{ 'forumUi.replyLabel' | translate }}</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="replyDraft[item._id]" [placeholder]="'forumUi.replyPlaceholder' | translate"></textarea>
           <div style="display:flex; justify-content:flex-end; margin-top:10px;">
             <button class="btn btn-primary" type="button" (click)="submitReply(item)" [disabled]="!replyDraft[item._id]?.trim()">
-              Envoyer
+              {{ 'forumUi.sendReply' | translate }}
             </button>
           </div>
         </div>
 
         <div *ngIf="!isLoggedIn" class="text-muted" style="margin-top:10px;">
-          Connectez-vous pour répondre.
+          {{ 'forumUi.loginToReply' | translate }}
         </div>
       </div>
     </div>
@@ -67,39 +67,39 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <app-modal [(visible)]="modalVisible" [title]="(editingItem ? 'sections.forumEdit' : 'sections.forumNew') | translate">
       <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
-          <label class="form-label">Titre *</label>
-          <input type="text" formControlName="title" placeholder="Donnez un titre à votre sujet" class="form-control">
+          <label class="form-label">{{ 'forumUi.titleLabel' | translate }}</label>
+          <input type="text" formControlName="title" [placeholder]="'forumUi.titlePlaceholder' | translate" class="form-control">
           <div *ngIf="itemForm.get('title')?.invalid && itemForm.get('title')?.touched" class="text-error">
-            Le titre est requis
+            {{ 'forumUi.titleRequired' | translate }}
           </div>
         </div>
         
         <div class="form-group">
-          <label class="form-label">Contenu *</label>
-          <quill-editor formControlName="content" placeholder="Développez votre idée..."></quill-editor>
+          <label class="form-label">{{ 'forumUi.contentLabel' | translate }}</label>
+          <quill-editor formControlName="content" [placeholder]="'forumUi.contentPlaceholder' | translate"></quill-editor>
           <div *ngIf="itemForm.get('content')?.invalid && itemForm.get('content')?.touched" class="text-error">
-            Le contenu est requis
+            {{ 'forumUi.contentRequired' | translate }}
           </div>
         </div>
         
         <div class="form-group">
-          <label class="form-label">Image (optionnelle)</label>
+          <label class="form-label">{{ 'forumUi.imageOptional' | translate }}</label>
           <div class="file-upload">
             <input #imgInput type="file" accept="image/*" (change)="addFile($event)" style="display:none;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <button type="button" class="btn btn-secondary" (click)="imgInput.click()" [disabled]="selectedFiles.length >= 3">
-                + Ajouter une photo
+                {{ 'common.addPhoto' | translate }}
               </button>
               <div class="text-muted" style="font-size: 0.9rem;">{{ selectedFiles.length }}/3</div>
             </div>
 
             <div *ngIf="selectedFileUrls.length === 0" class="text-muted" style="margin-top:10px; font-size:0.9rem;">
-              {{ fileDescription }}
+              {{ 'forumUi.imageHint' | translate }}
             </div>
 
             <div *ngIf="selectedFileUrls.length > 0" class="thumb-grid" style="margin-top:10px;">
               <div *ngFor="let url of selectedFileUrls; let i = index" style="position:relative;">
-                <img class="thumb" [src]="url" alt="Image sélectionnée" (click)="openPreview(url)">
+                <img class="thumb" [src]="url" [alt]="'forumUi.altSelectedImage' | translate" (click)="openPreview(url)">
                 <button type="button" class="btn btn-danger btn-sm"
                   (click)="removeFile(i)"
                   style="position:absolute; top:6px; right:6px; padding:6px 8px; border-radius:999px;">
@@ -148,10 +148,6 @@ export class ForumComponent implements OnInit {
   openReplies: Record<string, boolean> = {};
   private pendingOpenNew = false;
   editingItem: any = null;
-
-  get fileDescription(): string {
-    return 'PNG, JPG, GIF jusqu\'à 5MB';
-  }
 
   constructor(
     private api: ApiService,
@@ -260,13 +256,13 @@ export class ForumComponent implements OnInit {
       this.selectedFiles = [];
     } catch (error) {
       console.error('Error submitting forum post:', error);
-      alert('Une erreur est survenue lors de la publication. Veuillez réessayer.');
+      alert(this.translate.instant('errors.publishFailed'));
     } finally {
       this.isSubmitting = false;
     }
   }
   deleteItem(id: string) {
-    if (confirm(this.translate.instant('common.delete') + ' ?')) this.api.delete('forum/' + id).subscribe(() => this.loadItems());
+    if (confirm(this.translate.instant('common.confirmDelete'))) this.api.delete('forum/' + id).subscribe(() => this.loadItems());
   }
   canDelete(item: any) {
     if (!this.isLoggedIn) return false;
@@ -276,7 +272,7 @@ export class ForumComponent implements OnInit {
 
   toggleLike(item: any) {
     if (!this.isLoggedIn) {
-      alert('Connectez-vous pour liker une publication.');
+      alert(this.translate.instant('errors.likeLoginPost'));
       return;
     }
     this.api.post('forum/' + item._id + '/like', {}).subscribe({
@@ -286,7 +282,7 @@ export class ForumComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error liking forum post:', err);
-        alert('Impossible de liker pour le moment.');
+        alert(this.translate.instant('errors.likeFailed'));
       }
     });
   }
@@ -314,7 +310,7 @@ export class ForumComponent implements OnInit {
       this.replyDraft[id] = '';
     } catch (err) {
       console.error('Error posting reply:', err);
-      alert('Impossible d’envoyer la réponse.');
+      alert(this.translate.instant('errors.replyFailed'));
     }
   }
   updateFilter() { this.filteredItems = this.items.filter(i => JSON.stringify(i).toLowerCase().includes(this.searchQuery.toLowerCase())); }

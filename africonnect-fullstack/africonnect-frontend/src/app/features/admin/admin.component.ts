@@ -1,43 +1,44 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterOutlet, TranslateModule],
   template: `
     <div class="admin-container">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-        <h1 style="margin:0;">Administration</h1>
-        <button type="button" class="btn btn-secondary btn-sm" (click)="goBack()">← Retour</button>
+        <h1 style="margin:0;">{{ 'admin.home.title' | translate }}</h1>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="goBack()">{{ 'admin.home.back' | translate }}</button>
       </div>
 
       <div class="admin-grid">
         <a class="admin-card" routerLink="/moderation">
           <div class="admin-emoji">🛡️</div>
-          <div class="admin-title">Modération</div>
-          <div class="admin-desc">Supprimer les contenus publiés (Forum, Marketplace, Emploi, etc.)</div>
+          <div class="admin-title">{{ 'admin.home.moderationTitle' | translate }}</div>
+          <div class="admin-desc">{{ 'admin.home.moderationDesc' | translate }}</div>
         </a>
         <a class="admin-card" routerLink="/admin/users">
           <div class="admin-emoji">👥</div>
-          <div class="admin-title">Gestion des utilisateurs</div>
-          <div class="admin-desc">Création, suppression, gestion des rôles</div>
+          <div class="admin-title">{{ 'admin.home.usersTitle' | translate }}</div>
+          <div class="admin-desc">{{ 'admin.home.usersDesc' | translate }}</div>
         </a>
         <a class="admin-card" routerLink="/admin/ads">
           <div class="admin-emoji">📺</div>
-          <div class="admin-title">Publicités</div>
-          <div class="admin-desc">Upload photo/vidéo et affichage dans les sections</div>
+          <div class="admin-title">{{ 'admin.home.adsTitle' | translate }}</div>
+          <div class="admin-desc">{{ 'admin.home.adsDesc' | translate }}</div>
         </a>
         <a class="admin-card" routerLink="/admin/ad-requests">
           <div class="admin-emoji">📣</div>
-          <div class="admin-title">Demandes pub</div>
-          <div class="admin-desc">Devis, lien de paiement, validation média</div>
+          <div class="admin-title">{{ 'admin.home.adRequestsTitle' | translate }}</div>
+          <div class="admin-desc">{{ 'admin.home.adRequestsDesc' | translate }}</div>
         </a>
         <a class="admin-card" routerLink="/admin/rss">
           <div class="admin-emoji">📰</div>
-          <div class="admin-title">RSS</div>
-          <div class="admin-desc">Gestion des sources et contenus RSS</div>
+          <div class="admin-title">{{ 'admin.home.rssTitle' | translate }}</div>
+          <div class="admin-desc">{{ 'admin.home.rssDesc' | translate }}</div>
         </a>
       </div>
 
@@ -45,8 +46,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
         <router-outlet></router-outlet>
       </div>
     </div>
-  `
-  ,
+  `,
   styles: [`
     .admin-container { background: var(--surface); border-radius: 24px; padding: 24px; border: 1px solid var(--border); }
     .admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
@@ -63,7 +63,6 @@ export class AdminComponent {
   constructor(private router: Router) {}
 
   goBack() {
-    // Si on est déjà sur /admin, on retourne au forum
     if (this.router.url === '/admin') {
       this.router.navigate(['/forum']);
       return;

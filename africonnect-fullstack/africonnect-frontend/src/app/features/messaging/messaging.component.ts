@@ -278,11 +278,11 @@ export class MessagingComponent implements OnInit, OnDestroy {
         this.recipientOpen = false;
         this.recipientQueryHasChars = false;
         this.recipientSuggestions = [];
-        alert('✅ ' + this.translate.instant('messaging.sentOk'));
+        alert(this.translate.instant('messaging.sentOk'));
       },
       error: (err) => {
         console.error('Error sending message:', err);
-        alert('❌ ' + this.translate.instant('messaging.sentErr'));
+        alert(this.translate.instant('messaging.sentErr'));
       }
     });
   }
@@ -326,7 +326,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error deleting message:', err);
-          alert('❌ ' + this.translate.instant('messaging.deleteErr'));
+          alert(this.translate.instant('messaging.deleteErr'));
         }
       });
     }

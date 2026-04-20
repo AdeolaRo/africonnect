@@ -5,33 +5,34 @@ import { catchError } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
 import { RouterLink } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslateModule],
   template: `
     <div class="item-card">
-      <h2 style="margin-bottom:6px;">Résultats de recherche</h2>
-      <div class="text-muted" *ngIf="query">Recherche: <strong>{{ query }}</strong></div>
-      <div class="text-muted" *ngIf="!query">Tapez un mot-clé dans la barre de recherche.</div>
+      <h2 style="margin-bottom:6px;">{{ 'searchPage.title' | translate }}</h2>
+      <div class="text-muted" *ngIf="query">{{ 'searchPage.forQuery' | translate }} <strong>{{ query }}</strong></div>
+      <div class="text-muted" *ngIf="!query">{{ 'searchPage.hintKeyword' | translate }}</div>
     </div>
 
     <div *ngIf="query && !isLoading && totalResults === 0" class="empty-state">
-      Aucun résultat.
+      {{ 'searchPage.noResults' | translate }}
     </div>
 
-    <div *ngIf="isLoading" class="loading">Recherche en cours...</div>
+    <div *ngIf="isLoading" class="loading">{{ 'searchPage.loading' | translate }}</div>
 
     <div *ngIf="query && !isLoading">
       <div class="item-card" *ngFor="let section of sections">
         <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;">
-          <h3 style="margin:0;">{{ section.label }}</h3>
-          <a [routerLink]="section.route" class="btn btn-secondary btn-sm">Ouvrir</a>
+          <h3 style="margin:0;">{{ section.labelKey | translate }}</h3>
+          <a [routerLink]="section.route" class="btn btn-secondary btn-sm">{{ 'searchPage.open' | translate }}</a>
         </div>
 
         <div *ngIf="section.results.length === 0" class="text-muted" style="margin-top:10px;">
-          Aucun résultat dans cette section.
+          {{ 'searchPage.noResultsInSection' | translate }}
         </div>
 
         <div *ngFor="let r of section.results" style="margin-top:12px; padding:12px; background:var(--surface-2); border:1px solid var(--border); border-radius:14px;">
@@ -51,20 +52,24 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   sections: Array<{
     key: string;
-    label: string;
+    labelKey: string;
     route: string;
     results: Array<{ title: string; meta: string; snippet: string }>;
   }> = [
-    { key: 'forum', label: 'Forum', route: '/forum', results: [] },
-    { key: 'marketplace', label: 'Ventes/Achats', route: '/marketplace', results: [] },
-    { key: 'jobs', label: 'Emploi', route: '/emploi', results: [] },
-    { key: 'solutions', label: 'Solutions', route: '/solutions', results: [] },
-    { key: 'solidarity', label: 'Solidarité', route: '/solidarite', results: [] },
-    { key: 'events', label: 'Événements', route: '/evenements', results: [] },
-    { key: 'groups', label: 'Groupes', route: '/groupes', results: [] },
+    { key: 'forum', labelKey: 'nav.forum', route: '/forum', results: [] },
+    { key: 'marketplace', labelKey: 'nav.marketplace', route: '/marketplace', results: [] },
+    { key: 'jobs', labelKey: 'nav.jobs', route: '/emploi', results: [] },
+    { key: 'solutions', labelKey: 'nav.solutions', route: '/solutions', results: [] },
+    { key: 'solidarity', labelKey: 'nav.solidarity', route: '/solidarite', results: [] },
+    { key: 'events', labelKey: 'nav.events', route: '/evenements', results: [] },
+    { key: 'groups', labelKey: 'nav.groups', route: '/groupes', results: [] },
   ];
 
-  constructor(private api: ApiService, private search: SearchService) {}
+  constructor(
+    private api: ApiService,
+    private search: SearchService,
+    private translate: TranslateService
+  ) {}
 
   ngOnInit() {
     this.sub = this.search.query$.subscribe(q => {
@@ -82,9 +87,15 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.sub?.unsubscribe();
   }
 
+  private byLine(author?: string): string {
+    if (!author) return '';
+    return this.translate.instant('searchPage.by', { author });
+  }
+
   private runSearch() {
     this.isLoading = true;
     const q = this.query.toLowerCase();
+    const untitled = this.translate.instant('searchPage.untitled');
 
     forkJoin({
       forum: this.api.get('forum', false).pipe(catchError(() => of([]))),
@@ -98,38 +109,38 @@ export class SearchComponent implements OnInit, OnDestroy {
       next: (data: any) => {
         const mapped: any = {
           forum: (data.forum || []).map((x: any) => ({
-            title: x.title || 'Sans titre',
-            meta: x.authorName ? `Par ${x.authorName}` : '',
+            title: x.title || untitled,
+            meta: this.byLine(x.authorName),
             snippet: (x.content || '').replace(/<[^>]+>/g, '').slice(0, 180)
           })),
           marketplace: (data.marketplace || []).map((x: any) => ({
-            title: x.title || 'Sans titre',
-            meta: x.authorName ? `Par ${x.authorName}` : '',
+            title: x.title || untitled,
+            meta: this.byLine(x.authorName),
             snippet: (x.desc || '').slice(0, 180)
           })),
           jobs: (data.jobs || []).map((x: any) => ({
-            title: x.title || 'Sans titre',
-            meta: x.authorName ? `Par ${x.authorName}` : '',
+            title: x.title || untitled,
+            meta: this.byLine(x.authorName),
             snippet: (x.desc || '').slice(0, 180)
           })),
           solutions: (data.solutions || []).map((x: any) => ({
-            title: x.title || 'Sans titre',
-            meta: x.authorName ? `Par ${x.authorName}` : '',
+            title: x.title || untitled,
+            meta: this.byLine(x.authorName),
             snippet: (x.desc || '').slice(0, 180)
           })),
           solidarity: (data.solidarity || []).map((x: any) => ({
-            title: x.title || 'Sans titre',
-            meta: x.authorName ? `Par ${x.authorName}` : '',
+            title: x.title || untitled,
+            meta: this.byLine(x.authorName),
             snippet: (x.desc || '').slice(0, 180)
           })),
           events: (data.events || []).map((x: any) => ({
-            title: x.title || 'Sans titre',
-            meta: x.authorName ? `Par ${x.authorName}` : '',
+            title: x.title || untitled,
+            meta: this.byLine(x.authorName),
             snippet: (x.desc || '').slice(0, 180)
           })),
           groups: (data.groups || []).map((x: any) => ({
-            title: x.name || x.title || 'Sans titre',
-            meta: x.authorName ? `Par ${x.authorName}` : '',
+            title: x.name || x.title || untitled,
+            meta: this.byLine(x.authorName),
             snippet: (x.description || x.desc || '').slice(0, 180)
           })),
         };
@@ -149,4 +160,3 @@ export class SearchComponent implements OnInit, OnDestroy {
     });
   }
 }
-

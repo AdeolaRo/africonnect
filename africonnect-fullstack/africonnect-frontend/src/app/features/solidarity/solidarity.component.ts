@@ -63,7 +63,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             <input #imgInput type="file" accept="image/*" (change)="addFile($event)" style="display:none;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <button type="button" class="btn btn-secondary" (click)="imgInput.click()" [disabled]="selectedFiles.length >= 3">
-                + Ajouter une photo
+                {{ 'common.addPhoto' | translate }}
               </button>
               <div class="text-muted" style="font-size: 0.9rem;">{{ selectedFiles.length }}/3</div>
             </div>
@@ -227,7 +227,7 @@ export class SolidariteComponent implements OnInit {
     }
   }
   deleteItem(id: string) {
-    if (confirm(this.translate.instant('common.delete') + ' ?')) this.api.delete('solidarity/' + id).subscribe(() => this.loadItems());
+    if (confirm(this.translate.instant('common.confirmDelete'))) this.api.delete('solidarity/' + id).subscribe(() => this.loadItems());
   }
   canDelete(item: any) {
     if (!this.isLoggedIn) return false;

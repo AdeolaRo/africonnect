@@ -74,7 +74,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             <input #imgInput type="file" accept="image/*" (change)="addFile($event)" style="display:none;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <button type="button" class="btn btn-secondary" (click)="imgInput.click()" [disabled]="selectedFiles.length >= 3">
-                + Ajouter une photo
+                {{ 'common.addPhoto' | translate }}
               </button>
               <div class="text-muted" style="font-size: 0.9rem;">{{ selectedFiles.length }}/3</div>
             </div>
@@ -237,13 +237,13 @@ export class EmploiComponent implements OnInit {
       this.selectedFiles = [];
     } catch (error) {
       console.error('Error submitting job:', error);
-      alert('Une erreur est survenue lors de la publication. Veuillez réessayer.');
+      alert(this.translate.instant('errors.publishFailed'));
     } finally {
       this.isSubmitting = false;
     }
   }
   deleteItem(id: string) {
-    if (confirm(this.translate.instant('common.delete') + ' ?')) this.api.delete('jobs/' + id).subscribe(() => this.loadItems());
+    if (confirm(this.translate.instant('common.confirmDelete'))) this.api.delete('jobs/' + id).subscribe(() => this.loadItems());
   }
   canDelete(item: any) {
     if (!this.isLoggedIn) return false;
@@ -253,14 +253,14 @@ export class EmploiComponent implements OnInit {
 
   toggleLike(item: any) {
     if (!this.isLoggedIn) {
-      alert('Connectez-vous pour liker.');
+      alert(this.translate.instant('errors.likeLogin'));
       return;
     }
     this.api.post('jobs/' + item._id + '/like', {}).subscribe({
       next: (updated: any) => item.likes = updated?.likes || item.likes,
       error: (err) => {
         console.error('Error liking job:', err);
-        alert('Impossible de liker pour le moment.');
+        alert(this.translate.instant('errors.likeFailed'));
       }
     });
   }

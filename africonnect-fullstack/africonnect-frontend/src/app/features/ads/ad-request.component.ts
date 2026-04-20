@@ -13,40 +13,40 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <div class="admin-container">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 16px;">
         <button class="btn btn-secondary" (click)="goBack()">{{ 'common.back' | translate }}</button>
-        <h1 style="margin:0;">Demande de publicité</h1>
+        <h1 style="margin:0;">{{ 'adRequest.title' | translate }}</h1>
       </div>
 
       <div class="card" style="padding:16px; border:1px solid var(--border); border-radius:16px; background: var(--surface);">
         <div class="form-group">
-          <label class="form-label">Option *</label>
+          <label class="form-label">{{ 'adRequest.optionLabel' | translate }}</label>
           <select class="form-control" [(ngModel)]="option">
-            <option value="create_and_publish">Création + publication (admin)</option>
-            <option value="publish_only">Publication seulement (j’ai déjà ma pub)</option>
+            <option value="create_and_publish">{{ 'adRequest.optionCreatePublish' | translate }}</option>
+            <option value="publish_only">{{ 'adRequest.optionPublishOnly' | translate }}</option>
           </select>
         </div>
 
         <div class="form-group" style="margin-top: 10px;">
-          <label class="form-label">Détails / message *</label>
+          <label class="form-label">{{ 'adRequest.messageLabel' | translate }}</label>
           <textarea class="form-control" [(ngModel)]="message" rows="5"
-                    placeholder="Explique ce que tu veux: objectif, texte à mettre, cible, durée, lien, etc."></textarea>
+                    [placeholder]="'adRequest.messagePlaceholder' | translate"></textarea>
           <div class="text-muted" style="font-size:0.9rem; margin-top:6px;" *ngIf="option === 'create_and_publish'">
-            Pour cette option, l’admin te renverra un lien de paiement après validation.
+            {{ 'adRequest.createPublishHelp' | translate }}
           </div>
         </div>
 
         <div class="form-group" *ngIf="option === 'publish_only'">
-          <label class="form-label">Votre média (image ou vidéo) *</label>
+          <label class="form-label">{{ 'adRequest.mediaLabel' | translate }}</label>
           <div class="file-upload">
             <input #pubInput type="file" accept="image/*,video/*" (change)="addPublishOnlyFile($event)" style="display:none;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <button type="button" class="btn btn-secondary" (click)="pubInput.click()" [disabled]="!!selectedFile">
-                + Ajouter une image/vidéo
+                {{ 'common.addImageVideo' | translate }}
               </button>
-              <div class="text-muted" style="font-size: 0.9rem;">1 média requis</div>
+              <div class="text-muted" style="font-size: 0.9rem;">{{ 'adRequest.oneMediaRequired' | translate }}</div>
             </div>
 
             <div *ngIf="!selectedFile" class="text-muted" style="margin-top:10px; font-size:0.9rem;">
-              PNG/JPG/GIF/MP4/WebM jusqu’à ~50MB
+              {{ 'adRequest.mediaFormats' | translate }}
             </div>
 
             <div *ngIf="selectedFile" class="file-selected" style="margin-top:10px;">
@@ -67,18 +67,18 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         </div>
 
         <div class="form-group" *ngIf="option === 'create_and_publish'">
-          <label class="form-label">Pièce jointe (optionnel) : exemple image/vidéo</label>
+          <label class="form-label">{{ 'adRequest.attachmentLabel' | translate }}</label>
           <div class="file-upload">
             <input #attInput type="file" accept="image/*,video/*" (change)="addAttachmentFile($event)" style="display:none;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <button type="button" class="btn btn-secondary" (click)="attInput.click()" [disabled]="!!attachmentFile">
-                + Ajouter un exemple
+                {{ 'common.addExample' | translate }}
               </button>
-              <div class="text-muted" style="font-size: 0.9rem;">Optionnel</div>
+              <div class="text-muted" style="font-size: 0.9rem;">{{ 'adRequest.optional' | translate }}</div>
             </div>
 
             <div *ngIf="!attachmentFile" class="text-muted" style="margin-top:10px; font-size:0.9rem;">
-              PNG/JPG/GIF/MP4/WebM
+              {{ 'adRequest.attachmentFormats' | translate }}
             </div>
 
             <div *ngIf="attachmentFile" class="file-selected" style="margin-top:10px;">
@@ -100,7 +100,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top: 12px;">
           <button class="btn btn-primary" (click)="submit()" [disabled]="isSubmitting || !message.trim() || (option==='publish_only' && !selectedFile)">
-            {{ isSubmitting ? 'Traitement...' : (option === 'publish_only' ? 'Continuer vers paiement' : 'Envoyer la demande') }}
+            {{ isSubmitting ? ('adRequest.submitting' | translate) : (option === 'publish_only' ? ('adRequest.ctaPublishOnly' | translate) : ('adRequest.ctaCreate' | translate)) }}
           </button>
         </div>
       </div>
@@ -168,7 +168,7 @@ export class AdRequestComponent {
       if (this.option === 'publish_only') {
         this.router.navigate(['/paiement'], { queryParams: { requestId: id } });
       } else {
-        alert('Demande envoyée. L’administrateur vous enverra un lien de paiement après validation.');
+        alert(this.translate.instant('ads.requestSent'));
         this.router.navigate(['/profile']);
       }
     } catch (e) {

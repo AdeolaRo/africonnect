@@ -69,7 +69,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <button class="btn" (click)="likePost(p)">❤️ {{ p.likes?.length || 0 }}</button>
           <button class="btn btn-secondary" (click)="toggleComments(p)">💬 {{ p.comments?.length || 0 }}</button>
           <button *ngIf="canDeletePost(p)" class="btn btn-secondary btn-sm" (click)="editPost(p)">{{ 'common.edit' | translate }}</button>
-          <button *ngIf="canDeletePost(p)" class="btn btn-danger btn-sm" (click)="deletePost(p)">Supprimer</button>
+          <button *ngIf="canDeletePost(p)" class="btn btn-danger btn-sm" (click)="deletePost(p)">{{ 'common.delete' | translate }}</button>
         </div>
 
         <div *ngIf="p.__showComments" style="margin-top:12px;">
@@ -336,7 +336,7 @@ export class GroupDetailComponent implements OnInit {
         this.joinRequested = !!data?.joinRequested;
         this.recomputeFlags();
       },
-      error: (err) => alert(err?.error?.error || 'Impossible')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.impossible'))
     });
   }
 
@@ -344,7 +344,7 @@ export class GroupDetailComponent implements OnInit {
     if (!this.group?._id) return;
     this.api.post(`groups/${this.group._id}/leave`, {}).subscribe({
       next: (g: any) => { this.group = g; this.recomputeFlags(); },
-      error: (err) => alert(err?.error?.error || 'Impossible')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.impossible'))
     });
   }
 
@@ -352,7 +352,7 @@ export class GroupDetailComponent implements OnInit {
     if (!this.group?._id) return;
     this.api.put(`groups/${this.group._id}`, this.edit).subscribe({
       next: (g: any) => { this.group = g; this.settingsVisible = false; this.recomputeFlags(); },
-      error: (err) => alert(err?.error?.error || 'Erreur')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
 
@@ -364,13 +364,13 @@ export class GroupDetailComponent implements OnInit {
   approve(uid: string) {
     this.api.post(`groups/${this.group._id}/requests/${uid}/approve`, {}).subscribe({
       next: (g: any) => { this.group = g; this.recomputeFlags(); },
-      error: (err) => alert(err?.error?.error || 'Erreur')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
   deny(uid: string) {
     this.api.post(`groups/${this.group._id}/requests/${uid}/deny`, {}).subscribe({
       next: (g: any) => { this.group = g; this.recomputeFlags(); },
-      error: (err) => alert(err?.error?.error || 'Erreur')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
   remove(uid: string) {
@@ -390,13 +390,13 @@ export class GroupDetailComponent implements OnInit {
   promote(uid: string) {
     this.api.post(`groups/${this.group._id}/moderators/${uid}/promote`, {}).subscribe({
       next: (g: any) => { this.group = g; this.recomputeFlags(); },
-      error: (err) => alert(err?.error?.error || 'Erreur')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
   demote(uid: string) {
     this.api.post(`groups/${this.group._id}/moderators/${uid}/demote`, {}).subscribe({
       next: (g: any) => { this.group = g; this.recomputeFlags(); },
-      error: (err) => alert(err?.error?.error || 'Erreur')
+      error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
     });
   }
 
@@ -454,7 +454,7 @@ export class GroupDetailComponent implements OnInit {
           this.clearPostFiles();
           this.editingPost = null;
         },
-        error: (err) => alert(err?.error?.error || 'Erreur')
+        error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
       });
     } catch (e) {
       alert(this.translate.instant('errors.uploadFailed'));
@@ -483,7 +483,7 @@ export class GroupDetailComponent implements OnInit {
           this.clearPostFiles();
           this.editingPost = null;
         },
-        error: (err) => alert(err?.error?.error || 'Erreur')
+        error: (err) => alert(err?.error?.error || this.translate.instant('errors.generic'))
       });
     } catch (e) {
       alert(this.translate.instant('errors.uploadFailed'));
@@ -493,7 +493,7 @@ export class GroupDetailComponent implements OnInit {
   likePost(p: any) {
     this.api.post(`groups/posts/${p._id}/like`, {}).subscribe({
       next: (updated: any) => p.likes = updated?.likes || p.likes,
-      error: () => alert('Erreur')
+      error: () => alert(this.translate.instant('errors.generic'))
     });
   }
 
@@ -509,7 +509,7 @@ export class GroupDetailComponent implements OnInit {
         p.comments = updated?.comments || p.comments;
         this.commentDraft[p._id] = '';
       },
-      error: () => alert('Erreur')
+      error: () => alert(this.translate.instant('errors.generic'))
     });
   }
 
