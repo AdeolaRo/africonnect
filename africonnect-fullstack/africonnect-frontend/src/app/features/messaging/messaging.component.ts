@@ -31,11 +31,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                 class="form-control"
                 [(ngModel)]="recipientQuery"
                 (input)="onRecipientInput()"
-                (focus)="onRecipientFocus()"
                 [placeholder]="'messaging.recipientPseudoPlaceholder' | translate"
                 autocomplete="off">
 
-              <div *ngIf="recipientOpen" class="city-list" style="top: calc(100% + 6px);">
+              <div *ngIf="recipientOpen && recipientQueryHasChars" class="city-list" style="top: calc(100% + 6px);">
                 <button
                   *ngFor="let u of recipientSuggestions"
                   type="button"
@@ -144,6 +143,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
   recipientId = '';
   recipientOpen = false;
   recipientSuggestions: any[] = [];
+  recipientQueryHasChars = false;
   
   newMessage = {
     subject: '',
@@ -227,13 +227,10 @@ export class MessagingComponent implements OnInit, OnDestroy {
     return !!this.recipientId && !!this.newMessage.content.trim();
   }
 
-  onRecipientFocus() {
-    this.recipientOpen = true;
-    this.computeRecipientSuggestions();
-  }
-
   onRecipientInput() {
-    this.recipientOpen = true;
+    const q = String(this.recipientQuery || '').trim();
+    this.recipientQueryHasChars = q.length > 0;
+    this.recipientOpen = this.recipientQueryHasChars;
     this.recipientId = '';
     this.computeRecipientSuggestions();
   }
@@ -241,9 +238,11 @@ export class MessagingComponent implements OnInit, OnDestroy {
   private computeRecipientSuggestions() {
     const q = String(this.recipientQuery || '').trim().toLowerCase();
     const list = Array.isArray(this.users) ? this.users : [];
-    const filtered = q
-      ? list.filter(u => String(u?.pseudo || '').toLowerCase().includes(q))
-      : list.slice(0, 12);
+    if (!q) {
+      this.recipientSuggestions = [];
+      return;
+    }
+    const filtered = list.filter(u => String(u?.pseudo || '').toLowerCase().includes(q));
     // keep only users having a pseudo
     this.recipientSuggestions = filtered
       .filter(u => String(u?.pseudo || '').trim())
@@ -254,6 +253,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
     this.recipientId = String(u?._id || '');
     this.recipientQuery = String(u?.pseudo || '');
     this.recipientOpen = false;
+    this.recipientSuggestions = [];
   }
 
   sendNewMessage() {
@@ -275,6 +275,9 @@ export class MessagingComponent implements OnInit, OnDestroy {
         this.newMessage = { subject: '', content: '' };
         this.recipientId = '';
         this.recipientQuery = '';
+        this.recipientOpen = false;
+        this.recipientQueryHasChars = false;
+        this.recipientSuggestions = [];
         alert('✅ ' + this.translate.instant('messaging.sentOk'));
       },
       error: (err) => {
@@ -287,6 +290,9 @@ export class MessagingComponent implements OnInit, OnDestroy {
   replyToMessage(msg: any) {
     this.recipientId = String(msg.from || '');
     this.recipientQuery = this.getSenderName(String(msg.from || ''));
+    this.recipientOpen = false;
+    this.recipientQueryHasChars = !!String(this.recipientQuery || '').trim();
+    this.recipientSuggestions = [];
     this.newMessage.subject = `Re: ${msg.subject}`;
     this.newMessage.content = `\n\n--- Message original ---\n${msg.content}\n\n`;
     this.messageModalVisible = false;
