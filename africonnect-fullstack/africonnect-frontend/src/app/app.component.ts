@@ -9,28 +9,31 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
 import { API_BASE_URL } from './core/config/app.config';
 import { ApiService } from './core/services/api.service';
 import { RealtimeService } from './core/services/realtime.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule, ModalComponent, CarouselComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule, ModalComponent, CarouselComponent, TranslateModule],
   template: `
     <nav class="navbar">
       <a routerLink="/" class="brand-link" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text);">
         <img src="assets/favicon/favicon-96x96.png" alt="Logo" style="width:40px;height:40px;border-radius:16px;display:block;border:1px solid rgba(255,255,255,0.12); object-fit: cover;">
-        <strong style="font-size:1.4rem;">African Connect</strong>
+        <strong style="font-size:1.4rem;">{{ 'brand.name' | translate }}</strong>
       </a>
       <button class="nav-toggle" type="button" (click)="toggleNav()" aria-label="Menu">☰</button>
       <div class="nav-links" [class.open]="isNavOpen">
-        <a routerLink="/forum" routerLinkActive="active">Forum</a>
-        <a routerLink="/marketplace" routerLinkActive="active">Ventes/Achats</a>
-        <a routerLink="/emploi" routerLinkActive="active">Emploi</a>
-        <a routerLink="/solutions" routerLinkActive="active">Solutions</a>
-        <a routerLink="/solidarite" routerLinkActive="active">Solidarité</a>
-        <a routerLink="/evenements" routerLinkActive="active">Événements</a>
-        <a routerLink="/groupes" routerLinkActive="active">Groupes</a>
+        <a routerLink="/forum" routerLinkActive="active">{{ 'nav.forum' | translate }}</a>
+        <a routerLink="/marketplace" routerLinkActive="active">{{ 'nav.marketplace' | translate }}</a>
+        <a routerLink="/emploi" routerLinkActive="active">{{ 'nav.jobs' | translate }}</a>
+        <a routerLink="/solutions" routerLinkActive="active">{{ 'nav.solutions' | translate }}</a>
+        <a routerLink="/solidarite" routerLinkActive="active">{{ 'nav.solidarity' | translate }}</a>
+        <a routerLink="/evenements" routerLinkActive="active">{{ 'nav.events' | translate }}</a>
+        <a routerLink="/groupes" routerLinkActive="active">{{ 'nav.groups' | translate }}</a>
       </div>
       <div class="toolbar">
+        <button class="lang-btn" type="button" (click)="setLang('fr')" [class.active]="lang==='fr'">🇫🇷 {{ 'lang.fr' | translate }}</button>
+        <button class="lang-btn" type="button" (click)="setLang('en')" [class.active]="lang==='en'">🇬🇧 {{ 'lang.en' | translate }}</button>
         <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openNotifications()" aria-label="Notifications">
           🔔
           <span *ngIf="unreadNotifications > 0" class="badge">{{ unreadNotifications }}</span>
@@ -41,17 +44,17 @@ import { RealtimeService } from './core/services/realtime.service';
         </button>
         <button *ngIf="isLoggedIn" class="profile-chip" type="button" (click)="goProfile()">
           <img *ngIf="userAvatar" [src]="userAvatar" class="avatar-mini" alt="Avatar">
-          <span>Profil</span>
+          <span>{{ 'nav.profile' | translate }}</span>
         </button>
         <span *ngIf="userPseudo" class="user-pseudo">{{ userPseudo }}</span>
-        <button class="btn" *ngIf="!isLoggedIn" (click)="openAuthModal()">Connexion</button>
-        <button class="btn" *ngIf="isLoggedIn" (click)="logout()">Déconnexion</button>
+        <button class="btn" *ngIf="!isLoggedIn" (click)="openAuthModal()">{{ 'nav.login' | translate }}</button>
+        <button class="btn" *ngIf="isLoggedIn" (click)="logout()">{{ 'nav.logout' | translate }}</button>
       </div>
     </nav>
 
     <div class="container">
       <div class="search-bar" *ngIf="!isAdminOrModerationRoute">
-        <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher sur tout le site..." (input)="onSearch()">
+        <input type="text" [(ngModel)]="searchQuery" [placeholder]="'search.placeholder' | translate" (input)="onSearch()">
       </div>
 
       <div class="main-layout">
@@ -71,25 +74,25 @@ import { RealtimeService } from './core/services/realtime.service';
 
     <app-modal [(visible)]="authModalVisible" title="Connexion / Inscription">
       <form (ngSubmit)="login($event)" class="auth-form">
-        <input type="email" [(ngModel)]="authEmail" placeholder="Email" name="authEmail" required>
-        <input type="password" [(ngModel)]="authPassword" placeholder="Mot de passe" name="authPassword" required>
+        <input type="email" [(ngModel)]="authEmail" [placeholder]="'auth.email' | translate" name="authEmail" required>
+        <input type="password" [(ngModel)]="authPassword" [placeholder]="'auth.password' | translate" name="authPassword" required>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button type="submit" class="btn btn-primary">Se connecter</button>
-          <button type="button" class="btn btn-secondary" (click)="openRegisterModal()">Créer un compte</button>
+          <button type="submit" class="btn btn-primary">{{ 'auth.login' | translate }}</button>
+          <button type="button" class="btn btn-secondary" (click)="openRegisterModal()">{{ 'auth.createAccount' | translate }}</button>
           <button type="button" class="btn btn-link" (click)="openForgotPassword()" style="color:var(--primary); padding: 0; background: transparent; border: none; cursor: pointer;">
-            Mot de passe oublié ?
+            {{ 'auth.forgot' | translate }}
           </button>
         </div>
       </form>
     </app-modal>
 
-    <app-modal [(visible)]="registerModalVisible" title="Créer un compte">
+    <app-modal [(visible)]="registerModalVisible" [title]="'auth.registerTitle' | translate">
       <form (ngSubmit)="submitRegister($event)" class="auth-form">
-        <input type="text" [(ngModel)]="registerPseudo" placeholder="Pseudo" name="registerPseudo" required>
-        <input type="text" [(ngModel)]="registerFullName" placeholder="Nom complet" name="registerFullName" required>
-        <input type="email" [(ngModel)]="registerEmail" placeholder="Email" name="registerEmail" required>
+        <input type="text" [(ngModel)]="registerPseudo" [placeholder]="'auth.pseudo' | translate" name="registerPseudo" required>
+        <input type="text" [(ngModel)]="registerFullName" [placeholder]="'auth.fullName' | translate" name="registerFullName" required>
+        <input type="email" [(ngModel)]="registerEmail" [placeholder]="'auth.email' | translate" name="registerEmail" required>
         <div class="pw-wrap">
-          <input [type]="showRegisterPassword ? 'text' : 'password'" [(ngModel)]="registerPassword" placeholder="Mot de passe" name="registerPassword" required>
+          <input [type]="showRegisterPassword ? 'text' : 'password'" [(ngModel)]="registerPassword" [placeholder]="'auth.password' | translate" name="registerPassword" required>
           <button class="pw-toggle" type="button" (click)="showRegisterPassword = !showRegisterPassword"
                   [attr.aria-label]="showRegisterPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
             <svg *ngIf="!showRegisterPassword" viewBox="0 0 24 24" aria-hidden="true">
@@ -101,7 +104,7 @@ import { RealtimeService } from './core/services/realtime.service';
           </button>
         </div>
         <div class="pw-wrap">
-          <input [type]="showRegisterPasswordConfirm ? 'text' : 'password'" [(ngModel)]="registerPasswordConfirm" placeholder="Confirmer le mot de passe" name="registerPasswordConfirm" required>
+          <input [type]="showRegisterPasswordConfirm ? 'text' : 'password'" [(ngModel)]="registerPasswordConfirm" [placeholder]="'auth.confirmPassword' | translate" name="registerPasswordConfirm" required>
           <button class="pw-toggle" type="button" (click)="showRegisterPasswordConfirm = !showRegisterPasswordConfirm"
                   [attr.aria-label]="showRegisterPasswordConfirm ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
             <svg *ngIf="!showRegisterPasswordConfirm" viewBox="0 0 24 24" aria-hidden="true">
@@ -115,17 +118,17 @@ import { RealtimeService } from './core/services/realtime.service';
         <label class="terms-line">
           <input type="checkbox" [(ngModel)]="registerAcceptTerms" name="registerAcceptTerms">
           <span>
-            J’ai lu et j’accepte les
-            <button type="button" class="link-btn" (click)="openTerms()">Termes</button>
-            et les
-            <button type="button" class="link-btn" (click)="openConditions()">Conditions d'utilisation</button>.
+            {{ 'auth.acceptPrefix' | translate }}
+            <button type="button" class="link-btn" (click)="openTerms()">{{ 'auth.terms' | translate }}</button>
+            {{ 'auth.and' | translate }}
+            <button type="button" class="link-btn" (click)="openConditions()">{{ 'auth.conditions' | translate }}</button>.
           </span>
         </label>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
           <button type="submit" class="btn btn-primary" [disabled]="isRegistering || !registerAcceptTerms">
-            {{ isRegistering ? 'Création...' : 'Créer' }}
+            {{ isRegistering ? '...' : ('auth.create' | translate) }}
           </button>
-          <button type="button" class="btn btn-secondary" (click)="registerModalVisible = false" [disabled]="isRegistering">Annuler</button>
+          <button type="button" class="btn btn-secondary" (click)="registerModalVisible = false" [disabled]="isRegistering">{{ 'auth.cancel' | translate }}</button>
         </div>
       </form>
     </app-modal>
@@ -209,6 +212,10 @@ import { RealtimeService } from './core/services/realtime.service';
     </app-modal>
 
     <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">{{ 'footer.copyright' | translate }}</div>
+    </footer>
   `,
   styles: [`
     .navbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; background: var(--surface); padding: 12px 24px; gap: 16px; border-bottom: 1px solid var(--border); }
@@ -259,6 +266,10 @@ import { RealtimeService } from './core/services/realtime.service';
     }
     .pw-toggle:hover { border-color: var(--primary); }
     .pw-toggle svg { width: 16px; height: 16px; fill: currentColor; display: block; }
+    .lang-btn { padding: 8px 10px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-weight: 800; }
+    .lang-btn.active { border-color: var(--primary); }
+    .site-footer { padding: 18px 0 28px; }
+    .site-footer-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; color: var(--text-muted); text-align: center; font-size: 0.95rem; }
     .terms-line { display:flex; gap:10px; align-items:flex-start; margin: 6px 0 12px; color: var(--text-muted); font-size: 0.92rem; }
     .terms-line input { margin-top: 3px; }
     .link-btn { background: transparent; border: none; padding: 0; color: var(--primary); cursor: pointer; font-weight: 700; }
@@ -279,6 +290,7 @@ import { RealtimeService } from './core/services/realtime.service';
   `]
 })
 export class AppComponent implements OnInit, AfterViewInit {
+  lang: 'fr' | 'en' = 'fr';
   isLoggedIn = false;
   isAdmin = false;
   isModerator = false;
@@ -312,7 +324,25 @@ export class AppComponent implements OnInit, AfterViewInit {
   notificationsVisible = false;
   notifications: any[] = [];
 
-  constructor(private auth: AuthService, private router: Router, private searchService: SearchService, private api: ApiService, private realtime: RealtimeService) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private searchService: SearchService,
+    private api: ApiService,
+    private realtime: RealtimeService,
+    private translate: TranslateService
+  ) {
+    const saved = (localStorage.getItem('lang') || '').toLowerCase();
+    this.lang = (saved === 'en' ? 'en' : 'fr');
+    this.translate.setDefaultLang('fr');
+    this.translate.use(this.lang);
+  }
+
+  setLang(lang: 'fr' | 'en') {
+    this.lang = lang;
+    localStorage.setItem('lang', lang);
+    this.translate.use(lang);
+  }
 
   ngOnInit() {
     this.auth.currentUser.subscribe(user => {

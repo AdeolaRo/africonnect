@@ -1,0 +1,46 @@
+{
+  "brand": {
+    "name": "African Connect"
+  },
+  "nav": {
+    "forum": "Forum",
+    "marketplace": "Ventes/Achats",
+    "jobs": "Emploi",
+    "solutions": "Solutions",
+    "solidarity": "Solidarité",
+    "events": "Événements",
+    "groups": "Groupes",
+    "profile": "Profil",
+    "login": "Connexion",
+    "logout": "Déconnexion"
+  },
+  "search": {
+    "placeholder": "Rechercher sur tout le site..."
+  },
+  "auth": {
+    "title": "Connexion / Inscription",
+    "email": "Email",
+    "password": "Mot de passe",
+    "login": "Se connecter",
+    "createAccount": "Créer un compte",
+    "forgot": "Mot de passe oublié ?",
+    "registerTitle": "Créer un compte",
+    "pseudo": "Pseudo",
+    "fullName": "Nom complet",
+    "confirmPassword": "Confirmer le mot de passe",
+    "create": "Créer",
+    "cancel": "Annuler",
+    "acceptPrefix": "J’ai lu et j’accepte les",
+    "terms": "Termes",
+    "and": "et les",
+    "conditions": "Conditions d'utilisation"
+  },
+  "footer": {
+    "copyright": "Copyright @ Adéola 2026 CIA"
+  },
+  "lang": {
+    "fr": "FR",
+    "en": "EN"
+  }
+}
+
