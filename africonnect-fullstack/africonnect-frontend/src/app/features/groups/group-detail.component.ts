@@ -48,7 +48,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
     <div class="item-card" style="margin-top:16px;" *ngIf="group">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
         <h3 style="margin:0;">Posts du groupe</h3>
-        <button *ngIf="isLoggedIn && isMember" class="btn btn-primary" (click)="postVisible = true">+ Publier</button>
+        <button *ngIf="isLoggedIn && isMember" class="btn btn-primary" (click)="openPostModalForCreate()">+ Publier</button>
       </div>
 
       <div *ngIf="posts.length === 0" class="text-muted" style="padding:16px;">Aucun post pour le moment.</div>
@@ -67,6 +67,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center;">
           <button class="btn" (click)="likePost(p)">❤️ {{ p.likes?.length || 0 }}</button>
           <button class="btn btn-secondary" (click)="toggleComments(p)">💬 {{ p.comments?.length || 0 }}</button>
+          <button *ngIf="canDeletePost(p)" class="btn btn-secondary btn-sm" (click)="editPost(p)">Modifier</button>
           <button *ngIf="canDeletePost(p)" class="btn btn-danger btn-sm" (click)="deletePost(p)">Supprimer</button>
         </div>
 
@@ -161,14 +162,16 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
     </app-modal>
 
     <!-- Post modal -->
-    <app-modal [(visible)]="postVisible" title="Publier dans le groupe">
+    <app-modal [(visible)]="postVisible" [title]="editingPost ? 'Modifier le post' : 'Publier dans le groupe'">
       <div class="auth-form">
         <textarea class="form-control" rows="5" [(ngModel)]="newPostContent" placeholder="Écrire quelque chose..."></textarea>
         <input type="file" (change)="onPostFiles($event)" multiple accept="image/*" style="margin-top:10px;">
         <div class="text-muted" style="margin-top:8px;" *ngIf="postFiles.length">({{ postFiles.length }} fichier(s) sélectionné(s), max 3)</div>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
           <button class="btn btn-secondary" (click)="postVisible=false">Annuler</button>
-          <button class="btn btn-primary" (click)="createPost()" [disabled]="!canCreatePost()">Publier</button>
+          <button class="btn btn-primary" (click)="submitPost()" [disabled]="!canCreatePost()">
+            {{ editingPost ? 'Enregistrer' : 'Publier' }}
+          </button>
         </div>
       </div>
     </app-modal>
@@ -203,6 +206,7 @@ export class GroupDetailComponent implements OnInit {
 
   newPostContent = '';
   postFiles: File[] = [];
+  editingPost: any = null;
 
   commentDraft: Record<string, string> = {};
 
@@ -269,6 +273,20 @@ export class GroupDetailComponent implements OnInit {
     });
   }
 
+  openPostModalForCreate() {
+    this.editingPost = null;
+    this.newPostContent = '';
+    this.postFiles = [];
+    this.postVisible = true;
+  }
+
+  editPost(p: any) {
+    this.editingPost = p;
+    this.newPostContent = String(p?.content || '');
+    this.postFiles = [];
+    this.postVisible = true;
+  }
+
   recomputeFlags() {
     const g = this.group;
     if (!g) return;
@@ -317,6 +335,11 @@ export class GroupDetailComponent implements OnInit {
       next: (g: any) => { this.group = g; this.settingsVisible = false; this.recomputeFlags(); },
       error: (err) => alert(err?.error?.error || 'Erreur')
     });
+  }
+
+  submitPost() {
+    if (this.editingPost?._id) return this.updatePost();
+    return this.createPost();
   }
 
   approve(uid: string) {
@@ -392,6 +415,36 @@ export class GroupDetailComponent implements OnInit {
           this.postVisible = false;
           this.newPostContent = '';
           this.postFiles = [];
+          this.editingPost = null;
+        },
+        error: (err) => alert(err?.error?.error || 'Erreur')
+      });
+    } catch (e) {
+      alert('Erreur upload');
+    }
+  }
+
+  async updatePost() {
+    if (!this.group?._id) return;
+    if (!this.editingPost?._id) return;
+    const payload: any = { content: (this.newPostContent || '').trim() };
+    try {
+      if (this.postFiles.length > 0) {
+        const fd = new FormData();
+        this.postFiles.forEach(f => fd.append('images', f));
+        const upload: any = await this.api.post('upload', fd).toPromise();
+        payload.imageUrls = Array.isArray(upload?.urls) ? upload.urls : (upload?.url ? [upload.url] : []);
+      } else {
+        payload.imageUrls = Array.isArray(this.editingPost?.imageUrls) ? this.editingPost.imageUrls : [];
+      }
+      this.api.put(`groups/posts/${this.editingPost._id}`, payload).subscribe({
+        next: (updated: any) => {
+          const idx = this.posts.findIndex(x => String(x._id) === String(updated?._id));
+          if (idx >= 0) this.posts[idx] = updated;
+          this.postVisible = false;
+          this.newPostContent = '';
+          this.postFiles = [];
+          this.editingPost = null;
         },
         error: (err) => alert(err?.error?.error || 'Erreur')
       });

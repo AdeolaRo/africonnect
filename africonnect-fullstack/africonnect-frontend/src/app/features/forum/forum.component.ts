@@ -26,6 +26,7 @@ import { ActivatedRoute } from '@angular/router';
       </div>
       <div [innerHTML]="item.content || item.desc"></div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
+        <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="editItem(item)">Modifier</button>
         <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">Supprimer</button>
         <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
         <button class="btn btn-secondary" (click)="toggleReplies(item)" type="button">
@@ -62,7 +63,7 @@ import { ActivatedRoute } from '@angular/router';
       </div>
     </div>
 
-    <app-modal [(visible)]="modalVisible" title="Nouveau sujet de forum">
+    <app-modal [(visible)]="modalVisible" [title]="editingItem ? 'Modifier le sujet' : 'Nouveau sujet de forum'">
       <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
           <label class="form-label">Titre *</label>
@@ -140,6 +141,7 @@ export class ForumComponent implements OnInit {
   replyDraft: Record<string, string> = {};
   openReplies: Record<string, boolean> = {};
   private pendingOpenNew = false;
+  editingItem: any = null;
 
   get fileDescription(): string {
     return 'PNG, JPG, GIF jusqu\'à 5MB';
@@ -177,7 +179,22 @@ export class ForumComponent implements OnInit {
     });
   }
   loadItems() { this.api.get('forum').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
-  openModal() { this.modalVisible = true; }
+  openModal() {
+    this.editingItem = null;
+    this.itemForm.reset({ title: '', content: '' });
+    this.selectedFiles = [];
+    this.modalVisible = true;
+  }
+
+  editItem(item: any) {
+    this.editingItem = item;
+    this.itemForm.patchValue({
+      title: item?.title || '',
+      content: item?.content || item?.desc || ''
+    });
+    this.selectedFiles = [];
+    this.modalVisible = true;
+  }
   onFileSelected(event: any) {
     const files = Array.from(event?.target?.files || []) as File[];
     this.selectedFiles = files.slice(0, 3);
@@ -199,6 +216,7 @@ export class ForumComponent implements OnInit {
     this.isSubmitting = true;
     try {
       const formValue: any = this.itemForm.value;
+      if (this.editingItem?.imageUrls && !formValue.imageUrls) formValue.imageUrls = this.editingItem.imageUrls;
       if (this.selectedFiles.length > 0) {
         const fd = new FormData();
         this.selectedFiles.forEach(f => fd.append('images', f));
@@ -206,7 +224,11 @@ export class ForumComponent implements OnInit {
         formValue.imageUrls = Array.isArray(upload?.urls) ? upload.urls : (upload?.url ? [upload.url] : []);
       }
       
-      await this.api.post('forum', formValue).toPromise();
+      if (this.editingItem?._id) {
+        await this.api.put(`user/posts/${this.editingItem._id}`, formValue).toPromise();
+      } else {
+        await this.api.post('forum', formValue).toPromise();
+      }
       this.modalVisible = false;
       this.loadItems();
       this.itemForm.reset();

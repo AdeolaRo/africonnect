@@ -358,6 +358,23 @@ router.delete('/posts/:postId', auth, async (req, res) => {
   res.json({ message: 'Supprimé' });
 });
 
+router.put('/posts/:postId', auth, async (req, res) => {
+  const post = await GroupPost.findById(req.params.postId);
+  if (!post) return res.status(404).json({ error: 'Non trouvé' });
+  const group = await Group.findById(post.groupId);
+  const can = String(post.userId) === String(req.userId) || (group && (isMod(group, req.userId) || req.role === 'admin'));
+  if (!can) return res.status(403).json({ error: 'Non autorisé' });
+
+  const content = String(req.body?.content || '').trim();
+  const imageUrls = Array.isArray(req.body?.imageUrls) ? req.body.imageUrls.filter(Boolean).slice(0, 3) : undefined;
+  if (!content && (!Array.isArray(imageUrls) || imageUrls.length === 0)) return res.status(400).json({ error: 'Contenu requis' });
+
+  post.content = content;
+  if (imageUrls !== undefined) post.imageUrls = imageUrls;
+  await post.save();
+  res.json(post);
+});
+
 router.post('/:id/like', auth, async (req, res) => {
   const item = await Group.findById(req.params.id);
   if (!item) return res.status(404).json({ error: 'Non trouvé' });
