@@ -1114,14 +1114,43 @@ select.form-control {
   width: 100%;
 }
 
-.carousel-track {
-  display: flex;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 100%;
+/* Plusieurs pubs : calques superposés (grille) + fondu / léger zoom */
+.carousel-ads-root {
+  position: relative;
+  width: 100%;
+}
+
+.carousel-stack {
+  display: grid;
+  grid-template-areas: "stack";
+  width: 100%;
+}
+
+.carousel-stack > .carousel-slide-fade {
+  grid-area: stack;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.97);
+  transition:
+    opacity 0.55s ease-in-out,
+    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.55s;
+  z-index: 0;
+}
+
+.carousel-stack > .carousel-slide-fade.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+  z-index: 1;
 }
 
 .carousel-slide {
-  min-width: 100%;
   padding: 32px;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: white;
@@ -1130,8 +1159,13 @@ select.form-control {
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  height: 100%;
   box-sizing: border-box;
+}
+
+/* Une seule diapo « placeholder » (pas de stack) : occupe toute la hauteur utile */
+.ad-carousel > .carousel-slide:not(.carousel-slide-fade) {
+  min-height: 200px;
+  height: 100%;
 }
 
 .carousel-slide h3 {
@@ -1173,7 +1207,7 @@ select.form-control {
   justify-content: center;
   font-size: 1.2rem;
   transition: var(--transition);
-  z-index: 10;
+  z-index: 20;
 }
 
 .carousel-nav:hover {
@@ -1196,7 +1230,7 @@ select.form-control {
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  z-index: 10;
+  z-index: 20;
 }
 
 .dot {

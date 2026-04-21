@@ -16,10 +16,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <button class="btn btn-primary" disabled>{{ 'carousel.comingSoon' | translate }}</button>
       </div>
 
-      <div *ngIf="ads.length > 0">
-        <div class="carousel-track" [style.transform]="'translateX(-' + currentSlide * 100 + '%)'">
-          <div class="carousel-slide" *ngFor="let ad of ads">
-            <div *ngIf="ad.mediaType === 'video'" class="media-preview" style="max-height: 220px;">
+      <div *ngIf="ads.length > 0" class="carousel-ads-root">
+        <div class="carousel-stack">
+          <div class="carousel-slide carousel-slide-fade"
+               *ngFor="let ad of ads; let i = index"
+               [class.active]="i === currentSlide"
+               [attr.aria-hidden]="i === currentSlide ? 'false' : 'true'">
+            <div *ngIf="ad.mediaType === 'video' && i === currentSlide" class="media-preview" style="max-height: 220px;">
               <video [src]="ad.mediaUrl" controls muted loop playsinline></video>
             </div>
             <div *ngIf="ad.mediaType === 'image'" class="media-preview" style="max-height: 220px;">
