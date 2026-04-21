@@ -43,7 +43,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   `
 })
 export class CarouselComponent implements OnInit, OnDestroy {
-  @Input() section: string = 'forum';
+  /** If set, only ads whose displayIn includes this section. Empty = all active ads (sidebar). */
+  @Input() section: string = '';
 
   ads: any[] = [];
   currentSlide = 0;

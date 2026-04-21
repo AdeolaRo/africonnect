@@ -10,11 +10,12 @@ import { API_BASE_URL } from './core/config/app.config';
 import { ApiService } from './core/services/api.service';
 import { RealtimeService } from './core/services/realtime.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CarouselComponent } from './shared/components/carousel/carousel.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule, ModalComponent, TranslateModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule, ModalComponent, TranslateModule, CarouselComponent],
   template: `
     <nav class="navbar">
       <a routerLink="/" class="brand-link" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text);">
@@ -63,6 +64,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         </main>
 
         <aside class="sidebar-right" *ngIf="!isAdminOrModerationRoute && !isProfileRoute">
+          <app-carousel></app-carousel>
           <div class="rss-feed">
             <h3>{{ 'rss.title' | translate }}</h3>
             <div id="rssFeedList">{{ 'common.loading' | translate }}</div>
@@ -316,7 +318,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     .sidebar-vertical a.active, .sidebar-vertical a:hover { background: var(--surface-2); color: var(--primary); }
     .content { flex: 1; }
     .sidebar-right { width: 300px; }
-    .rss-feed { background: var(--surface); border-radius: 24px; padding: 20px; margin-top: 20px; }
+    .rss-feed { background: var(--surface); border-radius: 24px; padding: 20px; margin-top: 0; }
     .rss-feed h3 { margin-top: 0; }
     .toast { position: fixed; bottom: 20px; right: 20px; background: #334155; color: white; padding: 12px 20px; border-radius: 40px; z-index: 2000; }
     .auth-form input { width: 100%; margin-bottom: 12px; padding: 12px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }

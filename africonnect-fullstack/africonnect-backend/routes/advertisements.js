@@ -49,12 +49,24 @@ const adminOnly = (req, res, next) => {
 router.get('/', async (req, res) => {
   try {
     const { section } = req.query;
-    const query = { isActive: true };
-    
+    const now = new Date();
+    const query = {
+      isActive: true,
+      $and: [
+        {
+          $or: [
+            { endDate: { $exists: false } },
+            { endDate: null },
+            { endDate: { $gt: now } }
+          ]
+        }
+      ]
+    };
+
     if (section) {
       query.displayIn = section;
     }
-    
+
     const ads = await Advertisement.find(query)
       .sort({ order: 1, createdAt: -1 })
       .populate('createdBy', 'email pseudo');
