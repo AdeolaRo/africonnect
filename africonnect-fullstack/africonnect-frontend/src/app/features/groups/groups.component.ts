@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -32,12 +32,26 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <div *ngIf="getImages(item).length > 0" class="thumb-grid">
           <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || item.name || ('groupsList.altGroupCover' | translate)" (click)="openPreview(url)">
         </div>
-        <div [innerHTML]="item.content || item.desc"></div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;">
-          <button *ngIf="isLoggedIn && !isMember(item)" class="btn btn-primary" (click)="join(item)">{{ 'groupDetail.join' | translate }}</button>
-          <button *ngIf="isLoggedIn && isMember(item)" class="btn btn-secondary" (click)="leave(item)">{{ 'groupDetail.leave' | translate }}</button>
-          <button *ngIf="canDelete(item)" class="btn btn-secondary" (click)="deleteItem(item._id)">{{ 'common.delete' | translate }}</button>
-          <button (click)="toggleLike(item)" class="btn">❤️ {{ item.likes?.length || 0 }}</button>
+        <div class="card-excerpt-2" style="margin-top:8px; color: var(--text-muted);">
+          {{ (item.desc || item.content || '') }}
+        </div>
+        <div *ngIf="(item.links?.length || 0) > 0" style="margin-top:10px; padding:10px; border:1px solid var(--border); border-radius:12px; background: var(--surface-2);">
+          <div style="font-weight:700; margin-bottom:6px;">{{ 'common.linksTitle' | translate }}</div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <a *ngFor="let l of item.links" [href]="l.url" target="_blank" rel="noopener noreferrer" style="color: var(--secondary); text-decoration:none;">
+              🔗 {{ l.label || l.url }}
+            </a>
+          </div>
+        </div>
+        <div class="card-actions bottom">
+          <a class="btn btn-secondary btn-sm" [routerLink]="['/groupes', item._id]">{{ 'common.view' | translate }}</a>
+          <button *ngIf="isLoggedIn" class="btn btn-secondary btn-sm" type="button" (click)="toggleSave(item)">
+            {{ isSaved(item?._id) ? ('common.unsavePost' | translate) : ('common.savePost' | translate) }}
+          </button>
+          <button type="button" (click)="toggleLike(item)" class="btn btn-sm btn-like">{{ 'common.likesCountLabel' | translate:{ count: (item.likes?.length || 0) } }}</button>
+          <button *ngIf="isLoggedIn && !isMember(item)" class="btn btn-primary btn-sm" (click)="join(item)">{{ 'groupDetail.join' | translate }}</button>
+          <button *ngIf="isLoggedIn && isMember(item)" class="btn btn-secondary btn-sm" (click)="leave(item)">{{ 'groupDetail.leave' | translate }}</button>
+          <button *ngIf="canDelete(item)" class="btn btn-danger btn-sm" (click)="deleteItem(item._id)">{{ 'common.delete' | translate }}</button>
         </div>
       </div>
     </div>
@@ -92,6 +106,26 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           </div>
         </div>
 
+        <div class="form-group" formArrayName="links">
+          <label class="form-label">{{ 'common.linksTitle' | translate }}</label>
+          <div *ngFor="let fg of linksArray.controls; let i = index" [formGroupName]="i"
+               style="display:grid; grid-template-columns: 1fr 1.2fr auto; gap:10px; align-items:end; margin-top:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">{{ 'common.linkLabel' | translate }}</label>
+              <input type="text" class="form-control" formControlName="label" [placeholder]="'common.linkLabel' | translate">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">{{ 'common.linkUrl' | translate }}</label>
+              <input type="url" class="form-control" formControlName="url" [placeholder]="'common.linkUrl' | translate">
+            </div>
+            <button type="button" class="btn btn-secondary" (click)="removeLink(i)">{{ 'common.removeLink' | translate }}</button>
+          </div>
+
+          <div style="margin-top:10px;">
+            <button type="button" class="btn btn-secondary" (click)="addLink()">{{ 'common.addLink' | translate }}</button>
+          </div>
+        </div>
+
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:32px;">
           <button type="button" class="btn btn-secondary" (click)="modalVisible = false" [disabled]="isSubmitting">
             {{ 'common.cancel' | translate }}
@@ -117,6 +151,7 @@ export class GroupesComponent implements OnInit {
     name: ['', Validators.required],
       description: ['', null],
       category: ['', null],
+      links: this.fb.array([]),
   });
   selectedFiles: File[] = [];
   selectedFileUrls: string[] = [];
@@ -127,6 +162,7 @@ export class GroupesComponent implements OnInit {
   currentUserRole = '';
   filteredItems: any[] = [];
   isSubmitting = false;
+  savedIds = new Set<string>();
 
   constructor(
     private api: ApiService,
@@ -141,6 +177,8 @@ export class GroupesComponent implements OnInit {
       this.isLoggedIn = !!u;
       this.currentUserId = u?.id || '';
       this.currentUserRole = u?.role || '';
+      if (this.isLoggedIn) this.loadSavedIds();
+      else this.savedIds = new Set<string>();
     });
     this.loadItems();
     this.searchService.query$.subscribe(q => {
@@ -151,6 +189,7 @@ export class GroupesComponent implements OnInit {
   loadItems() { this.api.get('groups').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
   openModal() {
     this.itemForm.reset({ name: '', description: '', category: '' });
+    this.resetLinks([]);
     this.clearFiles();
     this.modalVisible = true;
   }
@@ -193,6 +232,11 @@ export class GroupesComponent implements OnInit {
     this.isSubmitting = true;
     try {
       const formValue: any = this.itemForm.value;
+      if (Array.isArray(formValue.links)) {
+        formValue.links = formValue.links
+          .filter((l: any) => String(l?.url || '').trim())
+          .map((l: any) => ({ label: String(l?.label || '').trim(), url: String(l?.url || '').trim() }));
+      }
       if (this.selectedFiles.length > 0) {
         const fd = new FormData();
         this.selectedFiles.forEach(f => fd.append('images', f));
@@ -264,4 +308,51 @@ export class GroupesComponent implements OnInit {
     });
   }
   updateFilter() { this.filteredItems = this.items.filter(i => JSON.stringify(i).toLowerCase().includes(this.searchQuery.toLowerCase())); }
+
+  loadSavedIds() {
+    this.api.get('user/saved').subscribe({
+      next: (data: any) => {
+        const list = Array.isArray(data) ? data : [];
+        this.savedIds = new Set(list.map(p => String(p?._id || '')).filter(Boolean));
+      },
+      error: () => this.savedIds = new Set<string>()
+    });
+  }
+
+  isSaved(postId: any): boolean {
+    const id = String(postId || '');
+    if (!id) return false;
+    return this.savedIds.has(id);
+  }
+
+  toggleSave(item: any) {
+    if (!this.isLoggedIn) return;
+    const id = String(item?._id || '');
+    if (!id) return;
+    if (this.isSaved(id)) {
+      this.api.delete(`user/save/${id}`).subscribe({ next: () => this.loadSavedIds(), error: () => {} });
+      return;
+    }
+    this.api.post(`user/save/${id}`, {}).subscribe({ next: () => this.loadSavedIds(), error: () => {} });
+  }
+
+  get linksArray(): FormArray {
+    return this.itemForm.get('links') as FormArray;
+  }
+
+  addLink(value?: any) {
+    this.linksArray.push(this.fb.group({
+      label: [String(value?.label || ''), []],
+      url: [String(value?.url || ''), [Validators.required, Validators.pattern(/^https?:\/\/.+/i)]]
+    }));
+  }
+
+  removeLink(index: number) {
+    this.linksArray.removeAt(index);
+  }
+
+  private resetLinks(list: any[]) {
+    while (this.linksArray.length) this.linksArray.removeAt(0);
+    (Array.isArray(list) ? list : []).forEach(l => this.addLink(l));
+  }
 }

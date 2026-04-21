@@ -27,6 +27,8 @@ export const routes: Routes = [
   { path: 'evenements', component: EvenementsComponent },
   { path: 'groupes', component: GroupesComponent },
   { path: 'groupes/:id', loadComponent: () => import('./features/groups/group-detail.component').then(m => m.GroupDetailComponent) },
+  { path: 'plan-du-site', loadComponent: () => import('./features/legal/sitemap.component').then(m => m.SitemapComponent) },
+  { path: 'legal', loadComponent: () => import('./features/legal/legal-page.component').then(m => m.LegalPageComponent) },
   { path: 'messagerie', component: MessagingComponent, canActivate: [AuthGuard] },
   { path: 'publicite/demande', component: AdRequestComponent, canActivate: [AuthGuard] },
   { path: 'paiement', component: PaymentComponent, canActivate: [AuthGuard] },
@@ -39,5 +41,6 @@ export const routes: Routes = [
   { path: 'admin/ad-requests', loadComponent: () => import('./features/admin/ad-requests-management.component').then(m => m.AdRequestsManagementComponent), canActivate: [AdminGuard] },
   { path: 'admin/moderation', loadComponent: () => import('./features/admin/content-moderation.component').then(m => m.ContentModerationComponent), canActivate: [AdminGuard] },
   { path: 'admin/rss', loadComponent: () => import('./features/admin/rss-management.component').then(m => m.RssManagementComponent), canActivate: [AdminGuard] },
+  { path: 'admin/legal', loadComponent: () => import('./features/admin/legal-management.component').then(m => m.LegalManagementComponent), canActivate: [AdminGuard] },
   { path: '', redirectTo: 'forum', pathMatch: 'full' }
 ];

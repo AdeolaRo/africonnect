@@ -61,8 +61,22 @@ router.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Identifiants invalides' });
     const pseudo = user.pseudo || user.email?.split('@')?.[0] || 'Utilisateur';
-    const token = jwt.sign({ userId: user._id, role: user.role, pseudo }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, role: user.role });
+    const token = jwt.sign({
+      userId: user._id,
+      role: user.role,
+      pseudo,
+      mustChangePassword: !!user.mustChangePassword,
+      mustChangePseudo: !!user.mustChangePseudo,
+      mustChangeEmail: !!user.mustChangeEmail,
+      termsAcceptedVersion: Number(user.termsAcceptedVersion || 0)
+    }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      token,
+      role: user.role,
+      mustChangePassword: !!user.mustChangePassword,
+      mustChangePseudo: !!user.mustChangePseudo,
+      mustChangeEmail: !!user.mustChangeEmail
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur serveur' });

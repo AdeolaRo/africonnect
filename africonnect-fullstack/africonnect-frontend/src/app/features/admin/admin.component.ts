@@ -40,6 +40,11 @@ import { TranslateModule } from '@ngx-translate/core';
           <div class="admin-title">{{ 'admin.home.rssTitle' | translate }}</div>
           <div class="admin-desc">{{ 'admin.home.rssDesc' | translate }}</div>
         </a>
+        <a class="admin-card" routerLink="/admin/legal">
+          <div class="admin-emoji">📜</div>
+          <div class="admin-title">{{ 'admin.home.legalTitle' | translate }}</div>
+          <div class="admin-desc">{{ 'admin.home.legalDesc' | translate }}</div>
+        </a>
       </div>
 
       <div class="admin-panel">

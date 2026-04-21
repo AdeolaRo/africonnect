@@ -47,10 +47,22 @@
     "toastLoggedOut": "Signed out",
     "toastInviteAccepted": "Invitation accepted",
     "toastRegisterFieldsRequired": "Username, full name, email and passwords are required",
-    "toastPasswordMismatch": "Passwords do not match"
+    "toastPasswordMismatch": "Passwords do not match",
+    "onboardingTitle": "Update required",
+    "onboardingSubtitle": "Before continuing, please change your password, username and email.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "newPasswordConfirm": "Confirm new password",
+    "newEmail": "New email",
+    "newPseudo": "New username",
+    "continue": "Continue",
+    "onboardingDone": "Profile updated"
   },
   "footer": {
-    "copyright": "Copyright @ Adéola 2026 CIA"
+    "copyright": "Copyright @ Adéola 2026 CIA",
+    "contact": "Contact us",
+    "sitemap": "Site map",
+    "legal": "Terms & Conditions"
   },
   "common": {
     "loading": "Loading...",
@@ -83,7 +95,15 @@
     "saving": "Saving...",
     "refresh": "Refresh",
     "metaBy": "By {{author}}",
-    "metaByDate": "By {{author}} — {{date}}"
+    "metaByDate": "By {{author}} — {{date}}",
+    "savePost": "Save",
+    "unsavePost": "Remove",
+    "linksTitle": "Links",
+    "addLink": "+ Add a link",
+    "linkLabel": "Title (optional)",
+    "linkUrl": "URL (https://...)",
+    "removeLink": "Remove",
+    "likesCountLabel": "{{count}} likes"
   },
   "errors": {
     "publishFailed": "An error occurred while publishing. Please try again.",
@@ -99,6 +119,8 @@
     "joinGroupFailed": "Could not join this group.",
     "leaveGroupFailed": "Could not leave this group.",
     "groupsCreateFailed": "An error occurred while creating. Please try again."
+    ,
+    "contactFailed": "Unable to send the message right now."
   },
   "rss": {
     "title": "RSS feed",
@@ -134,6 +156,10 @@
   "legal": {
     "termsTitle": "Terms",
     "conditionsTitle": "Terms of use",
+    "updateRequiredTitle": "Terms updated",
+    "updateRequiredText": "The terms of use have been updated. Please read and accept them to continue.",
+    "acceptLabel": "I have read and accept the updated terms",
+    "acceptBtn": "I accept",
     "termsP1": "African Connect is a community platform designed to make it easier for members to connect (forum, groups, ads, jobs, events).",
     "termsP2": "By using the service, you agree in particular to:",
     "termsL1": "publish accurate information and respect other users;",
@@ -184,6 +210,15 @@
     "deleted": "Message deleted",
     "deleteErr": "Error while deleting"
   },
+  "contact": {
+    "title": "Contact us",
+    "emailOptional": "Your email (optional)",
+    "subject": "Subject",
+    "subjectPlaceholder": "Message subject",
+    "message": "Message",
+    "messagePlaceholder": "Write your message…",
+    "sentOk": "Message sent"
+  },
   "profile": {
     "title": "My profile",
     "messaging": "Messaging",
@@ -220,6 +255,7 @@
     "noPosts": "You haven't published any content yet",
     "publishForum": "Post to the forum",
     "view": "View",
+    "savePost": "Save",
     "open": "Open",
     "savedPosts": "Saved posts",
     "noSaved": "You haven't saved any posts yet",
@@ -419,7 +455,15 @@
       "adRequestsTitle": "Ad requests",
       "adRequestsDesc": "Quotes, payment link, media validation",
       "rssTitle": "RSS",
-      "rssDesc": "Manage RSS sources and content"
+      "rssDesc": "Manage RSS sources and content",
+      "legalTitle": "Terms & Conditions",
+      "legalDesc": "Publish a new version"
+    },
+    "legal": {
+      "title": "Terms & Conditions",
+      "currentVersion": "Current version: {{n}}",
+      "bump": "Publish a new version",
+      "bumpedOk": "New version published ({{n}})"
     },
     "adsPage": {
       "title": "Ad management",

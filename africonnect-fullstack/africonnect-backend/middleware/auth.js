@@ -15,6 +15,28 @@ module.exports = async (req, res, next) => {
     req.userEmail = user.email;
     req.userPseudo = pseudo;
     req.role = user.role;
+
+    const mustChange =
+      !!user.mustChangePassword ||
+      !!user.mustChangePseudo ||
+      !!user.mustChangeEmail;
+    req.mustChangePassword = !!user.mustChangePassword;
+    req.mustChangePseudo = !!user.mustChangePseudo;
+    req.mustChangeEmail = !!user.mustChangeEmail;
+
+    if (mustChange) {
+      const url = String(req.originalUrl || '');
+      const allow = [
+        '/api/user/profile',
+        '/api/user/complete-onboarding',
+        '/api/user/accept-terms'
+      ];
+      const isAllowed = allow.some(prefix => url.startsWith(prefix));
+      if (!isAllowed) {
+        return res.status(403).json({ error: 'Mise à jour du profil requise' });
+      }
+    }
+
     next();
   } catch (err) {
     res.status(401).json({ error: 'Token invalide' });

@@ -1,11 +1,17 @@
 const mongoose = require('mongoose');
 
+const LinkSchema = new mongoose.Schema({
+  label: { type: String, default: '' },
+  url: { type: String, required: true }
+}, { _id: false });
+
 const GroupSchema = new mongoose.Schema({
   name: String,
   description: String,
   category: String,
   imageUrl: String,
   imageUrls: { type: [String], default: [] },
+  links: { type: [LinkSchema], default: [] },
   members: [String],
   visibility: { type: String, enum: ['public', 'private'], default: 'public' },
   rules: { type: String, default: '' },

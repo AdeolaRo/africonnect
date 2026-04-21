@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+const LinkSchema = new mongoose.Schema({
+  label: { type: String, default: '' },
+  url: { type: String, required: true }
+}, { _id: false });
+
 const JobSchema = new mongoose.Schema({
   title: String,
   company: String,
@@ -7,6 +12,7 @@ const JobSchema = new mongoose.Schema({
   contact: String,
   imageUrl: String,
   imageUrls: { type: [String], default: [] },
+  links: { type: [LinkSchema], default: [] },
   userId: String,
   authorName: String,
   likes: { type: [String], default: [] },

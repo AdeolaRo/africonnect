@@ -65,11 +65,20 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <img *ngFor="let url of p.imageUrls" class="thumb" [src]="url" (click)="openPreview(url)" [attr.alt]="'groupDetail.altPostImage' | translate">
         </div>
 
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center;">
-          <button class="btn" (click)="likePost(p)">❤️ {{ p.likes?.length || 0 }}</button>
-          <button class="btn btn-secondary" (click)="toggleComments(p)">💬 {{ 'groupDetail.commentsWithCount' | translate:{ count: p.comments?.length || 0 } }}</button>
-          <button *ngIf="canDeletePost(p)" class="btn btn-secondary btn-sm" (click)="editPost(p)">{{ 'common.edit' | translate }}</button>
-          <button *ngIf="canDeletePost(p)" class="btn btn-danger btn-sm" (click)="deletePost(p)">{{ 'common.delete' | translate }}</button>
+        <div *ngIf="(p.links?.length || 0) > 0" style="margin-top:10px; padding:10px; border:1px solid var(--border); border-radius:12px; background: var(--surface-2);">
+          <div style="font-weight:700; margin-bottom:6px;">{{ 'common.linksTitle' | translate }}</div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <a *ngFor="let l of p.links" [href]="l.url" target="_blank" rel="noopener noreferrer" style="color: var(--secondary); text-decoration:none;">
+              🔗 {{ l.label || l.url }}
+            </a>
+          </div>
+        </div>
+
+        <div class="card-actions bottom" style="margin-top:10px;">
+          <button type="button" class="btn btn-sm btn-like" (click)="likePost(p)">{{ 'common.likesCountLabel' | translate:{ count: (p.likes?.length || 0) } }}</button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="toggleComments(p)">{{ 'groupDetail.commentsWithCount' | translate:{ count: p.comments?.length || 0 } }}</button>
+          <button *ngIf="canDeletePost(p)" type="button" class="btn btn-secondary btn-sm" (click)="editPost(p)">{{ 'common.edit' | translate }}</button>
+          <button *ngIf="canDeletePost(p)" type="button" class="btn btn-danger btn-sm" (click)="deletePost(p)">{{ 'common.delete' | translate }}</button>
         </div>
 
         <div *ngIf="p.__showComments" style="margin-top:12px;">
@@ -103,6 +112,23 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         </select>
         <label class="form-label">{{ 'groupDetail.fieldRules' | translate }}</label>
         <textarea class="form-control" rows="4" [(ngModel)]="edit.rules"></textarea>
+
+        <label class="form-label" style="margin-top:12px;">{{ 'common.linksTitle' | translate }}</label>
+        <div *ngFor="let l of (edit.links || []); let i = index" style="display:grid; grid-template-columns: 1fr 1.2fr auto; gap:10px; align-items:end; margin-top:10px;">
+          <div>
+            <label class="form-label">{{ 'common.linkLabel' | translate }}</label>
+            <input class="form-control" [(ngModel)]="l.label" [placeholder]="'common.linkLabel' | translate">
+          </div>
+          <div>
+            <label class="form-label">{{ 'common.linkUrl' | translate }}</label>
+            <input class="form-control" [(ngModel)]="l.url" [placeholder]="'common.linkUrl' | translate">
+          </div>
+          <button type="button" class="btn btn-secondary" (click)="removeEditLink(i)">{{ 'common.removeLink' | translate }}</button>
+        </div>
+        <div style="margin-top:10px;">
+          <button type="button" class="btn btn-secondary" (click)="addEditLink()">{{ 'common.addLink' | translate }}</button>
+        </div>
+
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
           <button class="btn btn-secondary" (click)="settingsVisible=false">{{ 'common.cancel' | translate }}</button>
           <button class="btn btn-primary" (click)="saveSettings()">{{ 'common.save' | translate }}</button>
@@ -184,6 +210,23 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             </button>
           </div>
         </div>
+
+        <label class="form-label" style="margin-top:12px;">{{ 'common.linksTitle' | translate }}</label>
+        <div *ngFor="let l of postLinks; let i = index" style="display:grid; grid-template-columns: 1fr 1.2fr auto; gap:10px; align-items:end; margin-top:10px;">
+          <div>
+            <label class="form-label">{{ 'common.linkLabel' | translate }}</label>
+            <input class="form-control" [(ngModel)]="l.label" [placeholder]="'common.linkLabel' | translate">
+          </div>
+          <div>
+            <label class="form-label">{{ 'common.linkUrl' | translate }}</label>
+            <input class="form-control" [(ngModel)]="l.url" [placeholder]="'common.linkUrl' | translate">
+          </div>
+          <button type="button" class="btn btn-secondary" (click)="removePostLink(i)">{{ 'common.removeLink' | translate }}</button>
+        </div>
+        <div style="margin-top:10px;">
+          <button type="button" class="btn btn-secondary" (click)="addPostLink()">{{ 'common.addLink' | translate }}</button>
+        </div>
+
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
           <button class="btn btn-secondary" (click)="postVisible=false">{{ 'common.cancel' | translate }}</button>
           <button class="btn btn-primary" (click)="submitPost()" [disabled]="!canCreatePost()">
@@ -218,13 +261,14 @@ export class GroupDetailComponent implements OnInit {
   invitesVisible = false;
   postVisible = false;
 
-  edit: any = { name: '', description: '', visibility: 'public', rules: '' };
+  edit: any = { name: '', description: '', visibility: 'public', rules: '', links: [] };
   inviteEmail = '';
 
   newPostContent = '';
   postFiles: File[] = [];
   postFileUrls: string[] = [];
   editingPost: any = null;
+  postLinks: any[] = [];
 
   commentDraft: Record<string, string> = {};
 
@@ -263,7 +307,8 @@ export class GroupDetailComponent implements OnInit {
           name: g?.name || '',
           description: g?.description || '',
           visibility: g?.visibility || 'public',
-          rules: g?.rules || ''
+          rules: g?.rules || '',
+          links: Array.isArray(g?.links) ? g.links.map((l: any) => ({ label: l?.label || '', url: l?.url || '' })) : []
         };
         this.recomputeFlags();
         this.loadPosts();
@@ -295,6 +340,7 @@ export class GroupDetailComponent implements OnInit {
   openPostModalForCreate() {
     this.editingPost = null;
     this.newPostContent = '';
+    this.postLinks = [];
     this.clearPostFiles();
     this.postVisible = true;
   }
@@ -302,8 +348,27 @@ export class GroupDetailComponent implements OnInit {
   editPost(p: any) {
     this.editingPost = p;
     this.newPostContent = String(p?.content || '');
+    this.postLinks = Array.isArray(p?.links) ? p.links.map((l: any) => ({ label: l?.label || '', url: l?.url || '' })) : [];
     this.clearPostFiles();
     this.postVisible = true;
+  }
+
+  addEditLink() {
+    if (!Array.isArray(this.edit.links)) this.edit.links = [];
+    this.edit.links.push({ label: '', url: '' });
+  }
+
+  removeEditLink(index: number) {
+    if (!Array.isArray(this.edit.links)) return;
+    this.edit.links.splice(index, 1);
+  }
+
+  addPostLink() {
+    this.postLinks.push({ label: '', url: '' });
+  }
+
+  removePostLink(index: number) {
+    this.postLinks.splice(index, 1);
   }
 
   recomputeFlags() {
@@ -433,12 +498,18 @@ export class GroupDetailComponent implements OnInit {
   }
 
   canCreatePost() {
-    return !!(this.newPostContent || '').trim() || this.postFiles.length > 0;
+    const hasText = !!(this.newPostContent || '').trim();
+    const hasFiles = this.postFiles.length > 0;
+    const hasLinks = (this.postLinks || []).some(l => String(l?.url || '').trim());
+    return hasText || hasFiles || hasLinks;
   }
 
   async createPost() {
     if (!this.group?._id) return;
     const payload: any = { content: (this.newPostContent || '').trim() };
+    payload.links = (this.postLinks || [])
+      .filter(l => String(l?.url || '').trim())
+      .map(l => ({ label: String(l?.label || '').trim(), url: String(l?.url || '').trim() }));
     try {
       if (this.postFiles.length > 0) {
         const fd = new FormData();
@@ -451,6 +522,7 @@ export class GroupDetailComponent implements OnInit {
           this.posts.unshift(p);
           this.postVisible = false;
           this.newPostContent = '';
+          this.postLinks = [];
           this.clearPostFiles();
           this.editingPost = null;
         },
@@ -465,6 +537,9 @@ export class GroupDetailComponent implements OnInit {
     if (!this.group?._id) return;
     if (!this.editingPost?._id) return;
     const payload: any = { content: (this.newPostContent || '').trim() };
+    payload.links = (this.postLinks || [])
+      .filter(l => String(l?.url || '').trim())
+      .map(l => ({ label: String(l?.label || '').trim(), url: String(l?.url || '').trim() }));
     try {
       if (this.postFiles.length > 0) {
         const fd = new FormData();
@@ -480,6 +555,7 @@ export class GroupDetailComponent implements OnInit {
           if (idx >= 0) this.posts[idx] = updated;
           this.postVisible = false;
           this.newPostContent = '';
+          this.postLinks = [];
           this.clearPostFiles();
           this.editingPost = null;
         },

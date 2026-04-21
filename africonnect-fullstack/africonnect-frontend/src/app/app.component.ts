@@ -63,7 +63,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         </main>
 
         <aside class="sidebar-right" *ngIf="!isAdminOrModerationRoute && !isProfileRoute">
-          <app-carousel></app-carousel>
           <div class="rss-feed">
             <h3>{{ 'rss.title' | translate }}</h3>
             <div id="rssFeedList">{{ 'common.loading' | translate }}</div>
@@ -211,10 +210,90 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       </form>
     </app-modal>
 
+    <app-modal [(visible)]="onboardingVisible"
+               [title]="'auth.onboardingTitle' | translate"
+               [dismissOnBackdrop]="false"
+               [showClose]="false">
+      <form class="auth-form" (ngSubmit)="submitOnboarding($event)">
+        <div class="text-muted" style="margin-bottom:12px;">
+          {{ 'auth.onboardingSubtitle' | translate }}
+        </div>
+
+        <input type="password" [(ngModel)]="onboardingCurrentPassword" name="onboardingCurrentPassword"
+               [placeholder]="'auth.currentPassword' | translate" required>
+        <input type="text" [(ngModel)]="onboardingPseudo" name="onboardingPseudo"
+               [placeholder]="'auth.newPseudo' | translate" required>
+        <input type="email" [(ngModel)]="onboardingEmail" name="onboardingEmail"
+               [placeholder]="'auth.newEmail' | translate" required>
+        <input type="password" [(ngModel)]="onboardingNewPassword" name="onboardingNewPassword"
+               [placeholder]="'auth.newPassword' | translate" required>
+        <input type="password" [(ngModel)]="onboardingNewPasswordConfirm" name="onboardingNewPasswordConfirm"
+               [placeholder]="'auth.newPasswordConfirm' | translate" required>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-top:10px;">
+          <button type="submit" class="btn btn-primary" [disabled]="onboardingSubmitting">
+            {{ onboardingSubmitting ? ('common.saving' | translate) : ('auth.continue' | translate) }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+
+    <app-modal [(visible)]="contactVisible" [title]="'contact.title' | translate">
+      <div style="margin-bottom:14px;">
+        <app-carousel></app-carousel>
+      </div>
+      <form class="auth-form" (ngSubmit)="submitContact($event)">
+        <input type="email" [(ngModel)]="contactEmail" name="contactEmail" [placeholder]="'contact.emailOptional' | translate">
+        <input type="text" [(ngModel)]="contactSubject" name="contactSubject" [placeholder]="'contact.subjectPlaceholder' | translate" required>
+        <textarea class="form-control" rows="5" [(ngModel)]="contactMessage" name="contactMessage" [placeholder]="'contact.messagePlaceholder' | translate" required></textarea>
+        <div style="display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-top:10px;">
+          <button type="button" class="btn btn-secondary" (click)="contactVisible=false" [disabled]="contactSending">{{ 'common.cancel' | translate }}</button>
+          <button type="submit" class="btn btn-primary" [disabled]="contactSending || !(contactSubject||'').trim() || !(contactMessage||'').trim()">
+            {{ contactSending ? ('common.sending' | translate) : ('common.send' | translate) }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+
+    <app-modal [(visible)]="termsGateVisible"
+               [title]="'legal.updateRequiredTitle' | translate"
+               [dismissOnBackdrop]="false"
+               [showClose]="false">
+      <div class="auth-form">
+        <div class="text-muted" style="margin-bottom:12px;">
+          {{ 'legal.updateRequiredText' | translate }}
+        </div>
+        <a href="/legal" target="_blank" rel="noopener noreferrer" style="color:var(--secondary); text-decoration:none;">
+          {{ 'footer.legal' | translate }}
+        </a>
+        <label class="checkbox-label" style="margin-top:14px;">
+          <input type="checkbox" [(ngModel)]="termsGateChecked" name="termsGateChecked">
+          <span>{{ 'legal.acceptLabel' | translate }}</span>
+        </label>
+        <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+          <button type="button" class="btn btn-primary" (click)="acceptTermsGate()" [disabled]="!termsGateChecked || termsGateSubmitting">
+            {{ termsGateSubmitting ? ('common.saving' | translate) : ('legal.acceptBtn' | translate) }}
+          </button>
+        </div>
+      </div>
+    </app-modal>
+
     <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
 
     <footer class="site-footer">
-      <div class="site-footer-inner">{{ 'footer.copyright' | translate }}</div>
+      <div class="site-footer-inner" style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center; align-items:center;">
+        <button type="button" class="btn btn-link" (click)="openContact()" style="background:transparent; border:none; padding:0; color:var(--secondary); cursor:pointer;">
+          {{ 'footer.contact' | translate }}
+        </button>
+        <a routerLink="/plan-du-site" class="btn btn-link" style="background:transparent; border:none; padding:0; color:var(--secondary); text-decoration:none;">
+          {{ 'footer.sitemap' | translate }}
+        </a>
+        <a routerLink="/legal" class="btn btn-link" style="background:transparent; border:none; padding:0; color:var(--secondary); text-decoration:none;">
+          {{ 'footer.legal' | translate }}
+        </a>
+        <span style="opacity:0.7;">—</span>
+        <span>{{ 'footer.copyright' | translate }}</span>
+      </div>
     </footer>
   `,
   styles: [`
@@ -303,6 +382,26 @@ export class AppComponent implements OnInit, AfterViewInit {
   forgotModalVisible = false;
   forgotEmail = '';
   isSendingForgot = false;
+
+  onboardingVisible = false;
+  onboardingSubmitting = false;
+  onboardingEmail = '';
+  onboardingPseudo = '';
+  onboardingCurrentPassword = '';
+  onboardingNewPassword = '';
+  onboardingNewPasswordConfirm = '';
+
+  contactVisible = false;
+  contactSending = false;
+  contactEmail = '';
+  contactSubject = '';
+  contactMessage = '';
+
+  termsVersion = 1;
+  termsGateVisible = false;
+  termsGateChecked = false;
+  termsGateSubmitting = false;
+  private lastUser: any = null;
   registerModalVisible = false;
   registerEmail = '';
   registerPassword = '';
@@ -377,12 +476,22 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.loadTermsVersion();
     this.auth.currentUser.subscribe(user => {
+      this.lastUser = user;
       this.isLoggedIn = !!user;
       this.userPseudo = user?.pseudo || '';
       this.isAdmin = user?.role === 'admin';
       this.isModerator = user?.role === 'moderator';
       if (this.isLoggedIn) this.loadAvatar();
+
+      const mustChange = !!(user?.mustChangePassword || user?.mustChangePseudo || user?.mustChangeEmail);
+      if (this.isLoggedIn && mustChange) {
+        this.openOnboarding();
+      }
+
+      // Terms/conditions gate for non-admins
+      this.maybeOpenTermsGate();
     });
 
     this.realtime.badge$.subscribe(b => {
@@ -397,6 +506,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.isProfileRoute = url.includes('/profile');
         this.isNavOpen = false;
         if (url.includes('/messagerie')) this.realtime.clearMessagesBadge();
+        if (this.isLoggedIn && !this.isAdmin) this.loadTermsVersion();
 
         // RSS block is conditionally rendered; reload after navigation
         setTimeout(() => this.loadRssFeeds(), 0);
@@ -522,6 +632,140 @@ export class AppComponent implements OnInit, AfterViewInit {
       console.error('Login error:', e);
       this.showToast(this.translate.instant('auth.toastLoginError', { detail: (e as any)?.message || String(e) }));
     }
+  }
+
+  private openOnboarding() {
+    if (this.onboardingVisible) return;
+    this.onboardingVisible = true;
+    // Prefill from profile (allowed by backend while onboarding is pending)
+    this.api.get('user/profile').subscribe({
+      next: (p: any) => {
+        this.onboardingEmail = String(p?.email || '').trim();
+        this.onboardingPseudo = String(p?.pseudo || '').trim();
+      },
+      error: () => {}
+    });
+  }
+
+  submitOnboarding(event?: Event) {
+    if (event) event.preventDefault();
+    if (String(this.onboardingNewPassword || '') !== String(this.onboardingNewPasswordConfirm || '')) {
+      this.showToast(this.translate.instant('auth.toastPasswordMismatch'));
+      return;
+    }
+    const payload = {
+      currentPassword: String(this.onboardingCurrentPassword || '').trim(),
+      newPassword: String(this.onboardingNewPassword || '').trim(),
+      newEmail: String(this.onboardingEmail || '').trim(),
+      newPseudo: String(this.onboardingPseudo || '').trim()
+    };
+    if (!payload.currentPassword || !payload.newPassword || !payload.newEmail || !payload.newPseudo) return;
+
+    this.onboardingSubmitting = true;
+    this.api.post('user/complete-onboarding', payload).subscribe({
+      next: (res: any) => {
+        const token = String(res?.token || '');
+        if (token) {
+          localStorage.setItem('token', token);
+          try { this.auth.applyToken(token); } catch {}
+        }
+        this.onboardingVisible = false;
+        this.onboardingCurrentPassword = '';
+        this.onboardingNewPassword = '';
+        this.onboardingNewPasswordConfirm = '';
+        this.showToast(this.translate.instant('auth.onboardingDone'));
+        this.onboardingSubmitting = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.onboardingSubmitting = false;
+        this.showToast(err?.error?.error || this.translate.instant('errors.generic'));
+      }
+    });
+  }
+
+  openContact() {
+    this.contactVisible = true;
+    // best-effort prefill
+    if (this.isLoggedIn && !this.contactEmail) {
+      this.api.get('user/profile').subscribe({
+        next: (p: any) => this.contactEmail = String(p?.email || '').trim(),
+        error: () => {}
+      });
+    }
+  }
+
+  submitContact(event?: Event) {
+    if (event) event.preventDefault();
+    const payload = {
+      email: String(this.contactEmail || '').trim(),
+      subject: String(this.contactSubject || '').trim(),
+      content: String(this.contactMessage || '').trim()
+    };
+    if (!payload.subject || !payload.content) return;
+    this.contactSending = true;
+    this.api.post('contact', payload, this.isLoggedIn).subscribe({
+      next: () => {
+        this.contactSending = false;
+        this.contactVisible = false;
+        this.contactSubject = '';
+        this.contactMessage = '';
+        this.showToast(this.translate.instant('contact.sentOk'));
+      },
+      error: (err) => {
+        console.error(err);
+        this.contactSending = false;
+        this.showToast(err?.error?.error || this.translate.instant('errors.contactFailed'));
+      }
+    });
+  }
+
+  private loadTermsVersion() {
+    this.api.get('site-settings/public', false).subscribe({
+      next: (res: any) => {
+        this.termsVersion = Number(res?.termsVersion || 1);
+        this.maybeOpenTermsGate();
+      },
+      error: () => this.termsVersion = 1
+    });
+  }
+
+  private maybeOpenTermsGate() {
+    const user = this.lastUser;
+    if (!user) return;
+    if (user?.role === 'admin') return;
+    const accepted = Number(user?.termsAcceptedVersion || 0);
+    if (accepted < Number(this.termsVersion || 1)) {
+      this.openTermsGate();
+    }
+  }
+
+  private openTermsGate() {
+    if (this.termsGateVisible) return;
+    this.termsGateChecked = false;
+    this.termsGateVisible = true;
+  }
+
+  acceptTermsGate() {
+    if (!this.termsGateChecked) return;
+    const version = Number(this.termsVersion || 1);
+    this.termsGateSubmitting = true;
+    this.api.post('user/accept-terms', { version }).subscribe({
+      next: (res: any) => {
+        const token = String(res?.token || '');
+        if (token) {
+          localStorage.setItem('token', token);
+          try { this.auth.applyToken(token); } catch {}
+        }
+        this.termsGateSubmitting = false;
+        this.termsGateVisible = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.termsGateSubmitting = false;
+        this.showToast(err?.error?.error || this.translate.instant('errors.generic'));
+      }
+    });
   }
 
   // register() replaced by popup flow

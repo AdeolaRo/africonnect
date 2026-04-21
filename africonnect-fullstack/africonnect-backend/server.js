@@ -117,6 +117,8 @@ app.use('/api/advertisements', advertisementRoutes);
 app.use('/api/rss', rssRoutes);
 app.use('/api/ad-requests', adRequestRoutes);
 app.use('/api/geo', geoRoutes);
+app.use('/api/site-settings', require('./routes/site-settings'));
+app.use('/api/contact', require('./routes/contact'));
 app.use('/api/notifications', require('./routes/notifications'));
 io.use((socket,next)=>{ const jwt=require('jsonwebtoken'); const token=socket.handshake.auth.token; if(!token) return next(new Error('Auth error')); try{ const decoded=jwt.verify(token,process.env.JWT_SECRET); socket.userId=decoded.userId; next(); } catch(err){ next(new Error('Invalid token')); } });
 io.on('connection',(socket)=>{ console.log('User connected:',socket.userId); socket.join(`user_${socket.userId}`); socket.on('private_message',async(data)=>{ const Message=require('./models/Message'); const message=new Message({from:String(socket.userId),to:String(data.toUserId),subject:data.subject?String(data.subject):'',content:String(data.content||''),timestamp:new Date()}); await message.save(); io.to(`user_${String(data.toUserId)}`).emit('new_message',message); io.to(`user_${String(socket.userId)}`).emit('new_message',message); }); });

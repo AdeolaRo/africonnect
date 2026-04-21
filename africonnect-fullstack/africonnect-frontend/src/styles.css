@@ -317,6 +317,42 @@ p { margin-bottom: 1rem; }
   transition: var(--transition);
 }
 
+/* Compact publication cards */
+.card-excerpt-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.card-actions.bottom {
+  justify-content: flex-end;
+}
+
+.card-actions .btn.btn-sm {
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-like {
+  border-color: rgba(245, 101, 101, 0.35);
+  background: rgba(245, 101, 101, 0.08);
+}
+
+.btn-like:hover {
+  border-color: rgba(245, 101, 101, 0.55);
+  background: rgba(245, 101, 101, 0.14);
+}
+
 .item-card:hover {
   border-color: var(--primary);
   transform: translateY(-4px);
@@ -504,9 +540,44 @@ select.form-control {
   max-width: 460px;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 18px;
   animation: slideUp 0.3s ease;
   box-shadow: var(--shadow);
+}
+
+/* Prevent horizontal scroll in modal rich content */
+.modal-content .modal-body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.modal-content .modal-body,
+.modal-content .modal-body * {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.modal-content .modal-body img,
+.modal-content .modal-body video,
+.modal-content .modal-body iframe,
+.modal-content .modal-body canvas,
+.modal-content .modal-body svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.modal-content .modal-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-content .modal-body pre,
+.modal-content .modal-body code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* Compact modal UI (keep main pages unchanged) */

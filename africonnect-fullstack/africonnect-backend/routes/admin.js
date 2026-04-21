@@ -36,7 +36,11 @@ router.post('/users', auth, adminOnly, async (req, res) => {
       origin,
       passions,
       avatar,
-      bio
+      bio,
+      createdByAdmin: true,
+      mustChangePassword: true,
+      mustChangePseudo: true,
+      mustChangeEmail: true
     });
     await user.save();
     const safe = await User.findById(user._id).select('-password -verificationToken -resetToken -resetExpires');

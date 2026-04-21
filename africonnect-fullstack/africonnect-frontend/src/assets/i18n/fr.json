@@ -47,10 +47,22 @@
     "toastLoggedOut": "Déconnecté",
     "toastInviteAccepted": "Invitation acceptée",
     "toastRegisterFieldsRequired": "Pseudo, nom complet, email et mots de passe requis",
-    "toastPasswordMismatch": "Les mots de passe ne correspondent pas"
+    "toastPasswordMismatch": "Les mots de passe ne correspondent pas",
+    "onboardingTitle": "Mise à jour requise",
+    "onboardingSubtitle": "Avant de continuer, veuillez modifier votre mot de passe, votre pseudo et votre email.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordConfirm": "Confirmer le nouveau mot de passe",
+    "newEmail": "Nouvel email",
+    "newPseudo": "Nouveau pseudo",
+    "continue": "Continuer",
+    "onboardingDone": "Profil mis à jour"
   },
   "footer": {
-    "copyright": "Copyright @ Adéola 2026 CIA"
+    "copyright": "Copyright @ Adéola 2026 CIA",
+    "contact": "Nous contacter",
+    "sitemap": "Plan du site",
+    "legal": "Conditions & Termes"
   },
   "common": {
     "loading": "Chargement...",
@@ -83,7 +95,15 @@
     "saving": "Enregistrement...",
     "refresh": "Rafraîchir",
     "metaBy": "Par {{author}}",
-    "metaByDate": "Par {{author}} — {{date}}"
+    "metaByDate": "Par {{author}} — {{date}}",
+    "savePost": "Sauvegarder",
+    "unsavePost": "Retirer",
+    "linksTitle": "Liens",
+    "addLink": "+ Ajouter un lien",
+    "linkLabel": "Titre (optionnel)",
+    "linkUrl": "URL (https://...)",
+    "removeLink": "Retirer",
+    "likesCountLabel": "{{count}} j’aime"
   },
   "errors": {
     "publishFailed": "Une erreur est survenue lors de la publication. Veuillez réessayer.",
@@ -99,6 +119,8 @@
     "joinGroupFailed": "Impossible de rejoindre ce groupe.",
     "leaveGroupFailed": "Impossible de quitter ce groupe.",
     "groupsCreateFailed": "Une erreur est survenue lors de la création. Veuillez réessayer."
+    ,
+    "contactFailed": "Impossible d’envoyer le message pour le moment."
   },
   "rss": {
     "title": "Flux RSS",
@@ -134,6 +156,10 @@
   "legal": {
     "termsTitle": "Termes",
     "conditionsTitle": "Conditions d'utilisation",
+    "updateRequiredTitle": "Conditions mises à jour",
+    "updateRequiredText": "Les conditions d’utilisation ont été mises à jour. Veuillez les lire et les accepter pour continuer.",
+    "acceptLabel": "J’ai lu et j’accepte les nouvelles conditions",
+    "acceptBtn": "J’accepte",
     "termsP1": "African Connect est une plateforme communautaire destinée à faciliter les échanges (forum, groupes, annonces, offres, événements) entre membres.",
     "termsP2": "En utilisant le service, vous acceptez notamment :",
     "termsL1": "de publier des informations exactes et de respecter les autres utilisateurs ;",
@@ -184,6 +210,15 @@
     "deleted": "Message supprimé",
     "deleteErr": "Erreur lors de la suppression"
   },
+  "contact": {
+    "title": "Nous contacter",
+    "emailOptional": "Votre email (optionnel)",
+    "subject": "Objet",
+    "subjectPlaceholder": "Objet du message",
+    "message": "Message",
+    "messagePlaceholder": "Écrivez votre message…",
+    "sentOk": "Message envoyé"
+  },
   "profile": {
     "title": "Mon Profil",
     "messaging": "Messagerie",
@@ -220,6 +255,7 @@
     "noPosts": "Vous n'avez pas encore publié de contenu",
     "publishForum": "Publier sur le forum",
     "view": "Voir",
+    "savePost": "Sauvegarder",
     "open": "Ouvrir",
     "savedPosts": "Publications sauvegardées",
     "noSaved": "Vous n'avez pas encore sauvegardé de publications",
@@ -419,7 +455,15 @@
       "adRequestsTitle": "Demandes pub",
       "adRequestsDesc": "Devis, lien de paiement, validation média",
       "rssTitle": "RSS",
-      "rssDesc": "Gestion des sources et contenus RSS"
+      "rssDesc": "Gestion des sources et contenus RSS",
+      "legalTitle": "CGU & Termes",
+      "legalDesc": "Publier une nouvelle version"
+    },
+    "legal": {
+      "title": "CGU & Termes",
+      "currentVersion": "Version actuelle : {{n}}",
+      "bump": "Publier une nouvelle version",
+      "bumpedOk": "Nouvelle version publiée ({{n}})"
     },
     "adsPage": {
       "title": "Gestion des publicités",

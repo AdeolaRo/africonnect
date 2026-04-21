@@ -138,6 +138,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                 <div class="post-content">{{ (post.content || post.desc || '').slice(0, 150) }}...</div>
                 <div class="post-actions">
                   <button class="btn btn-secondary btn-sm" (click)="openPost(post)">{{ 'profile.view' | translate }}</button>
+                  <button class="btn btn-secondary btn-sm" (click)="toggleSave(post)">
+                    {{ isSaved(post?._id) ? ('profile.remove' | translate) : ('profile.savePost' | translate) }}
+                  </button>
                   <button class="btn btn-danger btn-sm" (click)="deletePost(post._id)">{{ 'common.delete' | translate }}</button>
                 </div>
               </div>
@@ -205,7 +208,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <img *ngFor="let url of getImages(selectedPost)" class="thumb" [src]="url" alt="Image" (click)="openPreview(url)">
         </div>
 
-        <div style="margin-top:12px;" [innerHTML]="selectedPost.content || selectedPost.desc || ''"></div>
+        <div class="modal-body" style="margin-top:12px;" [innerHTML]="selectedPost.content || selectedPost.desc || ''"></div>
 
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; flex-wrap:wrap;">
           <button class="btn btn-secondary" (click)="postModalVisible=false">{{ 'common.close' | translate }}</button>
@@ -240,6 +243,7 @@ export class ProfileComponent implements OnInit {
   };
   myPosts: any[] = [];
   savedPosts: any[] = [];
+  savedIds = new Set<string>();
   adRequests: any[] = [];
   isSaving = false;
   isEditing = false;
@@ -382,7 +386,10 @@ export class ProfileComponent implements OnInit {
 
   loadSavedPosts() { 
     this.api.get('user/saved').subscribe({
-      next: (data: any) => this.savedPosts = data,
+      next: (data: any) => {
+        this.savedPosts = Array.isArray(data) ? data : [];
+        this.savedIds = new Set(this.savedPosts.map(p => String(p?._id || '')).filter(Boolean));
+      },
       error: (err) => console.error('Error loading saved posts:', err)
     }); 
   }
@@ -431,6 +438,27 @@ export class ProfileComponent implements OnInit {
       next: () => this.loadSavedPosts(),
       error: (err) => console.error('Error unsaving post:', err)
     }); 
+  }
+
+  isSaved(postId: any): boolean {
+    const id = String(postId || '');
+    if (!id) return false;
+    return this.savedIds.has(id);
+  }
+
+  toggleSave(post: any) {
+    const id = String(post?._id || '');
+    if (!id) return;
+
+    if (this.isSaved(id)) {
+      this.unsave(id);
+      return;
+    }
+
+    this.api.post(`user/save/${id}`, {}).subscribe({
+      next: () => this.loadSavedPosts(),
+      error: (err) => console.error('Error saving post:', err)
+    });
   }
 
   openMessaging() {

@@ -5,7 +5,15 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../config/app.config';
 
-export interface User { id: string; pseudo: string; role: string; }
+export interface User {
+  id: string;
+  pseudo: string;
+  role: string;
+  mustChangePassword?: boolean;
+  mustChangePseudo?: boolean;
+  mustChangeEmail?: boolean;
+  termsAcceptedVersion?: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,10 +25,22 @@ export class AuthService {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const payload: any = JSON.parse(atob(token.split('.')[1]));
-        this.currentUserSubject.next({ id: payload.userId, pseudo: payload.pseudo || 'Utilisateur', role: payload.role });
+        this.applyToken(token);
       } catch(e) { this.logout(); }
     }
+  }
+
+  applyToken(token: string) {
+    const payload: any = JSON.parse(atob(token.split('.')[1]));
+    this.currentUserSubject.next({
+      id: payload.userId,
+      pseudo: payload.pseudo || 'Utilisateur',
+      role: payload.role,
+      mustChangePassword: !!payload.mustChangePassword,
+      mustChangePseudo: !!payload.mustChangePseudo,
+      mustChangeEmail: !!payload.mustChangeEmail,
+      termsAcceptedVersion: typeof payload.termsAcceptedVersion === 'number' ? payload.termsAcceptedVersion : Number(payload.termsAcceptedVersion || 0)
+    });
   }
 
   login(email: string, password: string): Promise<void> {
@@ -32,8 +52,7 @@ export class AuthService {
       .pipe(tap(res => {
         console.log('Login successful:', res);
         localStorage.setItem('token', res.token);
-        const payload: any = JSON.parse(atob(res.token.split('.')[1]));
-        this.currentUserSubject.next({ id: payload.userId, pseudo: payload.pseudo || 'Utilisateur', role: res.role });
+        this.applyToken(res.token);
       }))
       .toPromise()
       .then(() => {})

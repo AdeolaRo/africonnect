@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const ForumPost = require('../models/ForumPost');
@@ -10,6 +12,20 @@ const Solidarity = require('../models/Solidarity');
 const Event = require('../models/Event');
 const Group = require('../models/Group');
 const Message = require('../models/Message');
+
+function sanitizeLinks(input) {
+  const arr = Array.isArray(input) ? input : [];
+  const out = [];
+  for (const item of arr) {
+    const url = String(item?.url || '').trim();
+    if (!url) continue;
+    // Accept only http(s) to keep clickable links safe/predictable
+    if (!/^https?:\/\//i.test(url)) continue;
+    const label = String(item?.label || '').trim();
+    out.push({ ...(label ? { label } : {}), url });
+  }
+  return out;
+}
 
 // Obtenir son profil
 router.get('/profile', auth, async (req, res) => {
@@ -22,6 +38,91 @@ router.put('/profile', auth, async (req, res) => {
   const { fullName, pseudo, avatar, city, origin, passions, bio } = req.body;
   await User.findByIdAndUpdate(req.userId, { fullName, pseudo, avatar, city, origin, passions, bio });
   res.json({ message: 'Profil mis à jour' });
+});
+
+// Compléter l'onboarding (comptes créés par admin) : changer email/pseudo/mot de passe avant de continuer
+router.post('/complete-onboarding', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    const currentPassword = String(req.body?.currentPassword || '').trim();
+    const newPassword = String(req.body?.newPassword || '').trim();
+    const newEmail = String(req.body?.newEmail || '').trim().toLowerCase();
+    const newPseudo = String(req.body?.newPseudo || '').trim();
+
+    if (user.mustChangePassword || user.mustChangeEmail) {
+      if (!currentPassword) return res.status(400).json({ error: 'Mot de passe actuel requis' });
+      const valid = await bcrypt.compare(currentPassword, user.password);
+      if (!valid) return res.status(400).json({ error: 'Mot de passe actuel invalide' });
+    }
+
+    if (user.mustChangePassword) {
+      if (!newPassword) return res.status(400).json({ error: 'Nouveau mot de passe requis' });
+      user.password = await bcrypt.hash(newPassword, 10);
+      user.mustChangePassword = false;
+    }
+
+    if (user.mustChangeEmail) {
+      if (!newEmail) return res.status(400).json({ error: 'Nouvel email requis' });
+      const existing = await User.findOne({ email: newEmail, _id: { $ne: user._id } });
+      if (existing) return res.status(400).json({ error: 'Email déjà utilisé' });
+      user.email = newEmail;
+      user.mustChangeEmail = false;
+    }
+
+    if (user.mustChangePseudo) {
+      if (!newPseudo) return res.status(400).json({ error: 'Nouveau pseudo requis' });
+      user.pseudo = newPseudo;
+      user.mustChangePseudo = false;
+    }
+
+    await user.save();
+
+    const pseudo = user.pseudo || user.email?.split('@')?.[0] || 'Utilisateur';
+    const token = jwt.sign({
+      userId: user._id,
+      role: user.role,
+      pseudo,
+      mustChangePassword: !!user.mustChangePassword,
+      mustChangePseudo: !!user.mustChangePseudo,
+      mustChangeEmail: !!user.mustChangeEmail,
+      termsAcceptedVersion: Number(user.termsAcceptedVersion || 0)
+    }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({ token, role: user.role });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Accept updated terms/conditions (versioned)
+router.post('/accept-terms', auth, async (req, res) => {
+  try {
+    const version = Number(req.body?.version || 0);
+    if (!version || version < 1) return res.status(400).json({ error: 'Version requise' });
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    user.termsAcceptedVersion = Math.max(Number(user.termsAcceptedVersion || 0), version);
+    await user.save();
+
+    const pseudo = user.pseudo || user.email?.split('@')?.[0] || 'Utilisateur';
+    const token = jwt.sign({
+      userId: user._id,
+      role: user.role,
+      pseudo,
+      mustChangePassword: !!user.mustChangePassword,
+      mustChangePseudo: !!user.mustChangePseudo,
+      mustChangeEmail: !!user.mustChangeEmail,
+      termsAcceptedVersion: Number(user.termsAcceptedVersion || 0)
+    }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({ token, role: user.role, termsAcceptedVersion: Number(user.termsAcceptedVersion || 0) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 // Liste des utilisateurs (pour messagerie) - connecté seulement
@@ -96,9 +197,10 @@ router.put('/posts/:postId', auth, async (req, res) => {
   const body = { ...(req.body || {}) };
   if (Array.isArray(body.imageUrls)) body.imageUrls = body.imageUrls.filter(Boolean).slice(0, 3);
   else if (body.imageUrl && !body.imageUrls) body.imageUrls = [body.imageUrl].filter(Boolean).slice(0, 3);
+  if (Array.isArray(body.links)) body.links = sanitizeLinks(body.links);
 
   // Only allow updating known fields (best-effort per model)
-  const allowed = ['title', 'subject', 'content', 'desc', 'price', 'location', 'company', 'contact', 'category', 'eventDate', 'rules', 'name', 'description', 'imageUrls', 'imageUrl'];
+  const allowed = ['title', 'subject', 'content', 'desc', 'price', 'location', 'company', 'contact', 'category', 'eventDate', 'rules', 'name', 'description', 'imageUrls', 'imageUrl', 'links'];
   for (const k of allowed) {
     if (body[k] !== undefined) doc[k] = body[k];
   }

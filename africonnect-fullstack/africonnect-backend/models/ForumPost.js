@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+const LinkSchema = new mongoose.Schema({
+  label: { type: String, default: '' },
+  url: { type: String, required: true }
+}, { _id: false });
+
 const CommentSchema = new mongoose.Schema({
   content: String,
   userId: String,
@@ -12,6 +17,7 @@ const ForumPostSchema = new mongoose.Schema({
   content: { type: String, required: true },
   imageUrl: String,
   imageUrls: { type: [String], default: [] },
+  links: { type: [LinkSchema], default: [] },
   userId: String,
   authorName: String,
   comments: [CommentSchema],

@@ -6,6 +6,19 @@ const auth = require('../middleware/auth');
 const User = require('../models/User');
 const router = express.Router();
 
+function sanitizeLinks(input) {
+  const arr = Array.isArray(input) ? input : [];
+  const out = [];
+  for (const item of arr) {
+    const url = String(item?.url || '').trim();
+    if (!url) continue;
+    if (!/^https?:\/\//i.test(url)) continue;
+    const label = String(item?.label || '').trim();
+    out.push({ ...(label ? { label } : {}), url });
+  }
+  return out;
+}
+
 function isCreator(group, userId) {
   return String(group?.userId || '') === String(userId || '');
 }
@@ -73,13 +86,14 @@ router.put('/:id', auth, async (req, res) => {
   if (!item) return res.status(404).json({ error: 'Non trouvé' });
   if (!isCreator(item, req.userId) && req.role !== 'admin') return res.status(403).json({ error: 'Non autorisé' });
 
-  const { name, description, category, visibility, rules, imageUrls } = req.body || {};
+  const { name, description, category, visibility, rules, imageUrls, links } = req.body || {};
   if (name !== undefined) item.name = String(name || '').trim();
   if (description !== undefined) item.description = String(description || '').trim();
   if (category !== undefined) item.category = String(category || '').trim();
   if (rules !== undefined) item.rules = String(rules || '').trim();
   if (visibility !== undefined) item.visibility = visibility === 'private' ? 'private' : 'public';
   if (Array.isArray(imageUrls)) item.imageUrls = imageUrls.filter(Boolean).slice(0, 3);
+  if (Array.isArray(links)) item.links = sanitizeLinks(links);
   await item.save();
   res.json(item);
 });
@@ -309,14 +323,16 @@ router.post('/:id/posts', auth, async (req, res) => {
 
   const content = String(req.body?.content || '').trim();
   const imageUrls = Array.isArray(req.body?.imageUrls) ? req.body.imageUrls.filter(Boolean).slice(0, 3) : [];
-  if (!content && imageUrls.length === 0) return res.status(400).json({ error: 'Contenu requis' });
+  const links = Array.isArray(req.body?.links) ? sanitizeLinks(req.body.links) : [];
+  if (!content && imageUrls.length === 0 && links.length === 0) return res.status(400).json({ error: 'Contenu requis' });
 
   const post = await new GroupPost({
     groupId: String(group._id),
     userId: me,
     authorName: String(req.userPseudo || ''),
     content,
-    imageUrls
+    imageUrls,
+    links
   }).save();
 
   res.status(201).json(post);
@@ -367,10 +383,14 @@ router.put('/posts/:postId', auth, async (req, res) => {
 
   const content = String(req.body?.content || '').trim();
   const imageUrls = Array.isArray(req.body?.imageUrls) ? req.body.imageUrls.filter(Boolean).slice(0, 3) : undefined;
-  if (!content && (!Array.isArray(imageUrls) || imageUrls.length === 0)) return res.status(400).json({ error: 'Contenu requis' });
+  const links = Array.isArray(req.body?.links) ? sanitizeLinks(req.body.links) : undefined;
+  if (!content && (!Array.isArray(imageUrls) || imageUrls.length === 0) && (!Array.isArray(links) || links.length === 0)) {
+    return res.status(400).json({ error: 'Contenu requis' });
+  }
 
   post.content = content;
   if (imageUrls !== undefined) post.imageUrls = imageUrls;
+  if (links !== undefined) post.links = links;
   await post.save();
   res.json(post);
 });
