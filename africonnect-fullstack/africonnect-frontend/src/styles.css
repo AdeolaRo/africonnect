@@ -315,6 +315,9 @@ p { margin-bottom: 1rem; }
   padding: 18px;
   margin-bottom: 14px;
   transition: var(--transition);
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* Compact publication cards */
@@ -339,9 +342,59 @@ p { margin-bottom: 1rem; }
 
 /* Mobile: grille 2 colonnes — boutons assez larges pour le tactile (plus de micro-rangée scrollée) */
 @media (max-width: 768px) {
+  /* Carte : rester dans la colonne, pas de scroll horizontal à cause du contenu */
+  .items-grid {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
   .content .item-card,
   .items-grid > .item-card {
     padding: 12px 14px;
+    overflow-x: hidden;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .item-card h3,
+  .item-card .item-meta,
+  .item-card .card-excerpt-2,
+  .item-card .text-muted {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .item-card .item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+
+  .item-card a:not(.btn) {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .item-card .thumb-grid {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .item-card .thumb {
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  /* Le translate au hover agrandit la boîte et peut faire “déborder” sur mobile */
+  .item-card:hover {
+    transform: none;
   }
 
   .card-actions.bottom {
@@ -402,9 +455,9 @@ p { margin-bottom: 1rem; }
 
   .post-actions-compact .btn {
     width: 100%;
-    min-height: 44px;
-    padding: 9px 11px;
-    font-size: 0.82rem;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 0.8rem;
     white-space: normal;
     text-align: center;
     justify-content: center;
