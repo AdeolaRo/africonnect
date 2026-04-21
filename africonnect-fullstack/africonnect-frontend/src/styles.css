@@ -569,6 +569,59 @@ p { margin-bottom: 1rem; }
   }
 }
 
+/* Desktop seulement : cartes du flux (grille 2 colonnes) un peu plus compactes */
+@media (min-width: 901px) {
+  .items-grid {
+    gap: 12px;
+  }
+
+  .items-grid > .item-card {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .items-grid > .item-card h3 {
+    font-size: 1.12rem;
+    line-height: 1.3;
+    margin-top: 0;
+    margin-bottom: 0.35rem;
+  }
+
+  .items-grid > .item-card .thumb-grid {
+    margin: 6px 0 8px;
+    gap: 8px;
+  }
+
+  .items-grid > .item-card .thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+  }
+
+  .items-grid > .item-card .card-excerpt-2 {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    line-height: 1.38;
+  }
+
+  .items-grid > .item-card .card-actions.bottom {
+    margin-top: 10px;
+    gap: 8px;
+  }
+
+  .items-grid > .item-card .card-actions.bottom .btn,
+  .items-grid > .item-card .card-actions.bottom a.btn {
+    padding: 6px 11px;
+    font-size: 0.84rem;
+    border-radius: 12px;
+  }
+
+  .items-grid > .item-card .card-actions.bottom .btn-sm {
+    padding: 6px 10px;
+    font-size: 0.84rem;
+  }
+}
+
 /* City autocomplete */
 .city-wrap { position: relative; width: 100%; }
 .city-list {
