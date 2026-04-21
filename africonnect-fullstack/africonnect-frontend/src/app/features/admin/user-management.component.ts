@@ -50,9 +50,15 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                 </select>
               </td>
               <td>
-                <span class="status" [class.active]="user.verified" [class.inactive]="!user.verified">
-                  {{ user.verified ? ('✅ ' + ('admin.usersPage.verifiedYes' | translate)) : ('❌ ' + ('admin.usersPage.verifiedNo' | translate)) }}
-                </span>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                  <span class="status" [class.active]="user.verified" [class.inactive]="!user.verified">
+                    {{ user.verified ? ('✅ ' + ('admin.usersPage.verifiedYes' | translate)) : ('❌ ' + ('admin.usersPage.verifiedNo' | translate)) }}
+                  </span>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="toggleVerified(user)"
+                          [attr.title]="'admin.usersPage.toggleVerified' | translate">
+                    ✓
+                  </button>
+                </div>
               </td>
               <td>
                 {{ user.createdAt | date:'dd/MM/yyyy' }}
@@ -138,8 +144,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <div class="form-group" style="flex: 1; min-width: 200px;">
             <label class="form-label">{{ 'admin.usersPage.labelStatus' | translate }}</label>
             <select [(ngModel)]="form.verified" name="verified" class="form-control">
-              <option [value]="true">{{ 'admin.usersPage.verifiedOption' | translate }}</option>
-              <option [value]="false">{{ 'admin.usersPage.unverifiedOption' | translate }}</option>
+              <option [ngValue]="true">{{ 'admin.usersPage.verifiedOption' | translate }}</option>
+              <option [ngValue]="false">{{ 'admin.usersPage.unverifiedOption' | translate }}</option>
             </select>
           </div>
         </div>
@@ -213,7 +219,7 @@ export class UserManagementComponent implements OnInit {
       origin: user.origin || '',
       passions: user.passions || '',
       role: user.role,
-      verified: user.verified
+      verified: !!user.verified
     };
     this.modalVisible = true;
   }
@@ -230,6 +236,19 @@ export class UserManagementComponent implements OnInit {
       role: 'user',
       verified: true
     };
+  }
+
+  toggleVerified(user: any) {
+    const next = !user.verified;
+    this.api.put(`admin/users/${user._id}`, { verified: next }).subscribe({
+      next: () => {
+        user.verified = next;
+      },
+      error: (err) => {
+        console.error(err);
+        alert(this.translate.instant('admin.usersPage.saveError'));
+      }
+    });
   }
 
   async saveUser() {

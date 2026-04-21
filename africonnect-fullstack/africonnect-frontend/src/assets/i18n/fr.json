@@ -34,6 +34,7 @@
     "cancel": "Annuler",
     "acceptRequired": "Veuillez accepter les Termes et Conditions d'utilisation",
     "acceptPrefix": "J’ai lu et j’accepte les",
+    "acceptPrefixCombined": "J’ai lu et j’accepte les",
     "terms": "Termes",
     "and": "et les",
     "conditions": "Conditions d'utilisation",
@@ -177,7 +178,9 @@
     "conditionsS3L1": "Les demandes de publicité et les médias peuvent être vérifiés avant publication.",
     "conditionsS3L2": "En cas de non-conformité (droit d’auteur, contenu interdit, etc.), une nouvelle version peut être demandée.",
     "conditionsS4Title": "4) Responsabilité",
-    "conditionsS4P1": "Le service est fourni “en l’état”. Nous mettons tout en œuvre pour assurer la disponibilité, sans garantie d’absence d’interruptions."
+    "conditionsS4P1": "Le service est fourni “en l’état”. Nous mettons tout en œuvre pour assurer la disponibilité, sans garantie d’absence d’interruptions.",
+    "combinedTitle": "Conditions d’utilisation & Termes",
+    "readFullHint": "Si le texte complet ne s’affiche pas ci-dessus, consultez la page :"
   },
   "messaging": {
     "title": "Messagerie interne",
@@ -217,12 +220,17 @@
     "subjectPlaceholder": "Objet du message",
     "message": "Message",
     "messagePlaceholder": "Écrivez votre message…",
-    "sentOk": "Message envoyé"
+    "sentOk": "Message envoyé",
+    "adsIntro": "Pour une demande de publicité ou un partenariat :",
+    "adsLink": "Page demande de publicité"
   },
   "profile": {
     "title": "Mon Profil",
     "messaging": "Messagerie",
     "ads": "Publicité",
+    "verifiedBadge": "Profil vérifié",
+    "savedSearchPlaceholder": "Rechercher dans les publications sauvegardées…",
+    "adsViaContact": "Pour une nouvelle demande de publicité, utilisez « Nous contacter » dans le pied de page puis le lien vers la page publicité.",
     "moderation": "Modération",
     "users": "Utilisateurs",
     "adminAds": "Publicités",
@@ -462,8 +470,17 @@
     "legal": {
       "title": "CGU & Termes",
       "currentVersion": "Version actuelle : {{n}}",
-      "bump": "Publier une nouvelle version",
-      "bumpedOk": "Nouvelle version publiée ({{n}})"
+      "help": "Collez du HTML (titres, paragraphes, listes). « Enregistrer » sauvegarde sans obliger les utilisateurs à ré-accepter. « Publier une nouvelle version » incrémente la version et ouvre la fenêtre d’acceptation pour tous (sauf admins).",
+      "labelFr": "Texte légal HTML — français",
+      "labelEn": "Texte légal HTML — English",
+      "placeholderFr": "<h2>Conditions</h2><p>...</p>",
+      "placeholderEn": "<h2>Terms</h2><p>...</p>",
+      "saveDraft": "Enregistrer les modifications",
+      "publishNew": "Publier une nouvelle version",
+      "savedDraftOk": "Texte enregistré.",
+      "publishedOk": "Version {{n}} publiée. Les utilisateurs devront accepter les nouvelles conditions.",
+      "bump": "Incrémenter sans changer le texte",
+      "bumpedOk": "Version incrémentée ({{n}})"
     },
     "adsPage": {
       "title": "Gestion des publicités",
@@ -533,6 +550,7 @@
       "roleAdmin": "Administrateur",
       "verifiedYes": "Oui",
       "verifiedNo": "Non",
+      "toggleVerified": "Basculer vérification",
       "emptyTitle": "Aucun utilisateur",
       "emptyText": "Commencez par créer un utilisateur",
       "modalCreate": "Créer un utilisateur",

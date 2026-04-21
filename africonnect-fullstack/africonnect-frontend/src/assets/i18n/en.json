@@ -34,6 +34,7 @@
     "cancel": "Cancel",
     "acceptRequired": "Please accept the Terms and Terms of use",
     "acceptPrefix": "I have read and accept the",
+    "acceptPrefixCombined": "I have read and accept the",
     "terms": "Terms",
     "and": "and the",
     "conditions": "Terms of use",
@@ -177,7 +178,9 @@
     "conditionsS3L1": "Advertising requests and media may be reviewed before publication.",
     "conditionsS3L2": "In case of non-compliance (copyright, prohibited content, etc.), a new version may be requested.",
     "conditionsS4Title": "4) Liability",
-    "conditionsS4P1": "The service is provided “as is”. We do our best to ensure availability, without guaranteeing it will be uninterrupted."
+    "conditionsS4P1": "The service is provided “as is”. We do our best to ensure availability, without guaranteeing it will be uninterrupted.",
+    "combinedTitle": "Terms of use & Terms",
+    "readFullHint": "If the full text doesn’t appear above, open:"
   },
   "messaging": {
     "title": "Internal messaging",
@@ -217,12 +220,17 @@
     "subjectPlaceholder": "Message subject",
     "message": "Message",
     "messagePlaceholder": "Write your message…",
-    "sentOk": "Message sent"
+    "sentOk": "Message sent",
+    "adsIntro": "For advertising or partnership:",
+    "adsLink": "Advertising request page"
   },
   "profile": {
     "title": "My profile",
     "messaging": "Messaging",
     "ads": "Advertising",
+    "verifiedBadge": "Verified profile",
+    "savedSearchPlaceholder": "Search saved publications…",
+    "adsViaContact": "For new advertising requests, use “Contact us” in the footer and the link to the advertising page.",
     "moderation": "Moderation",
     "users": "Users",
     "adminAds": "Ads",
@@ -462,8 +470,17 @@
     "legal": {
       "title": "Terms & Conditions",
       "currentVersion": "Current version: {{n}}",
-      "bump": "Publish a new version",
-      "bumpedOk": "New version published ({{n}})"
+      "help": "Paste HTML (headings, paragraphs, lists). “Save changes” stores text without forcing users to re-accept. “Publish a new version” increments the version and opens the acceptance prompt for everyone (except admins).",
+      "labelFr": "Legal HTML — French",
+      "labelEn": "Legal HTML — English",
+      "placeholderFr": "<h2>Terms</h2><p>...</p>",
+      "placeholderEn": "<h2>Terms</h2><p>...</p>",
+      "saveDraft": "Save changes",
+      "publishNew": "Publish a new version",
+      "savedDraftOk": "Text saved.",
+      "publishedOk": "Version {{n}} published. Users will need to accept the new terms.",
+      "bump": "Bump version only (same text)",
+      "bumpedOk": "Version bumped ({{n}})"
     },
     "adsPage": {
       "title": "Ad management",
@@ -533,6 +550,7 @@
       "roleAdmin": "Administrator",
       "verifiedYes": "Yes",
       "verifiedNo": "No",
+      "toggleVerified": "Toggle verified",
       "emptyTitle": "No users",
       "emptyText": "Start by creating a user",
       "modalCreate": "Create user",

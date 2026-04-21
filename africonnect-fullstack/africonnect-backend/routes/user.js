@@ -112,6 +112,7 @@ router.post('/accept-terms', auth, async (req, res) => {
       userId: user._id,
       role: user.role,
       pseudo,
+      verified: !!user.verified,
       mustChangePassword: !!user.mustChangePassword,
       mustChangePseudo: !!user.mustChangePseudo,
       mustChangeEmail: !!user.mustChangeEmail,
@@ -227,11 +228,19 @@ router.delete('/save/:postId', auth, async (req, res) => {
 // Obtenir les posts sauvegardés
 router.get('/saved', auth, async (req, res) => {
   const user = await User.findById(req.userId);
-  const models = [ForumPost, MarketplaceItem, Job, Solution, Solidarity, Event, Group];
+  const modelList = [
+    { key: 'forum', Model: ForumPost },
+    { key: 'marketplace', Model: MarketplaceItem },
+    { key: 'jobs', Model: Job },
+    { key: 'solutions', Model: Solution },
+    { key: 'solidarity', Model: Solidarity },
+    { key: 'events', Model: Event },
+    { key: 'groups', Model: Group }
+  ];
   let saved = [];
-  for (const Model of models) {
+  for (const { key, Model } of modelList) {
     const posts = await Model.find({ _id: { $in: user.savedPosts } });
-    saved.push(...posts);
+    saved.push(...posts.map(p => ({ ...p.toObject(), _type: key })));
   }
   res.json(saved);
 });

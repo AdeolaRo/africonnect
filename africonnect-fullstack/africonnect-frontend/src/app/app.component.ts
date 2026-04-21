@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from './core/services/auth.service';
 import { SearchService } from './core/services/search.service';
 import { ModalComponent } from './shared/components/modal/modal.component';
-import { CarouselComponent } from './shared/components/carousel/carousel.component';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { API_BASE_URL } from './core/config/app.config';
 import { ApiService } from './core/services/api.service';
 import { RealtimeService } from './core/services/realtime.service';
@@ -14,7 +14,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule, ModalComponent, CarouselComponent, TranslateModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule, ModalComponent, TranslateModule],
   template: `
     <nav class="navbar">
       <a routerLink="/" class="brand-link" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text);">
@@ -117,10 +117,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <label class="terms-line">
           <input type="checkbox" [(ngModel)]="registerAcceptTerms" name="registerAcceptTerms">
           <span>
-            {{ 'auth.acceptPrefix' | translate }}
-            <button type="button" class="link-btn" (click)="openTerms()">{{ 'auth.terms' | translate }}</button>
-            {{ 'auth.and' | translate }}
-            <button type="button" class="link-btn" (click)="openConditions()">{{ 'auth.conditions' | translate }}</button>.
+            {{ 'auth.acceptPrefixCombined' | translate }}
+            <button type="button" class="link-btn" (click)="openFullLegal()">{{ 'legal.combinedTitle' | translate }}</button>.
           </span>
         </label>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
@@ -132,8 +130,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       </form>
     </app-modal>
 
-    <app-modal [(visible)]="termsVisible" [title]="'legal.termsTitle' | translate">
-      <div class="legal-text">
+    <app-modal [(visible)]="legalModalVisible" [title]="'legal.combinedTitle' | translate">
+      <div *ngIf="publishedLegalSafe" class="modal-body legal-scroll" [innerHTML]="publishedLegalSafe"></div>
+      <div *ngIf="!publishedLegalSafe" class="legal-text legal-scroll">
+        <h3>{{ 'legal.termsTitle' | translate }}</h3>
         <p>{{ 'legal.termsP1' | translate }}</p>
         <p>{{ 'legal.termsP2' | translate }}</p>
         <ul>
@@ -143,14 +143,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <li>{{ 'legal.termsL4' | translate }}</li>
         </ul>
         <p>{{ 'legal.termsP3' | translate }}</p>
-      </div>
-      <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-        <button class="btn btn-secondary" type="button" (click)="termsVisible=false">{{ 'common.close' | translate }}</button>
-      </div>
-    </app-modal>
-
-    <app-modal [(visible)]="conditionsVisible" [title]="'legal.conditionsTitle' | translate">
-      <div class="legal-text">
+        <h3>{{ 'legal.conditionsTitle' | translate }}</h3>
         <p><strong>{{ 'legal.conditionsS1Title' | translate }}</strong></p>
         <ul>
           <li>{{ 'legal.conditionsS1L1' | translate }}</li>
@@ -170,7 +163,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <p>{{ 'legal.conditionsS4P1' | translate }}</p>
       </div>
       <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-        <button class="btn btn-secondary" type="button" (click)="conditionsVisible=false">{{ 'common.close' | translate }}</button>
+        <button class="btn btn-secondary btn-sm" type="button" (click)="legalModalVisible=false">{{ 'common.close' | translate }}</button>
       </div>
     </app-modal>
 
@@ -239,8 +232,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     </app-modal>
 
     <app-modal [(visible)]="contactVisible" [title]="'contact.title' | translate">
-      <div style="margin-bottom:14px;">
-        <app-carousel></app-carousel>
+      <div class="contact-ads-link" style="margin-bottom:14px;">
+        <p class="text-muted" style="margin:0 0 8px; font-size:0.92rem;">{{ 'contact.adsIntro' | translate }}</p>
+        <a routerLink="/publicite/demande" class="btn btn-secondary btn-sm" style="display:inline-flex;" (click)="contactVisible=false">{{ 'contact.adsLink' | translate }}</a>
       </div>
       <form class="auth-form" (ngSubmit)="submitContact($event)">
         <input type="email" [(ngModel)]="contactEmail" name="contactEmail" [placeholder]="'contact.emailOptional' | translate">
@@ -263,9 +257,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <div class="text-muted" style="margin-bottom:12px;">
           {{ 'legal.updateRequiredText' | translate }}
         </div>
-        <a href="/legal" target="_blank" rel="noopener noreferrer" style="color:var(--secondary); text-decoration:none;">
-          {{ 'footer.legal' | translate }}
-        </a>
+        <div *ngIf="publishedLegalSafe" class="modal-body legal-scroll terms-gate-preview" [innerHTML]="publishedLegalSafe"></div>
+        <div *ngIf="!publishedLegalSafe" class="legal-text legal-scroll terms-gate-preview">
+          <p class="text-muted">{{ 'legal.readFullHint' | translate }}
+            <a routerLink="/legal" style="color:var(--secondary);">{{ 'footer.legal' | translate }}</a>
+          </p>
+        </div>
         <label class="checkbox-label" style="margin-top:14px;">
           <input type="checkbox" [(ngModel)]="termsGateChecked" name="termsGateChecked">
           <span>{{ 'legal.acceptLabel' | translate }}</span>
@@ -356,6 +353,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     .legal-text { color: var(--text); }
     .legal-text p { margin: 0 0 10px; }
     .legal-text ul { margin: 0 0 10px; padding-left: 18px; }
+    .legal-scroll { max-height: min(52vh, 420px); overflow-y: auto; margin-top: 8px; padding-right: 4px; }
+    .terms-gate-preview { margin-bottom: 12px; }
     @media (max-width: 768px) {
       .navbar { padding: 12px 14px; }
       .container { padding: 14px; }
@@ -412,8 +411,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   showRegisterPassword = false;
   showRegisterPasswordConfirm = false;
   registerAcceptTerms = false;
-  termsVisible = false;
-  conditionsVisible = false;
+  legalModalVisible = false;
+  publishedLegalSafe: SafeHtml | null = null;
+  private publicTermsHtmlFr = '';
+  private publicTermsHtmlEn = '';
   searchQuery = '';
   isAdminOrModerationRoute = false;
   isProfileRoute = false;
@@ -429,7 +430,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private searchService: SearchService,
     private api: ApiService,
     private realtime: RealtimeService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private sanitizer: DomSanitizer
   ) {
     // Requirement: French by default; English only after explicit click.
     this.lang = 'fr';
@@ -444,6 +446,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     localStorage.setItem('lang', lang);
     this.ensureTranslationsLoaded(lang);
     this.translate.use(lang);
+    setTimeout(() => this.refreshPublishedLegalSafe(), 0);
   }
 
   private loadedLangs = new Set<string>();
@@ -476,6 +479,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.translate.onLangChange.subscribe(() => this.refreshPublishedLegalSafe());
     this.loadTermsVersion();
     this.auth.currentUser.subscribe(user => {
       this.lastUser = user;
@@ -550,8 +554,18 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.registerModalVisible = true;
   }
 
-  openTerms() { this.termsVisible = true; }
-  openConditions() { this.conditionsVisible = true; }
+  openFullLegal() {
+    this.refreshPublishedLegalSafe();
+    this.legalModalVisible = true;
+  }
+
+  private refreshPublishedLegalSafe() {
+    const lang = this.translate.currentLang || 'fr';
+    const fr = String(this.publicTermsHtmlFr || '').trim();
+    const en = String(this.publicTermsHtmlEn || '').trim();
+    const html = lang === 'en' ? (en || fr) : (fr || en);
+    this.publishedLegalSafe = html ? this.sanitizer.bypassSecurityTrustHtml(html) : null;
+  }
 
   async submitRegister(event?: Event) {
     if (event) event.preventDefault();
@@ -724,9 +738,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.api.get('site-settings/public', false).subscribe({
       next: (res: any) => {
         this.termsVersion = Number(res?.termsVersion || 1);
+        this.publicTermsHtmlFr = String(res?.termsHtmlFr || '');
+        this.publicTermsHtmlEn = String(res?.termsHtmlEn || '');
+        this.refreshPublishedLegalSafe();
         this.maybeOpenTermsGate();
       },
-      error: () => this.termsVersion = 1
+      error: () => {
+        this.termsVersion = 1;
+        this.publicTermsHtmlFr = '';
+        this.publicTermsHtmlEn = '';
+        this.refreshPublishedLegalSafe();
+      }
     });
   }
 

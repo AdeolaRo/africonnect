@@ -9,6 +9,7 @@ export interface User {
   id: string;
   pseudo: string;
   role: string;
+  verified?: boolean;
   mustChangePassword?: boolean;
   mustChangePseudo?: boolean;
   mustChangeEmail?: boolean;
@@ -36,6 +37,7 @@ export class AuthService {
       id: payload.userId,
       pseudo: payload.pseudo || 'Utilisateur',
       role: payload.role,
+      verified: !!payload.verified,
       mustChangePassword: !!payload.mustChangePassword,
       mustChangePseudo: !!payload.mustChangePseudo,
       mustChangeEmail: !!payload.mustChangeEmail,

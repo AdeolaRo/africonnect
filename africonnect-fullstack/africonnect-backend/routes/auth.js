@@ -65,6 +65,7 @@ router.post('/login', async (req, res) => {
       userId: user._id,
       role: user.role,
       pseudo,
+      verified: !!user.verified,
       mustChangePassword: !!user.mustChangePassword,
       mustChangePseudo: !!user.mustChangePseudo,
       mustChangeEmail: !!user.mustChangeEmail,
@@ -73,6 +74,7 @@ router.post('/login', async (req, res) => {
     res.json({
       token,
       role: user.role,
+      verified: !!user.verified,
       mustChangePassword: !!user.mustChangePassword,
       mustChangePseudo: !!user.mustChangePseudo,
       mustChangeEmail: !!user.mustChangeEmail

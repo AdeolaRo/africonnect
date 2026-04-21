@@ -18,7 +18,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <h1>{{ 'profile.title' | translate }}</h1>
         <div class="profile-actions">
           <button class="btn btn-secondary" (click)="openMessaging()">💬 {{ 'profile.messaging' | translate }}</button>
-          <button class="btn btn-secondary" (click)="openAdRequest()">📣 {{ 'profile.ads' | translate }}</button>
           <button class="btn btn-secondary" *ngIf="isModerator || isAdmin" (click)="openModeration()">🛡️ {{ 'profile.moderation' | translate }}</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminUsers()">👥 {{ 'profile.users' | translate }}</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 {{ 'profile.adminAds' | translate }}</button>
@@ -35,7 +34,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             <!-- Mode vue -->
             <div *ngIf="!isEditing" style="margin-top: 12px; width:100%;">
               <div class="profile-summary">
-                <div class="summary-name">{{ profile.pseudo || '—' }}</div>
+                <div class="summary-name">
+                  {{ profile.pseudo || '—' }}
+                  <span *ngIf="profile.verified" class="verified-badge" [title]="'profile.verifiedBadge' | translate">✓</span>
+                </div>
                 <div class="summary-meta" *ngIf="profile.fullName">👤 {{ profile.fullName }}</div>
                 <div class="summary-meta" *ngIf="profile.city">📍 {{ profile.city }}</div>
                 <div class="summary-meta" *ngIf="profile.origin">🌍 {{ profile.origin }}</div>
@@ -130,18 +132,18 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                 <p>{{ 'profile.noPosts' | translate }}</p>
                 <button class="btn btn-primary" (click)="publishOnForum()">{{ 'profile.publishForum' | translate }}</button>
               </div>
-              <div *ngFor="let post of myPosts" class="post-card">
-                <div class="post-header">
-                  <h4>{{ post.title || post.subject || 'Sans titre' }}</h4>
-                  <span class="post-date">{{ post.createdAt | date:'dd/MM/yyyy' }}</span>
+              <div *ngFor="let post of myPosts" class="post-card post-card-compact">
+                <div class="post-card-compact-row">
+                  <span class="pub-type-badge">{{ postTypeLabel(post._type) }}</span>
+                  <h4 class="post-card-compact-title">{{ post.title || post.subject || ('searchPage.untitled' | translate) }}</h4>
+                  <span class="post-date post-card-compact-date">{{ post.createdAt | date:'dd/MM/yyyy' }}</span>
                 </div>
-                <div class="post-content">{{ (post.content || post.desc || '').slice(0, 150) }}...</div>
-                <div class="post-actions">
-                  <button class="btn btn-secondary btn-sm" (click)="openPost(post)">{{ 'profile.view' | translate }}</button>
-                  <button class="btn btn-secondary btn-sm" (click)="toggleSave(post)">
+                <div class="post-actions post-actions-compact">
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="openPost(post)">{{ 'profile.view' | translate }}</button>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="toggleSave(post)">
                     {{ isSaved(post?._id) ? ('profile.remove' | translate) : ('profile.savePost' | translate) }}
                   </button>
-                  <button class="btn btn-danger btn-sm" (click)="deletePost(post._id)">{{ 'common.delete' | translate }}</button>
+                  <button type="button" class="btn btn-danger btn-sm" (click)="deletePost(post._id)">{{ 'common.delete' | translate }}</button>
                 </div>
               </div>
             </div>
@@ -151,12 +153,19 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               <div *ngIf="savedPosts.length === 0" class="empty-section">
                 <p>{{ 'profile.noSaved' | translate }}</p>
               </div>
-              <div *ngFor="let saved of savedPosts" class="post-card">
-                <div class="post-header">
-                  <h4>{{ saved.title || saved.subject || 'Sans titre' }}</h4>
-                  <button class="btn btn-secondary btn-sm" (click)="unsave(saved._id)">{{ 'profile.remove' | translate }}</button>
+              <div *ngIf="savedPosts.length > 0" class="form-group profile-saved-search">
+                <input type="search" class="form-control" [(ngModel)]="savedSearchQuery" name="savedSearch"
+                       [placeholder]="'profile.savedSearchPlaceholder' | translate">
+              </div>
+              <div *ngIf="savedPosts.length > 0 && filteredSavedPosts.length === 0" class="empty-section">
+                <p>{{ 'searchPage.noResults' | translate }}</p>
+              </div>
+              <div *ngFor="let saved of filteredSavedPosts" class="post-card post-card-compact">
+                <div class="post-card-compact-row">
+                  <span class="pub-type-badge">{{ postTypeLabel(saved._type) }}</span>
+                  <h4 class="post-card-compact-title">{{ saved.title || saved.subject || ('searchPage.untitled' | translate) }}</h4>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="unsave(saved._id)">{{ 'profile.remove' | translate }}</button>
                 </div>
-                <div class="post-content">{{ (saved.content || saved.desc || '').slice(0, 150) }}...</div>
               </div>
             </div>
 
@@ -164,7 +173,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               <h3>{{ 'profile.adRequests' | translate }}</h3>
               <div *ngIf="adRequests.length === 0" class="empty-section">
                 <p>{{ 'profile.noAdRequests' | translate }}</p>
-                <button class="btn btn-primary" (click)="openAdRequest()">{{ 'profile.makeRequest' | translate }}</button>
+                <p class="text-muted" style="font-size:0.92rem; margin-top:8px;">{{ 'profile.adsViaContact' | translate }}</p>
               </div>
               <div *ngFor="let r of adRequests" class="post-card">
                 <div class="post-header">
@@ -243,6 +252,7 @@ export class ProfileComponent implements OnInit {
   };
   myPosts: any[] = [];
   savedPosts: any[] = [];
+  savedSearchQuery = '';
   savedIds = new Set<string>();
   adRequests: any[] = [];
   isSaving = false;
@@ -290,6 +300,34 @@ export class ProfileComponent implements OnInit {
   openPreview(url: string) {
     this.previewUrl = url;
     this.previewVisible = true;
+  }
+
+  get filteredSavedPosts(): any[] {
+    const q = (this.savedSearchQuery || '').trim().toLowerCase();
+    if (!q) return this.savedPosts;
+    return this.savedPosts.filter(p => {
+      const title = String(p.title || p.subject || '').toLowerCase();
+      const body = this.stripHtml(String(p.content || p.desc || '')).toLowerCase();
+      return title.includes(q) || body.includes(q);
+    });
+  }
+
+  stripHtml(html: string): string {
+    return String(html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  postTypeLabel(type: string | undefined): string {
+    const keyMap: Record<string, string> = {
+      forum: 'nav.forum',
+      marketplace: 'nav.marketplace',
+      jobs: 'nav.jobs',
+      solutions: 'nav.solutions',
+      solidarity: 'nav.solidarity',
+      events: 'nav.events',
+      groups: 'nav.groups'
+    };
+    const k = keyMap[String(type || '').toLowerCase()];
+    return k ? this.translate.instant(k) : String(type || '');
   }
 
   goToOriginal(post: any) {
@@ -463,10 +501,6 @@ export class ProfileComponent implements OnInit {
 
   openMessaging() {
     this.router.navigate(['/messagerie']);
-  }
-
-  openAdRequest() {
-    this.router.navigate(['/publicite/demande']);
   }
 
   openModeration() {
