@@ -116,18 +116,23 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
             </svg>
           </button>
         </div>
-        <label class="terms-line">
-          <input type="checkbox" [(ngModel)]="registerAcceptTerms" name="registerAcceptTerms">
-          <span>
-            {{ 'auth.acceptPrefixCombined' | translate }}
-            <button type="button" class="link-btn" (click)="openFullLegal()">{{ 'legal.combinedTitle' | translate }}</button>.
-          </span>
-        </label>
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button type="submit" class="btn btn-primary" [disabled]="isRegistering || !registerAcceptTerms">
+        <div class="register-terms-panel">
+          <label class="register-terms-check">
+            <input type="checkbox" [(ngModel)]="registerAcceptTerms" name="registerAcceptTerms">
+            <span class="register-terms-copy">
+              {{ 'auth.acceptPrefixCombined' | translate }}
+              <strong class="register-terms-doc">{{ 'legal.combinedTitle' | translate }}</strong>.
+            </span>
+          </label>
+          <button type="button" class="btn btn-secondary btn-sm register-read-legal" (click)="openFullLegal()">
+            {{ 'auth.readLegal' | translate }}
+          </button>
+        </div>
+        <div class="register-form-actions">
+          <button type="submit" class="btn btn-primary register-btn-submit" [disabled]="isRegistering || !registerAcceptTerms">
             {{ isRegistering ? ('common.ellipsis' | translate) : ('auth.create' | translate) }}
           </button>
-          <button type="button" class="btn btn-secondary" (click)="registerModalVisible = false" [disabled]="isRegistering">{{ 'auth.cancel' | translate }}</button>
+          <button type="button" class="btn btn-secondary register-btn-cancel" (click)="registerModalVisible = false" [disabled]="isRegistering">{{ 'auth.cancel' | translate }}</button>
         </div>
       </form>
     </app-modal>
@@ -350,6 +355,38 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     .site-footer-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; color: var(--text-muted); text-align: center; font-size: 0.95rem; }
     .terms-line { display:flex; gap:10px; align-items:flex-start; margin: 6px 0 12px; color: var(--text-muted); font-size: 0.92rem; }
     .terms-line input { margin-top: 3px; }
+    .register-terms-panel {
+      margin: 14px 0 16px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .register-terms-check {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin: 0;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .register-terms-check input { margin-top: 4px; flex-shrink: 0; }
+    .register-terms-copy { flex: 1; min-width: 0; }
+    .register-terms-doc { color: var(--text); font-weight: 700; display: inline; }
+    .register-read-legal { align-self: flex-start; }
+    .register-form-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .register-btn-submit,
+    .register-btn-cancel { width: 100%; justify-content: center; min-height: 46px; }
     .link-btn { background: transparent; border: none; padding: 0; color: var(--primary); cursor: pointer; font-weight: 700; }
     .link-btn:hover { text-decoration: underline; }
     .legal-text { color: var(--text); }

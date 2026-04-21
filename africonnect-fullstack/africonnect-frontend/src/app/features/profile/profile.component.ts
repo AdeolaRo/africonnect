@@ -23,6 +23,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 {{ 'profile.adminAds' | translate }}</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAdRequests()">📣 {{ 'profile.adminAdRequests' | translate }}</button>
           <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminRss()">📰 {{ 'profile.rss' | translate }}</button>
+          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminLegal()">📜 {{ 'profile.adminLegal' | translate }}</button>
         </div>
       </div>
       
@@ -521,6 +522,10 @@ export class ProfileComponent implements OnInit {
 
   openAdminRss() {
     this.router.navigate(['/admin/rss']);
+  }
+
+  openAdminLegal() {
+    this.router.navigate(['/admin/legal']);
   }
 
   deleteAccount() {
