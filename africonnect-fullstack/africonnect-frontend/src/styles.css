@@ -337,7 +337,7 @@ p { margin-bottom: 1rem; }
   justify-content: flex-end;
 }
 
-/* Mobile: une seule rangée d’actions, scroll horizontal — évite les boutons géants sur plusieurs lignes */
+/* Mobile: grille 2 colonnes — boutons assez larges pour le tactile (plus de micro-rangée scrollée) */
 @media (max-width: 768px) {
   .content .item-card,
   .items-grid > .item-card {
@@ -345,44 +345,41 @@ p { margin-bottom: 1rem; }
   }
 
   .card-actions.bottom {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    align-items: center;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     margin-top: 10px;
-    margin-inline: -4px;
-    padding: 4px 4px 8px;
-    scrollbar-width: thin;
+    margin-inline: 0;
+    padding: 4px 0 8px;
+    overflow: visible;
+    align-items: stretch;
+    justify-content: stretch;
   }
 
-  .card-actions.bottom::-webkit-scrollbar {
-    height: 3px;
-  }
-
-  .card-actions.bottom::-webkit-scrollbar-thumb {
-    background: var(--surface-3);
-    border-radius: 3px;
+  /* Impair : dernier bouton sur toute la largeur (ex. 5 actions) */
+  .card-actions.bottom .btn:last-child:nth-child(odd),
+  .card-actions.bottom a.btn:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 
   .card-actions.bottom .btn,
   .card-actions.bottom a.btn {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    padding: 5px 10px;
-    font-size: 0.78rem;
-    border-radius: 11px;
-    line-height: 1.2;
-    min-height: 36px;
-    max-height: 40px;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    border-radius: 14px;
+    line-height: 1.25;
     justify-content: center;
+    white-space: normal;
+    text-align: center;
+    hyphens: auto;
   }
 
   .card-actions.bottom .btn-sm {
-    padding: 5px 9px;
-    font-size: 0.78rem;
+    padding: 9px 11px;
+    font-size: 0.82rem;
   }
 
   .card-excerpt-2 {
@@ -391,20 +388,26 @@ p { margin-bottom: 1rem; }
   }
 
   .post-actions-compact {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    justify-content: flex-end;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    justify-content: stretch;
+    overflow: visible;
     padding-bottom: 4px;
   }
 
+  .post-actions-compact .btn:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
   .post-actions-compact .btn {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    padding: 5px 9px;
-    font-size: 0.78rem;
-    min-height: 36px;
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 11px;
+    font-size: 0.82rem;
+    white-space: normal;
+    text-align: center;
+    justify-content: center;
   }
 
   /* Carrousel pub : zones tactiles confortables */
