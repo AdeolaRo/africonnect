@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../config/app.config';
@@ -21,6 +21,13 @@ export class AuthService {
   private apiUrl = `${API_BASE_URL}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser = this.currentUserSubject.asObservable();
+
+  /** Rafraîchir avatar / barre profil (ex. après sauvegarde profil) */
+  private profileBarRefresh$ = new Subject<void>();
+  readonly profileBarRefresh = this.profileBarRefresh$.asObservable();
+  triggerProfileBarRefresh() {
+    this.profileBarRefresh$.next();
+  }
 
   constructor(private http: HttpClient, private router: Router) {
     const token = localStorage.getItem('token');

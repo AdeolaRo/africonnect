@@ -11,6 +11,7 @@
     "events": "Événements",
     "groups": "Groupes",
     "profile": "Profil",
+    "goProfile": "Aller au profil",
     "login": "Connexion",
     "logout": "Déconnexion"
   },
@@ -246,6 +247,9 @@
     "posts": "Publications",
     "saved": "Sauvegardés",
     "memberSince": "Membre depuis",
+    "uploadPhoto": "Ajouter une photo",
+    "uploadPhotoHint": "JPG, PNG ou GIF — max. 5 Mo. Elle remplace l’avatar sélectionné.",
+    "uploadPhotoError": "Envoi de la photo impossible. Réessayez ou choisissez une image plus petite.",
     "personalInfo": "Informations personnelles",
     "email": "Email",
     "emailLocked": "L'email ne peut pas être modifié",

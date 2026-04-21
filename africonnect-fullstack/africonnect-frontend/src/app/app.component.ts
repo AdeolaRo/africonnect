@@ -43,11 +43,12 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
           💬
           <span *ngIf="unreadMessages > 0" class="badge">{{ unreadMessages }}</span>
         </button>
-        <button *ngIf="isLoggedIn" class="profile-chip" type="button" (click)="goProfile()">
-          <img *ngIf="userAvatar" [src]="userAvatar" class="avatar-mini" [attr.alt]="'a11y.logo' | translate">
-          <span>{{ 'nav.profile' | translate }}</span>
+        <button *ngIf="isLoggedIn" class="profile-chip" type="button" (click)="goProfile()"
+                [attr.title]="'nav.goProfile' | translate" [attr.aria-label]="'nav.goProfile' | translate">
+          <img *ngIf="navbarAvatarSrc" [src]="navbarAvatarSrc" class="avatar-mini" [attr.alt]="''">
+          <span *ngIf="!navbarAvatarSrc" class="avatar-mini avatar-initials" aria-hidden="true">{{ userInitial }}</span>
+          <span class="profile-chip-name">{{ userPseudo || ('nav.profile' | translate) }}</span>
         </button>
-        <span *ngIf="userPseudo" class="user-pseudo">{{ userPseudo }}</span>
         <button class="btn" *ngIf="!isLoggedIn" (click)="openAuthModal()">{{ 'nav.login' | translate }}</button>
         <button class="btn" *ngIf="isLoggedIn" (click)="logout()">{{ 'nav.logout' | translate }}</button>
       </div>
@@ -305,7 +306,17 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     .nav-toggle { display:none; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
     .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
     .toolbar { display: flex; gap: 10px; align-items: center; }
-    .user-pseudo { margin-right: 6px; font-weight: 700; }
+    .profile-chip-name { font-weight: 800; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .avatar-initials {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-3);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
     .icon-btn { position: relative; display:inline-flex; align-items:center; justify-content:center; width: 40px; height: 40px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
     .badge { position:absolute; top:-6px; right:-6px; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 999px; background: var(--danger); color: white; font-size: 0.75rem; display:flex; align-items:center; justify-content:center; border: 2px solid var(--surface); }
     .profile-chip { display:inline-flex; align-items:center; gap:8px; padding: 8px 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor:pointer; }
@@ -366,19 +377,22 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
       gap: 12px;
     }
     .register-terms-check {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr;
       gap: 12px;
-      align-items: flex-start;
+      align-items: start;
       margin: 0;
       cursor: pointer;
       color: var(--text-muted);
       font-size: 0.92rem;
       line-height: 1.45;
+      width: 100%;
+      box-sizing: border-box;
     }
     .register-terms-check input { margin-top: 4px; flex-shrink: 0; }
-    .register-terms-copy { flex: 1; min-width: 0; }
+    .register-terms-copy { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
     .register-terms-doc { color: var(--text); font-weight: 700; display: inline; }
-    .register-read-legal { align-self: flex-start; }
+    .register-read-legal { align-self: stretch; width: 100%; justify-content: center; }
     .register-form-actions {
       display: flex;
       flex-direction: column;
@@ -520,6 +534,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.translate.onLangChange.subscribe(() => this.refreshPublishedLegalSafe());
     this.loadTermsVersion();
+    this.auth.profileBarRefresh.subscribe(() => {
+      if (this.isLoggedIn) this.loadAvatar();
+    });
     this.auth.currentUser.subscribe(user => {
       this.lastUser = user;
       this.isLoggedIn = !!user;
@@ -894,6 +911,22 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
       error: () => this.showToast(this.translate.instant('common.notAvailableNow'))
     });
+  }
+
+  get navbarAvatarSrc(): string {
+    return this.normalizeAvatarUrl(this.userAvatar);
+  }
+
+  get userInitial(): string {
+    const p = (this.userPseudo || '').trim();
+    return p ? p.charAt(0).toUpperCase() : '?';
+  }
+
+  private normalizeAvatarUrl(url?: string): string {
+    if (!url) return '';
+    const u = String(url);
+    if (u.startsWith('/uploads/')) return `${API_BASE_URL.replace(/\/api$/, '')}${u}`;
+    return u;
   }
 
   loadAvatar() {

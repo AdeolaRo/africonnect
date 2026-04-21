@@ -11,6 +11,7 @@
     "events": "Events",
     "groups": "Groups",
     "profile": "Profile",
+    "goProfile": "Go to profile",
     "login": "Login",
     "logout": "Logout"
   },
@@ -246,6 +247,9 @@
     "posts": "Posts",
     "saved": "Saved",
     "memberSince": "Member since",
+    "uploadPhoto": "Add a profile photo",
+    "uploadPhotoHint": "JPG, PNG or GIF — max 5 MB. Replaces the selected avatar.",
+    "uploadPhotoError": "Could not upload the photo. Try again or pick a smaller image.",
     "personalInfo": "Personal information",
     "email": "Email",
     "emailLocked": "Email cannot be changed",

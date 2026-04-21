@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { API_BASE_URL } from '../../core/config/app.config';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -30,7 +31,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       <div class="profile-content">
         <div class="profile-sidebar">
           <div class="avatar-section">
-            <img [src]="selectedAvatar" class="avatar-large" [alt]="profile.pseudo || 'Avatar'">
+            <img [src]="displayAvatarUrl(selectedAvatar) || selectedAvatar" class="avatar-large" [alt]="profile.pseudo || 'Avatar'">
 
             <!-- Mode vue -->
             <div *ngIf="!isEditing" style="margin-top: 12px; width:100%;">
@@ -51,14 +52,23 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
             <!-- Mode édition -->
             <div *ngIf="isEditing">
-              <div class="avatar-grid">
-                <img *ngFor="let av of avatars" 
-                     [src]="av" 
-                     class="avatar-thumb" 
-                     [class.selected]="av === selectedAvatar" 
-                     (click)="selectAvatar(av)">
+              <div class="avatar-picker-wrap">
+                <div class="avatar-grid">
+                  <img *ngFor="let av of avatars"
+                       [src]="av"
+                       class="avatar-thumb"
+                       [class.selected]="selectedAvatar === av"
+                       (click)="selectAvatar(av)">
+                </div>
+                <div class="avatar-upload-aside">
+                  <label class="btn btn-secondary btn-sm avatar-upload-label" [class.disabled]="isUploadingAvatar">
+                    {{ isUploadingAvatar ? ('common.ellipsis' | translate) : ('📷 ' + ('profile.uploadPhoto' | translate)) }}
+                    <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onCustomAvatarUpload($event)" [disabled]="isUploadingAvatar">
+                  </label>
+                  <p class="text-muted avatar-upload-hint">{{ 'profile.uploadPhotoHint' | translate }}</p>
+                </div>
               </div>
-              <div style="display:flex; gap:10px; width:100%; margin-top: 12px;">
+              <div style="display:flex; gap:10px; width:100%; margin-top: 12px; flex-wrap:wrap;">
                 <button class="btn btn-primary" (click)="saveProfile()" [disabled]="isSaving">
                   {{ isSaving ? ('profile.saveProgress' | translate) : ('💾 ' + ('profile.saveButton' | translate)) }}
                 </button>
@@ -230,7 +240,42 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <app-modal [(visible)]="previewVisible" [title]="'common.preview' | translate">
       <img *ngIf="previewUrl" [src]="previewUrl" [alt]="'common.preview' | translate" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
     </app-modal>
-  `
+  `,
+  styles: [`
+    .avatar-picker-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-start;
+      margin-top: 8px;
+    }
+    .avatar-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex: 1 1 200px;
+      max-width: 100%;
+    }
+    .avatar-upload-aside {
+      flex: 0 1 220px;
+      min-width: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .avatar-upload-label {
+      cursor: pointer;
+      margin: 0;
+      text-align: center;
+      justify-content: center;
+    }
+    .avatar-upload-label input { display: none; }
+    .avatar-upload-label.disabled { opacity: 0.6; pointer-events: none; }
+    .avatar-upload-hint { font-size: 0.82rem; margin: 0; line-height: 1.35; }
+    @media (max-width: 600px) {
+      .avatar-upload-aside { flex: 1 1 100%; min-width: 0; }
+    }
+  `]
 })
 export class ProfileComponent implements OnInit {
   avatars = [
@@ -257,6 +302,7 @@ export class ProfileComponent implements OnInit {
   savedIds = new Set<string>();
   adRequests: any[] = [];
   isSaving = false;
+  isUploadingAvatar = false;
   isEditing = false;
   isAdmin = false;
   isModerator = false;
@@ -381,9 +427,47 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  selectAvatar(av: string) { 
+  displayAvatarUrl(url: string): string {
+    if (!url) return '';
+    const u = String(url);
+    if (u.startsWith('/uploads/')) return `${API_BASE_URL.replace(/\/api$/, '')}${u}`;
+    return u;
+  }
+
+  selectAvatar(av: string) {
     this.selectedAvatar = av;
     this.profile.avatar = av;
+  }
+
+  async onCustomAvatarUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert(this.translate.instant('profile.uploadPhotoError'));
+      return;
+    }
+    const max = 5 * 1024 * 1024;
+    if (file.size > max) {
+      alert(this.translate.instant('profile.uploadPhotoError'));
+      return;
+    }
+    this.isUploadingAvatar = true;
+    try {
+      const fd = new FormData();
+      fd.append('images', file);
+      const upload: any = await this.api.post('upload', fd).toPromise();
+      const raw = String(upload?.url || (Array.isArray(upload?.urls) ? upload.urls[0] : '') || '');
+      if (!raw) throw new Error('no url');
+      this.selectedAvatar = raw;
+      this.profile.avatar = raw;
+    } catch (e) {
+      console.error(e);
+      alert(this.translate.instant('profile.uploadPhotoError'));
+    } finally {
+      this.isUploadingAvatar = false;
+    }
   }
 
   startEdit() {
@@ -407,6 +491,7 @@ export class ProfileComponent implements OnInit {
         this.isSaving = false;
         this.profileSnapshot = { ...this.profile };
         this.isEditing = false;
+        this.auth.triggerProfileBarRefresh();
       },
       error: (err) => {
         console.error('Error saving profile:', err);

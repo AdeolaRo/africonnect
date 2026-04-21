@@ -122,9 +122,9 @@ body {
   }
   .toolbar::-webkit-scrollbar { height: 0; }
   .toolbar > * { flex: 0 0 auto; }
-  .user-pseudo { display: none !important; } /* avoid overflow */
-  .profile-chip span { display: none; } /* icon/avatar only */
-  .profile-chip { padding: 8px 10px; }
+  .user-pseudo { display: none !important; } /* legacy: pseudo est dans le profile-chip */
+  .profile-chip { padding: 8px 10px; max-width: min(200px, 46vw); }
+  .profile-chip-name { max-width: 100px; }
   .lang-btn { padding: 8px 10px; border-radius: 14px; }
 
   .container {
