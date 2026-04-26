@@ -2222,18 +2222,27 @@ select.form-control {
     border-radius: 14px;
   }
 
+  /* Modales centrées (auth, etc.) plutôt qu’en bottom-sheet */
   .modal-overlay {
-    align-items: flex-end;
-    padding: 10px;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    align-items: center;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top, 0px))
+      max(12px, env(safe-area-inset-right, 0px))
+      max(12px, env(safe-area-inset-bottom, 0px))
+      max(12px, env(safe-area-inset-left, 0px));
   }
 
   .modal-content {
-    width: 100%;
+    width: min(100%, 440px);
     max-width: 100%;
-    max-height: min(92dvh, 900px);
-    border-radius: 20px 20px 0 0;
+    max-height: min(88dvh, 900px);
+    border-radius: var(--radius-lg);
     margin: 0;
+  }
+
+  .modal-content.modal--wide,
+  .modal-content.modal--max {
+    width: min(100%, 96vw);
   }
 
   .toast {
