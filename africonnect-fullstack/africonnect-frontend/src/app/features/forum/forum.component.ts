@@ -82,7 +82,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         
         <div class="form-group">
           <label class="form-label">{{ 'forumUi.contentLabel' | translate }}</label>
-          <textarea class="form-control" formControlName="content" rows="12"
+          <textarea class="form-control form-modal-field-desc" formControlName="content" rows="4"
             [placeholder]="'forumUi.contentPlaceholder' | translate"></textarea>
           <div *ngIf="itemForm.get('content')?.invalid && itemForm.get('content')?.touched" class="text-error">
             {{ 'forumUi.contentRequired' | translate }}

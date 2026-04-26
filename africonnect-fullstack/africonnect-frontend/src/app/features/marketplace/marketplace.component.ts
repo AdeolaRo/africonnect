@@ -90,7 +90,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         
         <div class="form-group">
           <label class="form-label">Description *</label>
-          <textarea formControlName="desc" placeholder="Décrivez votre produit/service en détail..." rows="4" class="form-control"></textarea>
+          <textarea formControlName="desc" placeholder="Décrivez votre produit/service en détail..." rows="4" class="form-control form-modal-field-desc"></textarea>
           <div *ngIf="itemForm.get('desc')?.invalid && itemForm.get('desc')?.touched" class="text-error">
             La description est requise
           </div>

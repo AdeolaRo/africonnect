@@ -844,6 +844,14 @@ select.form-control {
   font-size: 0.95rem;
 }
 .modal-content textarea.form-control { min-height: 96px; }
+
+/* Même rendu : description (marketplace) et contenu (forum) dans les modales */
+.form-modal-field-desc,
+.modal-content textarea.form-modal-field-desc {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+}
 .modal-content .btn { padding: 10px 14px; border-radius: 16px; }
 
 .modal-content .file-upload { padding: 18px 14px; border-radius: 16px; }
