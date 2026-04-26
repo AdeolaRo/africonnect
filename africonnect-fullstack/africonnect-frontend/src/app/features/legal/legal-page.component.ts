@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-legal-page',
@@ -12,9 +11,9 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
     <div class="item-card">
       <h1 style="margin-top:0;">{{ 'legal.combinedTitle' | translate }}</h1>
 
-      <div *ngIf="remoteHtml" class="legal-text modal-body" [innerHTML]="safeRemote"></div>
+      <div *ngIf="remoteText" class="legal-text modal-body" style="white-space: pre-wrap;">{{ remoteText }}</div>
 
-      <div *ngIf="!remoteHtml" class="legal-text">
+      <div *ngIf="!remoteText" class="legal-text">
         <h3 style="margin-top:14px;">{{ 'legal.termsTitle' | translate }}</h3>
         <p>{{ 'legal.termsP1' | translate }}</p>
         <p>{{ 'legal.termsP2' | translate }}</p>
@@ -53,14 +52,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   `
 })
 export class LegalPageComponent implements OnInit {
-  remoteHtml = '';
-  safeRemote: SafeHtml | null = null;
+  remoteText = '';
   private lastPublic: any = null;
 
   constructor(
     private api: ApiService,
-    private translate: TranslateService,
-    private sanitizer: DomSanitizer
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -86,8 +83,6 @@ export class LegalPageComponent implements OnInit {
     const lang = this.translate.currentLang || 'fr';
     const fr = String(res?.termsHtmlFr || '').trim();
     const en = String(res?.termsHtmlEn || '').trim();
-    const html = lang === 'en' ? (en || fr) : (fr || en);
-    this.remoteHtml = html;
-    this.safeRemote = html ? this.sanitizer.bypassSecurityTrustHtml(html) : null;
+    this.remoteText = lang === 'en' ? (en || fr) : (fr || en);
   }
 }

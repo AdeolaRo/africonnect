@@ -12,7 +12,6 @@ import { PublishLocationStepComponent } from '../../shared/components/publish-lo
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
 @Component({
   selector: 'app-forum',
   standalone: true,

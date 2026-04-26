@@ -74,7 +74,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       color: var(--secondary);
     }
     .legal-help { font-size: 0.92rem; margin-bottom: 14px; line-height: 1.45; }
-    .legal-editor { font-family: ui-monospace, monospace; font-size: 0.88rem; }
+    .legal-editor { font-size: 0.95rem; line-height: 1.45; }
     .legal-admin-actions {
       display: flex;
       gap: 10px;

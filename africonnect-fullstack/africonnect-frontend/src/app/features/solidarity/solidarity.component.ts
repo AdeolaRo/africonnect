@@ -10,7 +10,6 @@ import { formatLocationLine } from '../../core/utils/location-list.util';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { PublishLocationStepComponent } from '../../shared/components/publish-location-step/publish-location-step.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
 @Component({
   selector: 'app-solidarite',
   standalone: true,

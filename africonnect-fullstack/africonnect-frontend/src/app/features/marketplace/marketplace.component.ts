@@ -11,7 +11,6 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { PublishLocationStepComponent } from '../../shared/components/publish-location-step/publish-location-step.component';
 import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-
 @Component({
   selector: 'app-marketplace',
   standalone: true,

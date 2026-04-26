@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from './core/services/auth.service';
 import { SearchService } from './core/services/search.service';
 import { ModalComponent } from './shared/components/modal/modal.component';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { API_BASE_URL } from './core/config/app.config';
 import { ApiService } from './core/services/api.service';
 import { RealtimeService } from './core/services/realtime.service';
@@ -173,8 +172,8 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     </app-modal>
 
     <app-modal [(visible)]="legalModalVisible" [title]="'legal.combinedTitle' | translate">
-      <div *ngIf="publishedLegalSafe" class="modal-body legal-scroll" [innerHTML]="publishedLegalSafe"></div>
-      <div *ngIf="!publishedLegalSafe" class="legal-text legal-scroll">
+      <div *ngIf="publishedLegalText" class="modal-body legal-scroll" style="white-space: pre-wrap;">{{ publishedLegalText }}</div>
+      <div *ngIf="!publishedLegalText" class="legal-text legal-scroll">
         <h3>{{ 'legal.termsTitle' | translate }}</h3>
         <p>{{ 'legal.termsP1' | translate }}</p>
         <p>{{ 'legal.termsP2' | translate }}</p>
@@ -299,8 +298,8 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
         <div class="text-muted" style="margin-bottom:12px;">
           {{ 'legal.updateRequiredText' | translate }}
         </div>
-        <div *ngIf="publishedLegalSafe" class="modal-body legal-scroll terms-gate-preview" [innerHTML]="publishedLegalSafe"></div>
-        <div *ngIf="!publishedLegalSafe" class="legal-text legal-scroll terms-gate-preview">
+        <div *ngIf="publishedLegalText" class="modal-body legal-scroll terms-gate-preview" style="white-space: pre-wrap;">{{ publishedLegalText }}</div>
+        <div *ngIf="!publishedLegalText" class="legal-text legal-scroll terms-gate-preview">
           <p class="text-muted">{{ 'legal.readFullHint' | translate }}
             <a routerLink="/legal" style="color:var(--secondary);">{{ 'footer.legal' | translate }}</a>
           </p>
@@ -524,7 +523,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   showRegisterPasswordConfirm = false;
   registerAcceptTerms = false;
   legalModalVisible = false;
-  publishedLegalSafe: SafeHtml | null = null;
+  publishedLegalText: string | null = null;
   private publicTermsHtmlFr = '';
   private publicTermsHtmlEn = '';
   searchQuery = '';
@@ -549,7 +548,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     private api: ApiService,
     private realtime: RealtimeService,
     private translate: TranslateService,
-    private sanitizer: DomSanitizer,
     private seo: SeoService,
     private locPref: LocationPreferenceService,
     private cookie: CookieConsentService
@@ -570,7 +568,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     localStorage.setItem('lang', lang);
     this.ensureTranslationsLoaded(lang);
     this.translate.use(lang);
-    setTimeout(() => this.refreshPublishedLegalSafe(), 0);
+    setTimeout(() => {
+      this.refreshPublishedLegalSafe();
+      this.loadRssFeeds();
+    }, 0);
   }
 
   private loadedLangs = new Set<string>();
@@ -609,7 +610,12 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.filterCity = st.filterCity;
     this.preferLocal = st.preferLocal;
     this.seo.init();
-    this.translate.onLangChange.subscribe(() => this.refreshPublishedLegalSafe());
+    this.translate.onLangChange.subscribe(e => {
+      const l = (e.lang || this.translate.currentLang || 'fr') as 'fr' | 'en';
+      this.lang = l === 'en' ? 'en' : 'fr';
+      this.refreshPublishedLegalSafe();
+      setTimeout(() => this.loadRssFeeds(), 0);
+    });
     this.loadTermsVersion();
     this.auth.profileBarRefresh.subscribe(() => {
       if (this.isLoggedIn) this.loadAvatar();
@@ -742,8 +748,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     const lang = this.translate.currentLang || 'fr';
     const fr = String(this.publicTermsHtmlFr || '').trim();
     const en = String(this.publicTermsHtmlEn || '').trim();
-    const html = lang === 'en' ? (en || fr) : (fr || en);
-    this.publishedLegalSafe = html ? this.sanitizer.bypassSecurityTrustHtml(html) : null;
+    const text = lang === 'en' ? (en || fr) : (fr || en);
+    this.publishedLegalText = text || null;
   }
 
   async submitRegister(event?: Event) {
@@ -1071,7 +1077,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   loadRssFeeds() {
     const container = document.getElementById('rssFeedList');
     if (!container) return;
-    fetch(`${API_BASE_URL}/rss/items?maxPerFeed=3&maxTotal=8`)
+    const langQ = (this.lang || this.translate.currentLang || 'fr') === 'en' ? 'en' : 'fr';
+    fetch(`${API_BASE_URL}/rss/items?maxPerFeed=3&maxTotal=8&lang=${langQ}`)
       .then(res => res.json())
       .then((data: any) => {
         const items = Array.isArray(data?.items) ? data.items : [];
