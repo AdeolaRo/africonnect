@@ -332,18 +332,13 @@
     "deletePostConfirm": "Voulez-vous vraiment supprimer cette publication ?",
     "deleteAccountConfirm": "ATTENTION : Voulez-vous vraiment supprimer votre profil ? Cette action est irréversible et supprimera votre compte.",
     "deletedAccount": "Votre profil a été supprimé. Redirection vers l’accueil.",
-    "deleteAccountErr": "Erreur lors de la suppression du compte",
-    "controlTitle": "Contrôle",
-    "controlHint": "Données personnelles, cookies, export — et outils d’administration si vous avez le rôle admin.",
-    "controlPrivacy": "Données & confidentialité",
-    "controlAccessLogs": "Journal d’accès (admin)"
+    "deleteAccountErr": "Erreur lors de la suppression du compte"
   },
   "cookieBar": {
     "title": "Cookies",
-    "text": "Nous utilisons des cookies / stockage local nécessaires au fonctionnement, et, avec votre accord, des mesures d’audience. Les journaux techniques côté serveur sont conservés 90 jours (sécurité).",
-    "customize": "Personnaliser",
-    "essential": "Essentiels uniquement",
-    "all": "Tout accepter"
+    "text": "Nous utilisons des cookies et le stockage local nécessaires au site. Avec votre accord, nous activons aussi une mesure d’audience anonyme.",
+    "refuse": "Refuser",
+    "accept": "Accepter"
   },
   "privacy": {
     "title": "Données & confidentialité",

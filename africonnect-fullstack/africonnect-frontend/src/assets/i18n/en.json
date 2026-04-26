@@ -332,18 +332,13 @@
     "deletePostConfirm": "Do you really want to delete this post?",
     "deleteAccountConfirm": "WARNING: Do you really want to delete your profile? This action is irreversible and will delete your account.",
     "deletedAccount": "Your profile has been deleted. Redirecting to home.",
-    "deleteAccountErr": "Error while deleting the account",
-    "controlTitle": "Control",
-    "controlHint": "Personal data, cookies, export — and admin tools if you have the admin role.",
-    "controlPrivacy": "Data & privacy",
-    "controlAccessLogs": "Access logs (admin)"
+    "deleteAccountErr": "Error while deleting the account"
   },
   "cookieBar": {
     "title": "Cookies",
-    "text": "We use necessary cookies / local storage for the site to work, and, with your consent, audience measurement. Server-side request logs are kept 90 days (security).",
-    "customize": "Customize",
-    "essential": "Essential only",
-    "all": "Accept all"
+    "text": "We use cookies and local storage required for the site. If you accept, we also enable anonymous audience measurement.",
+    "refuse": "Refuse",
+    "accept": "Accept"
   },
   "privacy": {
     "title": "Data & privacy",

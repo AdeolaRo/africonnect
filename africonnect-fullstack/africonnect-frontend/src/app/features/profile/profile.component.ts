@@ -240,15 +240,6 @@ import { LocationPreferenceService } from '../../core/services/location-preferen
                 </div>
               </div>
             </div>
-
-            <div class="section">
-              <h3>{{ 'profile.controlTitle' | translate }}</h3>
-              <p class="text-muted" style="font-size:0.9rem; margin-top:0;">{{ 'profile.controlHint' | translate }}</p>
-              <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
-                <button type="button" class="btn btn-primary" (click)="goPrivacyData()">🔐 {{ 'profile.controlPrivacy' | translate }}</button>
-                <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="goAccessLogs()">📊 {{ 'profile.controlAccessLogs' | translate }}</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -390,14 +381,6 @@ export class ProfileComponent implements OnInit {
 
   publishOnForum() {
     this.router.navigate(['/forum'], { queryParams: { new: 1 } });
-  }
-
-  goPrivacyData() {
-    this.router.navigate(['/compte/donnees']);
-  }
-
-  goAccessLogs() {
-    this.router.navigate(['/admin/access-logs']);
   }
 
   openPost(post: any) {

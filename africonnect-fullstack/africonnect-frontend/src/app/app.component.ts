@@ -319,12 +319,13 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
 
     <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
 
-    <div *ngIf="cookieBarVisible" class="cookie-consent-bar" role="region" [attr.aria-label]="'cookieBar.title' | translate">
-      <p class="cookie-consent-text">{{ 'cookieBar.text' | translate }}</p>
-      <div class="cookie-consent-actions">
-        <a *ngIf="isLoggedIn" routerLink="/compte/donnees" class="btn btn-link">{{ 'cookieBar.customize' | translate }}</a>
-        <button type="button" class="btn btn-secondary btn-sm" (click)="dismissCookieEssential()">{{ 'cookieBar.essential' | translate }}</button>
-        <button type="button" class="btn btn-primary btn-sm" (click)="dismissCookieAll()">{{ 'cookieBar.all' | translate }}</button>
+    <div *ngIf="cookieBarVisible" class="cookie-consent-wrap" role="dialog" [attr.aria-label]="'cookieBar.title' | translate" aria-modal="false">
+      <div class="cookie-consent-bar">
+        <p class="cookie-consent-text">{{ 'cookieBar.text' | translate }}</p>
+        <div class="cookie-consent-actions">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="dismissCookieRefuse()">{{ 'cookieBar.refuse' | translate }}</button>
+          <button type="button" class="btn btn-primary btn-sm" (click)="dismissCookieAccept()">{{ 'cookieBar.accept' | translate }}</button>
+        </div>
       </div>
     </div>
 
@@ -367,7 +368,7 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     .notif-card { padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); margin-top:10px; }
     .notif-card.read { opacity: 0.65; }
     .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
-    .container.app-has-cookie { padding-bottom: 100px; }
+    .container.app-has-cookie { padding-bottom: 120px; }
     .search-bar { margin-bottom: 20px; }
     .search-bar input { width: 100%; padding: 12px; border-radius: 40px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
     .main-layout { display: flex; gap: 24px; }
@@ -406,14 +407,20 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     .pw-toggle svg { width: 16px; height: 16px; fill: currentColor; display: block; }
     .lang-btn { padding: 8px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-weight: 800; font-size: 1.2rem; line-height: 1; }
     .lang-btn.active { border-color: var(--primary); }
-    .cookie-consent-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 1950;
-      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
-      padding: 14px 20px; background: var(--surface); border-top: 1px solid var(--border);
-      box-shadow: 0 -4px 20px rgba(0,0,0,.2);
+    .cookie-consent-wrap {
+      position: fixed; bottom: 16px; left: 16px; right: 16px; z-index: 1950;
+      display: flex; justify-content: center; pointer-events: none;
     }
-    .cookie-consent-text { margin: 0; flex: 1 1 240px; font-size: 0.92rem; line-height: 1.4; }
-    .cookie-consent-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .cookie-consent-wrap .cookie-consent-bar { pointer-events: auto; }
+    .cookie-consent-bar {
+      max-width: 480px; width: 100%;
+      display: flex; flex-direction: column; align-items: stretch; gap: 12px;
+      padding: 14px 16px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.35);
+    }
+    .cookie-consent-text { margin: 0; font-size: 0.88rem; line-height: 1.45; color: var(--text); }
+    .cookie-consent-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
     .site-footer { padding: 18px 0 28px; }
     .site-footer-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; color: var(--text-muted); text-align: center; font-size: 0.95rem; }
     .terms-line { display:flex; gap:10px; align-items:flex-start; margin: 6px 0 12px; color: var(--text-muted); font-size: 0.92rem; }
@@ -683,12 +690,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.cookieBarVisible = !this.cookie.get().decided;
   }
 
-  dismissCookieEssential() {
+  /** Refuser : cookies non essentiels désactivés */
+  dismissCookieRefuse() {
     this.cookie.acceptEssentialOnly();
     this.updateCookieBar();
   }
 
-  dismissCookieAll() {
+  /** Accepter : y compris mesure d’audience optionnelle */
+  dismissCookieAccept() {
     this.cookie.acceptAll();
     this.updateCookieBar();
   }
