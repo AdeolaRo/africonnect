@@ -28,6 +28,13 @@ if [[ ! -d "$BE" ]] || [[ ! -d "$FE" ]]; then
   exit 1
 fi
 
+# Toujours aligner le serveur sur origin/main avant build (évite de déployer un vieux code si pull oublié)
+if [[ -z "${DEPLOY_SKIP_GIT_PULL:-}" ]] && [[ -d "${REPO}/.git" ]]; then
+  echo "==> Git pull (définir DEPLOY_SKIP_GIT_PULL=1 pour ignorer)"
+  cd "$REPO"
+  git pull origin main
+fi
+
 OUT=""
 if [[ -d "${FE}/dist/africonnect/browser" ]]; then
   OUT="${FE}/dist/africonnect/browser"
