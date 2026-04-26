@@ -470,12 +470,12 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     .terms-gate-preview { margin-bottom: 12px; }
     @media (max-width: 768px) {
       .navbar { padding: 12px 14px; }
-      .container { padding: 14px; }
+      .container { padding: 12px 12px; }
       .nav-toggle { display:block; }
       .nav-links { display:none; width:100%; }
       .nav-links.open { display:flex; }
       .nav-links a { flex: 1 1 auto; text-align:center; }
-      .main-layout { flex-direction: column; }
+      .main-layout { flex-direction: column; gap: 16px; margin-top: 8px; }
       .sidebar-vertical, .sidebar-right { width: 100%; }
     }
   `]
