@@ -4,6 +4,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../config/app.config';
+import { parseJwtPayload } from '../utils/jwt';
 
 export interface User {
   id: string;
@@ -39,11 +40,15 @@ export class AuthService {
   }
 
   applyToken(token: string) {
-    const payload: any = JSON.parse(atob(token.split('.')[1]));
+    const payload: any = parseJwtPayload(token);
+    if (!payload || payload.userId == null) {
+      this.logout();
+      return;
+    }
     this.currentUserSubject.next({
-      id: payload.userId,
-      pseudo: payload.pseudo || 'Utilisateur',
-      role: payload.role,
+      id: String(payload.userId),
+      pseudo: (payload as any).pseudo || 'Utilisateur',
+      role: String((payload as any).role || 'user'),
       verified: !!payload.verified,
       mustChangePassword: !!payload.mustChangePassword,
       mustChangePseudo: !!payload.mustChangePseudo,

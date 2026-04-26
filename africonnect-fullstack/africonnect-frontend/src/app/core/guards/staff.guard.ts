@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { getJwtRole } from '../utils/jwt';
 
 @Injectable({ providedIn: 'root' })
 export class StaffGuard implements CanActivate {
@@ -13,12 +14,9 @@ export class StaffGuard implements CanActivate {
       return false;
     }
 
-    try {
-      const payload: any = JSON.parse(atob(token.split('.')[1]));
-      const role = payload?.role;
-      if (role === 'admin' || role === 'moderator') return true;
-    } catch {
-      // ignore
+    const role = getJwtRole(token);
+    if (role === 'admin' || role === 'moderator') {
+      return true;
     }
 
     this.router.navigate(['/forum']);

@@ -12,12 +12,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   template: `
     <div class="admin-container">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom: 12px;">
-        <button class="btn btn-secondary" (click)="goBack()">{{ 'common.back' | translate }}</button>
+        <button type="button" class="btn btn-secondary" (click)="goBack()">{{ 'common.back' | translate }}</button>
         <h1 style="margin:0;">{{ 'moderation.title' | translate }}</h1>
       </div>
       
       <div class="tabs" style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border);">
         <button 
+          type="button"
           *ngFor="let tab of tabs" 
           class="tab-btn" 
           [class.active]="activeTab === tab.id"
@@ -54,10 +55,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             </div>
             
             <div class="item-actions">
-              <button class="btn btn-secondary btn-sm" (click)="viewDetails(item)">
+              <button type="button" class="btn btn-secondary btn-sm" (click)="viewDetails(item)">
                 👁️ {{ 'moderation.view' | translate }}
               </button>
-              <button class="btn btn-danger btn-sm" (click)="deleteContent(item)">
+              <button type="button" class="btn btn-danger btn-sm" (click)="deleteContent(item)">
                 🗑️ {{ 'moderation.delete' | translate }}
               </button>
             </div>

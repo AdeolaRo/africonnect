@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -17,14 +18,14 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <div class="profile-container">
       <div class="profile-header">
         <h1>{{ 'profile.title' | translate }}</h1>
-        <div class="profile-actions">
-          <button class="btn btn-secondary" (click)="openMessaging()">💬 {{ 'profile.messaging' | translate }}</button>
-          <button class="btn btn-secondary" *ngIf="isModerator || isAdmin" (click)="openModeration()">🛡️ {{ 'profile.moderation' | translate }}</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminUsers()">👥 {{ 'profile.users' | translate }}</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 {{ 'profile.adminAds' | translate }}</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAdRequests()">📣 {{ 'profile.adminAdRequests' | translate }}</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminRss()">📰 {{ 'profile.rss' | translate }}</button>
-          <button class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminLegal()">📜 {{ 'profile.adminLegal' | translate }}</button>
+        <div class="profile-actions" role="toolbar" [attr.aria-label]="'profile.title' | translate">
+          <button type="button" class="btn btn-secondary" (click)="openMessaging()">💬 {{ 'profile.messaging' | translate }}</button>
+          <button type="button" class="btn btn-secondary" *ngIf="isModerator || isAdmin" (click)="openModeration()">🛡️ {{ 'profile.moderation' | translate }}</button>
+          <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminUsers()">👥 {{ 'profile.users' | translate }}</button>
+          <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAds()">📺 {{ 'profile.adminAds' | translate }}</button>
+          <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAdRequests()">📣 {{ 'profile.adminAdRequests' | translate }}</button>
+          <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminRss()">📰 {{ 'profile.rss' | translate }}</button>
+          <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminLegal()">📜 {{ 'profile.adminLegal' | translate }}</button>
         </div>
       </div>
       
@@ -164,9 +165,25 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               <div *ngIf="savedPosts.length === 0" class="empty-section">
                 <p>{{ 'profile.noSaved' | translate }}</p>
               </div>
-              <div *ngIf="savedPosts.length > 0" class="form-group profile-saved-search">
-                <input type="search" class="form-control" [(ngModel)]="savedSearchQuery" name="savedSearch"
-                       [placeholder]="'profile.savedSearchPlaceholder' | translate">
+              <div *ngIf="savedPosts.length > 0" class="profile-saved-toolbar">
+                <div class="form-group profile-saved-search">
+                  <input type="search" class="form-control" [(ngModel)]="savedSearchQuery" name="savedSearch"
+                         [placeholder]="'profile.savedSearchPlaceholder' | translate">
+                </div>
+                <div class="profile-saved-filters">
+                  <div class="form-group">
+                    <label class="form-label">{{ 'profile.savedFilterLabel' | translate }}</label>
+                    <select class="form-control" [(ngModel)]="savedSectionFilter" name="savedSection">
+                      <option *ngFor="let opt of savedSectionOptions" [value]="opt.value">{{ opt.labelKey | translate }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">{{ 'profile.savedSortLabel' | translate }}</label>
+                    <select class="form-control" [(ngModel)]="savedSort" name="savedSort">
+                      <option *ngFor="let opt of savedSortOptions" [value]="opt.value">{{ opt.labelKey | translate }}</option>
+                    </select>
+                  </div>
+                </div>
               </div>
               <div *ngIf="savedPosts.length > 0 && filteredSavedPosts.length === 0" class="empty-section">
                 <p>{{ 'searchPage.noResults' | translate }}</p>
@@ -174,7 +191,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               <div *ngFor="let saved of filteredSavedPosts" class="post-card post-card-compact">
                 <div class="post-card-compact-row">
                   <span class="pub-type-badge">{{ postTypeLabel(saved._type) }}</span>
-                  <h4 class="post-card-compact-title">{{ saved.title || saved.subject || ('searchPage.untitled' | translate) }}</h4>
+                  <h4 class="post-card-compact-title" [innerHTML]="highlightSavedTitle(saved)"></h4>
+                  <span class="post-date post-card-compact-date">{{ saved.createdAt | date:'dd/MM/yyyy' }}</span>
                   <button type="button" class="btn btn-secondary btn-sm" (click)="unsave(saved._id)">{{ 'profile.remove' | translate }}</button>
                 </div>
               </div>
@@ -275,6 +293,16 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     @media (max-width: 600px) {
       .avatar-upload-aside { flex: 1 1 100%; min-width: 0; }
     }
+    .profile-saved-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+    .profile-saved-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 600px) {
+      .profile-saved-filters { grid-template-columns: 1fr; }
+    }
+    :host ::ng-deep mark.search-hit {
+      background: rgba(255, 220, 100, 0.45);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
   `]
 })
 export class ProfileComponent implements OnInit {
@@ -299,6 +327,24 @@ export class ProfileComponent implements OnInit {
   myPosts: any[] = [];
   savedPosts: any[] = [];
   savedSearchQuery = '';
+  /** '' = toutes les rubriques; sinon valeur `_type` (forum, marketplace, …) */
+  savedSectionFilter = '';
+  savedSort: 'date_desc' | 'date_asc' | 'relevance' = 'date_desc';
+  readonly savedSectionOptions: { value: string; labelKey: string }[] = [
+    { value: '', labelKey: 'profile.savedFilterAll' },
+    { value: 'forum', labelKey: 'nav.forum' },
+    { value: 'marketplace', labelKey: 'nav.marketplace' },
+    { value: 'jobs', labelKey: 'nav.jobs' },
+    { value: 'solutions', labelKey: 'nav.solutions' },
+    { value: 'solidarity', labelKey: 'nav.solidarity' },
+    { value: 'events', labelKey: 'nav.events' },
+    { value: 'groups', labelKey: 'nav.groups' }
+  ];
+  readonly savedSortOptions: { value: 'date_desc' | 'date_asc' | 'relevance'; labelKey: string }[] = [
+    { value: 'date_desc', labelKey: 'profile.savedSortDateDesc' },
+    { value: 'date_asc', labelKey: 'profile.savedSortDateAsc' },
+    { value: 'relevance', labelKey: 'profile.savedSortRelevance' }
+  ];
   savedIds = new Set<string>();
   adRequests: any[] = [];
   isSaving = false;
@@ -313,10 +359,11 @@ export class ProfileComponent implements OnInit {
   private profileSnapshot: any = null;
 
   constructor(
-    private api: ApiService, 
+    private api: ApiService,
     private auth: AuthService,
     private router: Router,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private sanitizer: DomSanitizer
   ) {}
 
   publishOnForum() {
@@ -350,13 +397,83 @@ export class ProfileComponent implements OnInit {
   }
 
   get filteredSavedPosts(): any[] {
+    const section = (this.savedSectionFilter || '').trim().toLowerCase();
     const q = (this.savedSearchQuery || '').trim().toLowerCase();
-    if (!q) return this.savedPosts;
-    return this.savedPosts.filter(p => {
-      const title = String(p.title || p.subject || '').toLowerCase();
-      const body = this.stripHtml(String(p.content || p.desc || '')).toLowerCase();
-      return title.includes(q) || body.includes(q);
-    });
+
+    let list = [...this.savedPosts];
+    if (section) {
+      list = list.filter(p => String(p?._type || '').toLowerCase() === section);
+    }
+    if (q) {
+      list = list.filter(p => {
+        const title = String(p.title || p.subject || '').toLowerCase();
+        const body = this.stripHtml(String(p.content || p.desc || '')).toLowerCase();
+        return title.includes(q) || body.includes(q);
+      });
+    }
+
+    const dateMs = (p: any) => {
+      const t = p?.createdAt;
+      if (t == null) return 0;
+      const d = t instanceof Date ? t : new Date(t);
+      const ms = d.getTime();
+      return Number.isNaN(ms) ? 0 : ms;
+    };
+
+    if (this.savedSort === 'relevance' && q) {
+      const score = (p: any) => {
+        const title = String(p.title || p.subject || '');
+        const body = this.stripHtml(String(p.content || p.desc || ''));
+        const tl = title.toLowerCase();
+        const bl = body.toLowerCase();
+        let s = 0;
+        if (tl === q) s += 10;
+        else if (tl.startsWith(q)) s += 5;
+        if (tl.includes(q)) s += 3;
+        if (bl.includes(q)) s += 1;
+        return s;
+      };
+      list.sort((a, b) => {
+        const diff = score(b) - score(a);
+        if (diff !== 0) return diff;
+        return dateMs(b) - dateMs(a);
+      });
+    } else if (this.savedSort === 'date_asc') {
+      list.sort((a, b) => dateMs(a) - dateMs(b));
+    } else {
+      list.sort((a, b) => dateMs(b) - dateMs(a));
+    }
+
+    return list;
+  }
+
+  private escapeRegExp(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  private escapeHtml(s: string): string {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  highlightSavedTitle(p: any): SafeHtml {
+    const untitled = this.translate.instant('searchPage.untitled');
+    const raw = String(p?.title || p?.subject || untitled);
+    const q = (this.savedSearchQuery || '').trim();
+    if (!q) {
+      return this.sanitizer.bypassSecurityTrustHtml(this.escapeHtml(raw));
+    }
+    const esc = this.escapeHtml(raw);
+    try {
+      const re = new RegExp('(' + this.escapeRegExp(q) + ')', 'gi');
+      const html = esc.replace(re, '<mark class="search-hit">$1</mark>');
+      return this.sanitizer.bypassSecurityTrustHtml(html);
+    } catch {
+      return this.sanitizer.bypassSecurityTrustHtml(esc);
+    }
   }
 
   stripHtml(html: string): string {
@@ -410,6 +527,12 @@ export class ProfileComponent implements OnInit {
         this.profile = data;
         this.selectedAvatar = data.avatar || this.avatars[0];
         this.profileSnapshot = { ...this.profile };
+        // Cohérence UI avec le rôle côté API (en plus du JWT)
+        const r = String(data?.role || '').toLowerCase();
+        if (r === 'admin' || r === 'moderator') {
+          this.isAdmin = r === 'admin';
+          this.isModerator = r === 'moderator' || r === 'admin';
+        }
         // Après chargement: afficher le profil (pas le formulaire) si déjà renseigné
         this.isEditing = !this.profile?.pseudo;
       },
