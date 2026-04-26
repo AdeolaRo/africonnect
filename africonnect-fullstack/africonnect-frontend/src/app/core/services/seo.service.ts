@@ -21,6 +21,8 @@ const PRIVATE_PATH_PREFIXES = [
 export class SeoService {
   private lastPath = '/';
   private inited = false;
+  /** Évite d’appliquer un titre obsolète si `get()` résout après une navigation plus récente */
+  private applyGeneration = 0;
 
   constructor(
     private title: Title,
@@ -101,6 +103,39 @@ export class SeoService {
     return 'nav.forum';
   }
 
+  /**
+   * Libellé de secours si la traduction est absente (clé renvoyée telle quelle).
+   * Évite d’afficher `nav.forum` dans l’onglet.
+   */
+  private fallbackPageTitlePart(titleKey: string): string {
+    const isEn = (this.translate.currentLang || 'fr') === 'en';
+    const fr: Record<string, string> = {
+      'nav.forum': 'Forum',
+      'nav.marketplace': 'Ventes/Achats',
+      'nav.jobs': 'Emploi',
+      'nav.solutions': 'Solutions',
+      'nav.solidarity': 'Solidarité',
+      'nav.events': 'Événements',
+      'nav.groups': 'Groupes',
+      'searchPage.title': 'Résultats de recherche',
+      'legal.combinedTitle': "Conditions d'utilisation & Termes",
+      'footer.sitemap': 'Plan du site'
+    };
+    const en: Record<string, string> = {
+      'nav.forum': 'Forum',
+      'nav.marketplace': 'Marketplace',
+      'nav.jobs': 'Jobs',
+      'nav.solutions': 'Solutions',
+      'nav.solidarity': 'Solidarity',
+      'nav.events': 'Events',
+      'nav.groups': 'Groups',
+      'searchPage.title': 'Search results',
+      'legal.combinedTitle': 'Terms of use & Terms',
+      'footer.sitemap': 'Site map'
+    };
+    return (isEn ? en : fr)[titleKey] ?? (isEn ? 'Home' : 'Accueil');
+  }
+
   private apply() {
     const path = (this.lastPath || '/').split('?')[0].split('#')[0] || '/';
     const origin = getCanonicalOrigin();
@@ -109,44 +144,62 @@ export class SeoService {
 
     const titleKey = this.pageTitleKey(path);
     const descKey = this.descriptionKeyForPath(path);
-    const part = this.translate.instant(titleKey);
-    const site = this.translate.instant('brand.name');
-    const fullTitle = `${part} — ${site}`;
-    const desc = this.translate.instant(descKey);
+    const gen = ++this.applyGeneration;
 
-    this.title.setTitle(fullTitle);
+    // `instant` peut renvoyer la clé si les JSON i18n ne sont pas encore chargés ; `get` attend le chargement.
+    this.translate
+      .get([titleKey, descKey, 'brand.name', 'seo.defaultDesc'])
+      .subscribe((t) => {
+      if (gen !== this.applyGeneration) return;
 
-    this.meta.updateTag({ name: 'description', content: desc });
-    this.meta.updateTag({ name: 'robots', content: robots });
+      const rawPart = t[titleKey];
+      const part =
+        rawPart && rawPart !== titleKey
+          ? rawPart
+          : this.fallbackPageTitlePart(titleKey);
+      const site = (t['brand.name'] && t['brand.name'] !== 'brand.name') ? t['brand.name'] : 'African Connect';
+      const fullTitle = site ? `${part} — ${site}` : part;
+      const rawDesc = t[descKey];
+      const defDesc = t['seo.defaultDesc'];
+      const desc =
+        rawDesc && rawDesc !== descKey
+          ? rawDesc
+          : (defDesc && defDesc !== 'seo.defaultDesc' ? defDesc : 'African Connect');
 
-    const pathForUrl = (path && path !== '') ? path : '/forum';
-    const canonical = `${origin}${pathForUrl.startsWith('/') ? pathForUrl : '/' + pathForUrl}`;
+      this.title.setTitle(fullTitle);
 
-    let link = this.doc.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (!link) {
-      link = this.doc.createElement('link');
-      link.setAttribute('rel', 'canonical');
-      this.doc.head.appendChild(link);
-    }
-    link.setAttribute('href', canonical);
+      this.meta.updateTag({ name: 'description', content: desc });
+      this.meta.updateTag({ name: 'robots', content: robots });
 
-    this.meta.updateTag({ property: 'og:title', content: fullTitle });
-    this.meta.updateTag({ property: 'og:description', content: desc });
-    this.meta.updateTag({ property: 'og:url', content: canonical });
-    this.meta.updateTag({ property: 'og:type', content: 'website' });
-    this.meta.updateTag({ property: 'og:site_name', content: site });
-    this.meta.updateTag({
-      property: 'og:locale',
-      content: (this.translate.currentLang || 'fr') === 'en' ? 'en_US' : 'fr_FR'
+      const pathForUrl = (path && path !== '') ? path : '/forum';
+      const canonical = `${origin}${pathForUrl.startsWith('/') ? pathForUrl : '/' + pathForUrl}`;
+
+      let link = this.doc.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+      if (!link) {
+        link = this.doc.createElement('link');
+        link.setAttribute('rel', 'canonical');
+        this.doc.head.appendChild(link);
+      }
+      link.setAttribute('href', canonical);
+
+      this.meta.updateTag({ property: 'og:title', content: fullTitle });
+      this.meta.updateTag({ property: 'og:description', content: desc });
+      this.meta.updateTag({ property: 'og:url', content: canonical });
+      this.meta.updateTag({ property: 'og:type', content: 'website' });
+      this.meta.updateTag({ property: 'og:site_name', content: site });
+      this.meta.updateTag({
+        property: 'og:locale',
+        content: (this.translate.currentLang || 'fr') === 'en' ? 'en_US' : 'fr_FR'
+      });
+      this.meta.updateTag({
+        property: 'og:image',
+        content: `${origin}/assets/favicon/favicon-96x96.png`
+      });
+
+      this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+      this.meta.updateTag({ name: 'twitter:title', content: fullTitle });
+      this.meta.updateTag({ name: 'twitter:description', content: desc });
     });
-    this.meta.updateTag({
-      property: 'og:image',
-      content: `${origin}/assets/favicon/favicon-96x96.png`
-    });
-
-    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
-    this.meta.updateTag({ name: 'twitter:title', content: fullTitle });
-    this.meta.updateTag({ name: 'twitter:description', content: desc });
   }
 
   private setWebSiteJsonLd() {
