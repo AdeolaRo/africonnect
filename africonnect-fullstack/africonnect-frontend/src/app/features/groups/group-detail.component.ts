@@ -4,13 +4,16 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { LocationPreferenceService } from '../../core/services/location-preference.service';
+import { formatLocationLine } from '../../core/utils/location-list.util';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { PublishLocationStepComponent } from '../../shared/components/publish-location-step/publish-location-step.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-group-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent, TranslateModule],
+  imports: [CommonModule, FormsModule, ModalComponent, TranslateModule, PublishLocationStepComponent],
   template: `
     <div class="item-card" *ngIf="group">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
@@ -59,6 +62,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <div style="font-weight:700;">{{ p.authorName || ('forumUi.anonymous' | translate) }}</div>
           <div class="text-muted" style="font-size:0.9rem;">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
         </div>
+        <div *ngIf="getLocLine(p)" class="pub-loc-pill" style="margin-top:4px;">📍 {{ getLocLine(p) }}</div>
         <div style="margin-top:8px; white-space:pre-wrap;">{{ p.content }}</div>
 
         <div *ngIf="(p.imageUrls || []).length" class="thumb-grid" style="margin-top:10px;">
@@ -190,7 +194,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
     <!-- Post modal -->
     <app-modal [(visible)]="postVisible" [title]="(editingPost ? 'sections.groupsPostEdit' : 'sections.groupsPostNew') | translate">
-      <div class="auth-form">
+      <app-publish-location-step
+        *ngIf="!editingPost && postLocationStep"
+        (confirmed)="onPostLocConfirm($event)"
+        (skipped)="onPostLocSkip()">
+      </app-publish-location-step>
+      <div class="auth-form" *ngIf="editingPost || !postLocationStep">
         <textarea class="form-control" rows="5" [(ngModel)]="newPostContent" [placeholder]="'groupDetail.postPlaceholder' | translate"></textarea>
         <input #postImgInput type="file" accept="image/*" (change)="addPostFile($event)" style="display:none;">
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
@@ -269,6 +278,9 @@ export class GroupDetailComponent implements OnInit {
   postFileUrls: string[] = [];
   editingPost: any = null;
   postLinks: any[] = [];
+  postLocationStep = true;
+  postPublishContinent = '';
+  postPublishCity = '';
 
   commentDraft: Record<string, string> = {};
 
@@ -278,6 +290,7 @@ export class GroupDetailComponent implements OnInit {
   constructor(
     private api: ApiService,
     private auth: AuthService,
+    private locPref: LocationPreferenceService,
     private route: ActivatedRoute,
     private router: Router,
     private translate: TranslateService
@@ -294,6 +307,18 @@ export class GroupDetailComponent implements OnInit {
     this.loadUsers();
     this.route.params.subscribe(() => this.loadAll());
   }
+
+  getLocLine(p: any): string {
+    if (!p) return '';
+    return formatLocationLine(p, (c) => this.translate.instant('location.continent.' + c));
+  }
+
+  onPostLocConfirm(e: { continent: string; city: string }) {
+    this.postPublishContinent = e.continent;
+    this.postPublishCity = e.city;
+    this.postLocationStep = false;
+  }
+  onPostLocSkip() { this.postLocationStep = false; }
 
   goBack() { this.router.navigate(['/groupes']); }
 
@@ -342,6 +367,10 @@ export class GroupDetailComponent implements OnInit {
     this.newPostContent = '';
     this.postLinks = [];
     this.clearPostFiles();
+    const l = this.locPref.get();
+    this.postPublishContinent = l.continent;
+    this.postPublishCity = l.city;
+    this.postLocationStep = true;
     this.postVisible = true;
   }
 
@@ -350,6 +379,9 @@ export class GroupDetailComponent implements OnInit {
     this.newPostContent = String(p?.content || '');
     this.postLinks = Array.isArray(p?.links) ? p.links.map((l: any) => ({ label: l?.label || '', url: l?.url || '' })) : [];
     this.clearPostFiles();
+    this.postLocationStep = false;
+    this.postPublishContinent = String(p?.continent || '');
+    this.postPublishCity = String(p?.city || '');
     this.postVisible = true;
   }
 
@@ -506,7 +538,11 @@ export class GroupDetailComponent implements OnInit {
 
   async createPost() {
     if (!this.group?._id) return;
-    const payload: any = { content: (this.newPostContent || '').trim() };
+    const payload: any = {
+      content: (this.newPostContent || '').trim(),
+      continent: this.postPublishContinent || '',
+      city: this.postPublishCity || ''
+    };
     payload.links = (this.postLinks || [])
       .filter(l => String(l?.url || '').trim())
       .map(l => ({ label: String(l?.label || '').trim(), url: String(l?.url || '').trim() }));
@@ -536,7 +572,11 @@ export class GroupDetailComponent implements OnInit {
   async updatePost() {
     if (!this.group?._id) return;
     if (!this.editingPost?._id) return;
-    const payload: any = { content: (this.newPostContent || '').trim() };
+    const payload: any = {
+      content: (this.newPostContent || '').trim(),
+      continent: this.postPublishContinent || '',
+      city: this.postPublishCity || ''
+    };
     payload.links = (this.postLinks || [])
       .filter(l => String(l?.url || '').trim())
       .map(l => ({ label: String(l?.label || '').trim(), url: String(l?.url || '').trim() }));

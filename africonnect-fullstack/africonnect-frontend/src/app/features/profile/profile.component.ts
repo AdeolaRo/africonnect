@@ -9,6 +9,8 @@ import { API_BASE_URL } from '../../core/config/app.config';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CONTINENT_OPTIONS } from '../../core/location-continents';
+import { LocationPreferenceService } from '../../core/services/location-preference.service';
 
 @Component({
   selector: 'app-profile',
@@ -121,9 +123,17 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                 <app-city-autocomplete [(ngModel)]="profile.city" name="city" [placeholder]="'profile.cityPlaceholder' | translate"></app-city-autocomplete>
               </div>
               <div class="form-group">
+                <label class="form-label">{{ 'location.continent' | translate }}</label>
+                <select class="form-control" [(ngModel)]="profile.continent" name="continent">
+                  <option value="">{{ 'location.continentPick' | translate }}</option>
+                  <option *ngFor="let o of continentOptions" [value]="o.code">{{ o.labelKey | translate }}</option>
+                </select>
+                <div class="text-muted" style="font-size:0.86rem; margin-top:4px;">{{ 'profile.continentHelp' | translate }}</div>
+              </div>
+            </div>
+            <div class="form-group">
                 <label class="form-label">{{ 'profile.origin' | translate }}</label>
                 <input type="text" [(ngModel)]="profile.origin" class="form-control" [placeholder]="'profile.originPlaceholder' | translate">
-              </div>
             </div>
 
             <div class="form-group">
@@ -235,7 +245,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       </div>
     </div>
 
-    <app-modal [(visible)]="postModalVisible" [title]="'profile.posts' | translate">
+    <app-modal [(visible)]="postModalVisible" [title]="'profile.posts' | translate" [size]="'wide'">
       <div *ngIf="selectedPost">
         <h3 style="margin-top:0;">{{ selectedPost.title || selectedPost.subject || 'Sans titre' }}</h3>
         <div class="text-muted" style="margin-top:6px;">
@@ -313,11 +323,13 @@ export class ProfileComponent implements OnInit {
     'assets/avatars/10.png'
   ];
   selectedAvatar = this.avatars[0];
+  readonly continentOptions = CONTINENT_OPTIONS;
   profile: any = { 
     email: '', 
     pseudo: '', 
     fullName: '', 
-    city: '', 
+    city: '',
+    continent: '',
     origin: '', 
     passions: '', 
     bio: '',
@@ -363,7 +375,8 @@ export class ProfileComponent implements OnInit {
     private auth: AuthService,
     private router: Router,
     private translate: TranslateService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private locPref: LocationPreferenceService
   ) {}
 
   publishOnForum() {
@@ -614,6 +627,7 @@ export class ProfileComponent implements OnInit {
         this.isSaving = false;
         this.profileSnapshot = { ...this.profile };
         this.isEditing = false;
+        this.locPref.applyFromUser(this.profile);
         this.auth.triggerProfileBarRefresh();
       },
       error: (err) => {

@@ -3,15 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
+import { LocationPreferenceService } from '../../core/services/location-preference.service';
 import { AuthService } from '../../core/services/auth.service';
+import { applySectionListFilters } from '../../core/utils/list-filter.helper';
+import { formatLocationLine } from '../../core/utils/location-list.util';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
+import { PublishLocationStepComponent } from '../../shared/components/publish-location-step/publish-location-step.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-evenements',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, CityAutocompleteComponent, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, CityAutocompleteComponent, TranslateModule, PublishLocationStepComponent],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">{{ 'common.new' | translate }}</button>
@@ -20,6 +24,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     <div class="items-grid" *ngIf="filteredItems.length">
       <div *ngFor="let item of filteredItems" class="item-card">
         <h3>{{ item.title || item.name }}</h3>
+        <div *ngIf="getLocLine(item)" class="pub-loc-pill">📍 {{ getLocLine(item) }}</div>
         <div style="color:var(--muted);">Par {{ item.authorName }} - {{ item.createdAt | date }}</div>
         <div *ngIf="getImages(item).length > 0" class="thumb-grid">
           <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || 'Image'" (click)="openPreview(url)">
@@ -47,9 +52,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       </div>
     </div>
 
-    <app-modal [(visible)]="viewVisible" [title]="'common.details' | translate">
+    <app-modal [(visible)]="viewVisible" [title]="'common.details' | translate" [size]="'wide'">
       <div *ngIf="viewItem">
         <h3 style="margin-top:0;">{{ viewItem.title || viewItem.name || ('common.details' | translate) }}</h3>
+        <div *ngIf="getLocLine(viewItem)" class="pub-loc-pill" style="margin-top:6px;">📍 {{ getLocLine(viewItem) }}</div>
         <div class="text-muted" style="margin-top:6px;">
           {{ viewItem.createdAt | date:'dd/MM/yyyy HH:mm' }}
         </div>
@@ -78,7 +84,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     </app-modal>
 
     <app-modal [(visible)]="modalVisible" [title]="(editingItem ? 'sections.eventsEdit' : 'sections.eventsNew') | translate">
-      <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
+      <app-publish-location-step *ngIf="!editingItem && locationStepActive" (confirmed)="onLocConfirm($event)" (skipped)="onLocSkip()"></app-publish-location-step>
+      <form *ngIf="editingItem || !locationStepActive" [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
           <label class="form-label">Titre *</label>
           <input type="text" formControlName="title" placeholder="Ex: Rencontre business diaspora" class="form-control">
@@ -197,6 +204,9 @@ export class EvenementsComponent implements OnInit {
   viewVisible = false;
   viewItem: any = null;
   savedIds = new Set<string>();
+  locationStepActive = true;
+  publishContinent = '';
+  publishCity = '';
 
   get fileDescription(): string {
     return 'PNG, JPG, GIF jusqu\'à 5MB';
@@ -206,6 +216,7 @@ export class EvenementsComponent implements OnInit {
     private api: ApiService,
     private fb: FormBuilder,
     private searchService: SearchService,
+    private locPref: LocationPreferenceService,
     private auth: AuthService,
     private translate: TranslateService
   ) {}
@@ -219,17 +230,30 @@ export class EvenementsComponent implements OnInit {
       else this.savedIds = new Set<string>();
     });
     this.loadItems();
-    this.searchService.query$.subscribe(q => {
-      this.searchQuery = q;
-      this.updateFilter();
-    });
+    this.searchService.state$.subscribe(() => this.updateFilter());
   }
+
+  getLocLine(item: any): string {
+    if (!item) return '';
+    return formatLocationLine(item, (c) => this.translate.instant('location.continent.' + c));
+  }
+  onLocConfirm(e: { continent: string; city: string }) {
+    this.publishContinent = e.continent;
+    this.publishCity = e.city;
+    this.itemForm.patchValue({ location: e.city });
+    this.locationStepActive = false;
+  }
+  onLocSkip() { this.locationStepActive = false; }
   loadItems() { this.api.get('events').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
   openModal() {
     this.editingItem = null;
     this.itemForm.reset({ title: '', desc: '', eventDate: '', location: '' });
     this.resetLinks([]);
     this.clearFiles();
+    const p = this.locPref.get();
+    this.publishContinent = p.continent;
+    this.publishCity = p.city;
+    this.locationStepActive = true;
     this.modalVisible = true;
   }
 
@@ -239,10 +263,13 @@ export class EvenementsComponent implements OnInit {
       title: item?.title || '',
       desc: item?.desc || item?.content || '',
       eventDate: item?.eventDate ? String(item.eventDate).slice(0, 16) : '',
-      location: item?.location || ''
+      location: item?.location || item?.city || ''
     });
     this.resetLinks(Array.isArray(item?.links) ? item.links : []);
     this.clearFiles();
+    this.locationStepActive = false;
+    this.publishContinent = String(item?.continent || '');
+    this.publishCity = String(item?.city || item?.location || '');
     this.modalVisible = true;
   }
 
@@ -301,6 +328,9 @@ export class EvenementsComponent implements OnInit {
         const upload: any = await this.api.post('upload', fd).toPromise();
         formValue.imageUrls = Array.isArray(upload?.urls) ? upload.urls : (upload?.url ? [upload.url] : []);
       }
+      const loc = String(formValue.location || '').trim();
+      formValue.continent = this.publishContinent || '';
+      formValue.city = loc || this.publishCity || '';
       if (this.editingItem?._id) {
         await this.api.put(`user/posts/${this.editingItem._id}`, formValue).toPromise();
       } else {
@@ -339,7 +369,7 @@ export class EvenementsComponent implements OnInit {
       }
     });
   }
-  updateFilter() { this.filteredItems = this.items.filter(i => JSON.stringify(i).toLowerCase().includes(this.searchQuery.toLowerCase())); }
+  updateFilter() { this.filteredItems = applySectionListFilters(this.items, this.searchService, this.locPref); }
 
   loadSavedIds() {
     this.api.get('user/saved').subscribe({

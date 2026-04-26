@@ -3,8 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
+import { LocationPreferenceService } from '../../core/services/location-preference.service';
 import { AuthService } from '../../core/services/auth.service';
+import { applySectionListFilters } from '../../core/utils/list-filter.helper';
+import { formatLocationLine } from '../../core/utils/location-list.util';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { PublishLocationStepComponent } from '../../shared/components/publish-location-step/publish-location-step.component';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -12,14 +16,15 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-forum',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FormsModule, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FormsModule, TranslateModule, PublishLocationStepComponent],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">{{ 'common.new' | translate }}</button>
     </div>
     <div *ngIf="items.length === 0" style="text-align:center; padding:48px;">{{ 'common.none' | translate }}</div>
-    <div *ngFor="let item of filteredItems" class="item-card">
+      <div *ngFor="let item of filteredItems" class="item-card">
       <h3>{{ item.title || item.name }}</h3>
+      <div *ngIf="getLocLine(item)" class="pub-loc-pill">📍 {{ getLocLine(item) }}</div>
       <div style="color:var(--muted);">{{ 'common.metaBy' | translate:{ author: (item.authorName || ('forumUi.anonymous' | translate)) } }} — {{ item.createdAt | date }}</div>
       <div *ngIf="getImages(item).length > 0" class="thumb-grid">
         <img *ngFor="let url of getImages(item)" class="thumb" [src]="url" [alt]="item.title || item.name || 'Image'" (click)="openPreview(url)">
@@ -71,7 +76,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     </div>
 
     <app-modal [(visible)]="modalVisible" [title]="(editingItem ? 'sections.forumEdit' : 'sections.forumNew') | translate">
-      <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
+      <app-publish-location-step
+        *ngIf="!editingItem && locationStepActive"
+        (confirmed)="onLocConfirm($event)"
+        (skipped)="onLocSkip()">
+      </app-publish-location-step>
+      <form *ngIf="editingItem || !locationStepActive" [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
           <label class="form-label">{{ 'forumUi.titleLabel' | translate }}</label>
           <input type="text" formControlName="title" [placeholder]="'forumUi.titlePlaceholder' | translate" class="form-control">
@@ -164,9 +174,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       <img *ngIf="previewUrl" [src]="previewUrl" [alt]="'common.preview' | translate" style="width:100%; max-height: 70vh; object-fit: contain; border-radius: 12px;">
     </app-modal>
 
-    <app-modal [(visible)]="viewVisible" [title]="'common.details' | translate">
+    <app-modal [(visible)]="viewVisible" [title]="'common.details' | translate" [size]="'wide'">
       <div *ngIf="viewItem">
         <h3 style="margin-top:0;">{{ viewItem.title || viewItem.name || ('common.details' | translate) }}</h3>
+        <div *ngIf="getLocLine(viewItem)" class="pub-loc-pill" style="margin-top:6px;">📍 {{ getLocLine(viewItem) }}</div>
         <div class="text-muted" style="margin-top:6px;">
           {{ viewItem.createdAt | date:'dd/MM/yyyy HH:mm' }}
         </div>
@@ -218,11 +229,15 @@ export class ForumComponent implements OnInit {
   openReplies: Record<string, boolean> = {};
   private pendingOpenNew = false;
   editingItem: any = null;
+  locationStepActive = true;
+  publishContinent = '';
+  publishCity = '';
 
   constructor(
     private api: ApiService,
     private fb: FormBuilder,
     private searchService: SearchService,
+    private locPref: LocationPreferenceService,
     private auth: AuthService,
     private route: ActivatedRoute,
     private translate: TranslateService
@@ -248,10 +263,25 @@ export class ForumComponent implements OnInit {
       }
     });
     this.loadItems();
-    this.searchService.query$.subscribe(q => {
-      this.searchQuery = q;
+    this.searchService.state$.subscribe((st) => {
+      this.searchQuery = st.query;
       this.updateFilter();
     });
+  }
+
+  getLocLine(item: any): string {
+    if (!item) return '';
+    return formatLocationLine(item, (code) => this.translate.instant('location.continent.' + code));
+  }
+
+  onLocConfirm(e: { continent: string; city: string }) {
+    this.publishContinent = e.continent;
+    this.publishCity = e.city;
+    this.locationStepActive = false;
+  }
+
+  onLocSkip() {
+    this.locationStepActive = false;
   }
   loadItems() { this.api.get('forum').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
   openModal() {
@@ -259,6 +289,10 @@ export class ForumComponent implements OnInit {
     this.itemForm.reset({ title: '', content: '' });
     this.resetLinks([]);
     this.clearFiles();
+    const p = this.locPref.get();
+    this.publishContinent = p.continent;
+    this.publishCity = p.city;
+    this.locationStepActive = true;
     this.modalVisible = true;
   }
 
@@ -270,6 +304,9 @@ export class ForumComponent implements OnInit {
     });
     this.resetLinks(Array.isArray(item?.links) ? item.links : []);
     this.clearFiles();
+    this.locationStepActive = false;
+    this.publishContinent = String(item?.continent || '');
+    this.publishCity = String(item?.city || '');
     this.modalVisible = true;
   }
 
@@ -346,6 +383,8 @@ export class ForumComponent implements OnInit {
         formValue.imageUrls = Array.isArray(upload?.urls) ? upload.urls : (upload?.url ? [upload.url] : []);
       }
       
+      formValue.continent = this.publishContinent || '';
+      formValue.city = this.publishCity || '';
       if (this.editingItem?._id) {
         await this.api.put(`user/posts/${this.editingItem._id}`, formValue).toPromise();
       } else {
@@ -414,7 +453,9 @@ export class ForumComponent implements OnInit {
       alert(this.translate.instant('errors.replyFailed'));
     }
   }
-  updateFilter() { this.filteredItems = this.items.filter(i => JSON.stringify(i).toLowerCase().includes(this.searchQuery.toLowerCase())); }
+  updateFilter() {
+    this.filteredItems = applySectionListFilters(this.items, this.searchService, this.locPref);
+  }
 
   loadSavedIds() {
     this.api.get('user/saved').subscribe({

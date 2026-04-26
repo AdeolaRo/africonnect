@@ -10,6 +10,8 @@ import { API_BASE_URL } from './core/config/app.config';
 import { ApiService } from './core/services/api.service';
 import { RealtimeService } from './core/services/realtime.service';
 import { SeoService } from './core/services/seo.service';
+import { LocationPreferenceService } from './core/services/location-preference.service';
+import { CONTINENT_OPTIONS } from './core/location-continents';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CarouselComponent } from './shared/components/carousel/carousel.component';
 
@@ -57,7 +59,37 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
 
     <div class="container">
       <div class="search-bar" *ngIf="!isAdminOrModerationRoute">
-        <input type="text" [(ngModel)]="searchQuery" [placeholder]="'search.placeholder' | translate" (input)="onSearch()">
+        <div class="search-bar-row">
+          <input type="search" class="search-bar-input" name="gsearch" [(ngModel)]="searchQuery" [placeholder]="'search.placeholder' | translate" (input)="onSearch()">
+          <button type="button" class="btn btn-secondary search-bar-more" (click)="searchMoreOpen = !searchMoreOpen">
+            {{ 'location.moreFilters' | translate }}
+          </button>
+        </div>
+        <div class="search-bar-extra" *ngIf="searchMoreOpen" role="region" [attr.aria-label]="'location.moreFilters' | translate">
+          <div class="search-bar-filters">
+            <div class="form-group">
+              <label class="form-label">{{ 'location.filterContinent' | translate }}</label>
+              <select class="form-control" [(ngModel)]="filterContinent" name="sfCont" (change)="onFiltersChange()">
+                <option value="">{{ 'location.continentPick' | translate }}</option>
+                <option *ngFor="let o of continentOptions" [value]="o.code">{{ o.labelKey | translate }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">{{ 'location.filterCity' | translate }}</label>
+              <input type="text" class="form-control" name="sfCity" [(ngModel)]="filterCity" (input)="onFiltersChange()">
+            </div>
+          </div>
+          <div class="search-bar-toggles">
+            <div class="search-bar-opts">
+              <input type="checkbox" id="prefL" name="prefL" [(ngModel)]="preferLocal" (change)="onFiltersChange()">
+              <label for="prefL">{{ 'location.preferLocal' | translate }}</label>
+            </div>
+            <button type="button" class="btn btn-link" style="padding:0;background:none;border:none;cursor:pointer;color:var(--secondary);"
+                    (click)="resetSearchFilters()">
+              {{ 'location.resetFilters' | translate }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="main-layout">
@@ -470,6 +502,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   private publicTermsHtmlFr = '';
   private publicTermsHtmlEn = '';
   searchQuery = '';
+  searchMoreOpen = false;
+  filterContinent = '';
+  filterCity = '';
+  preferLocal = true;
+  readonly continentOptions = CONTINENT_OPTIONS;
   isAdminOrModerationRoute = false;
   isProfileRoute = false;
   isNavOpen = false;
@@ -486,7 +523,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private realtime: RealtimeService,
     private translate: TranslateService,
     private sanitizer: DomSanitizer,
-    private seo: SeoService
+    private seo: SeoService,
+    private locPref: LocationPreferenceService
   ) {
     // Requirement: French by default; English only after explicit click.
     this.lang = 'fr';
@@ -537,6 +575,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    const st = this.searchService.snapshot;
+    this.searchQuery = st.query;
+    this.filterContinent = st.filterContinent;
+    this.filterCity = st.filterCity;
+    this.preferLocal = st.preferLocal;
     this.seo.init();
     this.translate.onLangChange.subscribe(() => this.refreshPublishedLegalSafe());
     this.loadTermsVersion();
@@ -549,7 +592,13 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.userPseudo = user?.pseudo || '';
       this.isAdmin = user?.role === 'admin';
       this.isModerator = user?.role === 'moderator';
-      if (this.isLoggedIn) this.loadAvatar();
+      if (this.isLoggedIn) {
+        this.loadAvatar();
+        this.api.get('user/profile').subscribe({
+          next: (p: any) => this.locPref.applyFromUser(p),
+          error: () => {}
+        });
+      }
 
       const mustChange = !!(user?.mustChangePassword || user?.mustChangePseudo || user?.mustChangeEmail);
       if (this.isLoggedIn && mustChange) {
@@ -587,10 +636,30 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   onSearch() {
     this.searchService.setQuery(this.searchQuery);
-    const q = (this.searchQuery || '').trim();
-    if (!q) return;
-    // Redirige vers une page de résultats (hors espaces user/mod/admin)
-    if (!this.isAdminOrModerationRoute && !this.router.url.includes('/recherche')) {
+    this.maybeOpenSearchPage();
+  }
+
+  onFiltersChange() {
+    this.searchService.setFilters({
+      filterContinent: this.filterContinent,
+      filterCity: this.filterCity,
+      preferLocal: this.preferLocal
+    });
+    this.maybeOpenSearchPage();
+  }
+
+  resetSearchFilters() {
+    this.filterContinent = '';
+    this.filterCity = '';
+    this.onFiltersChange();
+  }
+
+  private maybeOpenSearchPage() {
+    if (this.isAdminOrModerationRoute) return;
+    if (this.router.url.includes('/recherche')) return;
+    const s = this.searchService.snapshot;
+    const hasText = !!(s.query || '').trim();
+    if (hasText || s.filterContinent || s.filterCity) {
       this.router.navigate(['/recherche']);
     }
   }

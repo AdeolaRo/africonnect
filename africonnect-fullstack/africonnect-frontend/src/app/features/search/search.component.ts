@@ -4,6 +4,8 @@ import { Subscription, forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
+import { LocationPreferenceService } from '../../core/services/location-preference.service';
+import { applyListSearchFilters } from '../../core/utils/location-list.util';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -14,17 +16,17 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   template: `
     <div class="item-card">
       <h2 style="margin-bottom:6px;">{{ 'searchPage.title' | translate }}</h2>
-      <div class="text-muted" *ngIf="query">{{ 'searchPage.forQuery' | translate }} <strong>{{ query }}</strong></div>
-      <div class="text-muted" *ngIf="!query">{{ 'searchPage.hintKeyword' | translate }}</div>
+      <div class="text-muted" *ngIf="hasRefinedSearch">{{ 'searchPage.forQuery' | translate }} <strong>{{ displayQueryOrFilters }}</strong></div>
+      <div class="text-muted" *ngIf="!hasRefinedSearch">{{ 'searchPage.hintKeyword' | translate }}</div>
     </div>
 
-    <div *ngIf="query && !isLoading && totalResults === 0" class="empty-state">
+    <div *ngIf="hasRefinedSearch && !isLoading && totalResults === 0" class="empty-state">
       {{ 'searchPage.noResults' | translate }}
     </div>
 
     <div *ngIf="isLoading" class="loading">{{ 'searchPage.loading' | translate }}</div>
 
-    <div *ngIf="query && !isLoading">
+    <div *ngIf="hasRefinedSearch && !isLoading">
       <div class="item-card" *ngFor="let section of sections">
         <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;">
           <h3 style="margin:0;">{{ section.labelKey | translate }}</h3>
@@ -62,23 +64,39 @@ export class SearchComponent implements OnInit, OnDestroy {
     { key: 'solutions', labelKey: 'nav.solutions', route: '/solutions', results: [] },
     { key: 'solidarity', labelKey: 'nav.solidarity', route: '/solidarite', results: [] },
     { key: 'events', labelKey: 'nav.events', route: '/evenements', results: [] },
-    { key: 'groups', labelKey: 'nav.groups', route: '/groupes', results: [] },
+    { key: 'groups', labelKey: 'nav.groups', route: '/groupes', results: [] }
   ];
+
+  get hasRefinedSearch(): boolean {
+    return !!(this.query || this.svcSnapshot.filterContinent || this.svcSnapshot.filterCity);
+  }
+
+  get displayQueryOrFilters(): string {
+    const q = (this.query || '').trim();
+    const bits: string[] = [];
+    if (q) bits.push(`« ${q} »`);
+    if (this.svcSnapshot.filterContinent) {
+      const lab = this.translate.instant('location.continent.' + this.svcSnapshot.filterContinent);
+      bits.push(lab);
+    }
+    if (this.svcSnapshot.filterCity) bits.push(this.svcSnapshot.filterCity);
+    return bits.join(' — ') || '…';
+  }
+
+  get svcSnapshot() {
+    return this.search.snapshot;
+  }
 
   constructor(
     private api: ApiService,
     private search: SearchService,
+    private locPref: LocationPreferenceService,
     private translate: TranslateService
   ) {}
 
   ngOnInit() {
-    this.sub = this.search.query$.subscribe(q => {
-      this.query = (q || '').trim();
-      if (!this.query) {
-        this.sections.forEach(s => (s.results = []));
-        this.totalResults = 0;
-        return;
-      }
+    this.sub = this.search.state$.subscribe((st) => {
+      this.query = (st.query || '').trim();
       this.runSearch();
     });
   }
@@ -92,9 +110,21 @@ export class SearchComponent implements OnInit, OnDestroy {
     return this.translate.instant('searchPage.by', { author });
   }
 
+  private locLine(x: any): string {
+    const city = String(x?.city || x?.location || '').trim();
+    const c = String(x?.continent || '').trim();
+    if (!city && !c) return '';
+    if (city && c) {
+      return ` · ${city} / ${this.translate.instant('location.continent.' + c)}`;
+    }
+    if (city) return ` · ${city}`;
+    return ` · ${this.translate.instant('location.continent.' + c)}`;
+  }
+
   private runSearch() {
     this.isLoading = true;
-    const q = this.query.toLowerCase();
+    const st = this.search.snapshot;
+    const userLoc = this.locPref.get();
     const untitled = this.translate.instant('searchPage.untitled');
 
     forkJoin({
@@ -104,52 +134,95 @@ export class SearchComponent implements OnInit, OnDestroy {
       solutions: this.api.get('solutions', false).pipe(catchError(() => of([]))),
       solidarity: this.api.get('solidarity', false).pipe(catchError(() => of([]))),
       events: this.api.get('events', false).pipe(catchError(() => of([]))),
-      groups: this.api.get('groups', false).pipe(catchError(() => of([]))),
+      groups: this.api.get('groups', false).pipe(catchError(() => of([])))
     }).subscribe({
       next: (data: any) => {
+        if (!st.query?.trim() && !st.filterContinent && !st.filterCity) {
+          this.sections.forEach((s) => (s.results = []));
+          this.totalResults = 0;
+          this.isLoading = false;
+          return;
+        }
+
+        const stFull = { ...st, query: st.query || '' };
+        const sortLoc = st.preferLocal ? userLoc : { continent: '', city: '' };
+        const fForum = applyListSearchFilters(
+          (Array.isArray(data.forum) ? data.forum : []) as object[],
+          stFull,
+          sortLoc
+        ).slice(0, 5);
+        const fMp = applyListSearchFilters(
+          (Array.isArray(data.marketplace) ? data.marketplace : []) as object[],
+          stFull,
+          sortLoc
+        ).slice(0, 5);
+        const fJobs = applyListSearchFilters(
+          (Array.isArray(data.jobs) ? data.jobs : []) as object[],
+          stFull,
+          sortLoc
+        ).slice(0, 5);
+        const fSol = applyListSearchFilters(
+          (Array.isArray(data.solutions) ? data.solutions : []) as object[],
+          stFull,
+          sortLoc
+        ).slice(0, 5);
+        const fSoli = applyListSearchFilters(
+          (Array.isArray(data.solidarity) ? data.solidarity : []) as object[],
+          stFull,
+          sortLoc
+        ).slice(0, 5);
+        const fEv = applyListSearchFilters(
+          (Array.isArray(data.events) ? data.events : []) as object[],
+          stFull,
+          sortLoc
+        ).slice(0, 5);
+        const fGr = applyListSearchFilters(
+          (Array.isArray(data.groups) ? data.groups : []) as object[],
+          stFull,
+          sortLoc
+        ).slice(0, 5);
+
         const mapped: any = {
-          forum: (data.forum || []).map((x: any) => ({
+          forum: fForum.map((x: any) => ({
             title: x.title || untitled,
-            meta: this.byLine(x.authorName),
+            meta: this.byLine(x.authorName) + this.locLine(x),
             snippet: (x.content || '').replace(/<[^>]+>/g, '').slice(0, 180)
           })),
-          marketplace: (data.marketplace || []).map((x: any) => ({
+          marketplace: fMp.map((x: any) => ({
             title: x.title || untitled,
-            meta: this.byLine(x.authorName),
+            meta: this.byLine(x.authorName) + this.locLine(x),
             snippet: (x.desc || '').slice(0, 180)
           })),
-          jobs: (data.jobs || []).map((x: any) => ({
+          jobs: fJobs.map((x: any) => ({
             title: x.title || untitled,
-            meta: this.byLine(x.authorName),
+            meta: this.byLine(x.authorName) + this.locLine(x),
             snippet: (x.desc || '').slice(0, 180)
           })),
-          solutions: (data.solutions || []).map((x: any) => ({
+          solutions: fSol.map((x: any) => ({
             title: x.title || untitled,
-            meta: this.byLine(x.authorName),
+            meta: this.byLine(x.authorName) + this.locLine(x),
             snippet: (x.desc || '').slice(0, 180)
           })),
-          solidarity: (data.solidarity || []).map((x: any) => ({
+          solidarity: fSoli.map((x: any) => ({
             title: x.title || untitled,
-            meta: this.byLine(x.authorName),
+            meta: this.byLine(x.authorName) + this.locLine(x),
             snippet: (x.desc || '').slice(0, 180)
           })),
-          events: (data.events || []).map((x: any) => ({
+          events: fEv.map((x: any) => ({
             title: x.title || untitled,
-            meta: this.byLine(x.authorName),
+            meta: this.byLine(x.authorName) + this.locLine(x),
             snippet: (x.desc || '').slice(0, 180)
           })),
-          groups: (data.groups || []).map((x: any) => ({
+          groups: fGr.map((x: any) => ({
             title: x.name || x.title || untitled,
-            meta: this.byLine(x.authorName),
+            meta: this.byLine(x.authorName) + this.locLine(x),
             snippet: (x.description || x.desc || '').slice(0, 180)
-          })),
+          }))
         };
 
         this.totalResults = 0;
-        this.sections.forEach(s => {
-          const all = mapped[s.key] || [];
-          const filtered = all.filter((r: any) => JSON.stringify(r).toLowerCase().includes(q));
-          s.results = filtered.slice(0, 5);
+        this.sections.forEach((s) => {
+          s.results = mapped[s.key] || [];
           this.totalResults += s.results.length;
         });
         this.isLoading = false;

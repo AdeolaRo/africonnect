@@ -21,6 +21,8 @@ const GroupPostSchema = new mongoose.Schema({
   links: { type: [LinkSchema], default: [] },
   likes: { type: [String], default: [] },
   comments: { type: [CommentSchema], default: [] },
+  continent: { type: String, default: '' },
+  city: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 

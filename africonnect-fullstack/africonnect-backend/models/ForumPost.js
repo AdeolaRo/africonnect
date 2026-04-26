@@ -24,6 +24,8 @@ const ForumPostSchema = new mongoose.Schema({
   approved: { type: Boolean, default: true },
   likes: { type: [String], default: [] },
   shares: { type: Number, default: 0 },
+  continent: { type: String, default: '' },
+  city: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 

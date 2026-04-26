@@ -326,13 +326,18 @@ router.post('/:id/posts', auth, async (req, res) => {
   const links = Array.isArray(req.body?.links) ? sanitizeLinks(req.body.links) : [];
   if (!content && imageUrls.length === 0 && links.length === 0) return res.status(400).json({ error: 'Contenu requis' });
 
+  const continent = String(req.body?.continent || '').trim();
+  const city = String(req.body?.city || '').trim();
+
   const post = await new GroupPost({
     groupId: String(group._id),
     userId: me,
     authorName: String(req.userPseudo || ''),
     content,
     imageUrls,
-    links
+    links,
+    continent,
+    city
   }).save();
 
   res.status(201).json(post);
@@ -391,6 +396,8 @@ router.put('/posts/:postId', auth, async (req, res) => {
   post.content = content;
   if (imageUrls !== undefined) post.imageUrls = imageUrls;
   if (links !== undefined) post.links = links;
+  if (req.body.continent !== undefined) post.continent = String(req.body.continent || '').trim();
+  if (req.body.city !== undefined) post.city = String(req.body.city || '').trim();
   await post.save();
   res.json(post);
 });

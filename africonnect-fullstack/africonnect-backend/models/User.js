@@ -9,6 +9,8 @@ const UserSchema = new mongoose.Schema({
   pseudo: String,
   avatar: String,
   city: String,
+  /** Continent code (e.g. AF) — préférence d’affichage / publ. */
+  continent: String,
   origin: String,
   passions: String,
   bio: String,

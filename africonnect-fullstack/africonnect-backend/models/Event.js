@@ -17,6 +17,8 @@ const EventSchema = new mongoose.Schema({
   authorName: String,
   likes: { type: [String], default: [] },
   shares: { type: Number, default: 0 },
+  continent: { type: String, default: '' },
+  city: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -35,8 +35,8 @@ router.get('/profile', auth, async (req, res) => {
 
 // Mettre à jour son profil
 router.put('/profile', auth, async (req, res) => {
-  const { fullName, pseudo, avatar, city, origin, passions, bio } = req.body;
-  await User.findByIdAndUpdate(req.userId, { fullName, pseudo, avatar, city, origin, passions, bio });
+  const { fullName, pseudo, avatar, city, continent, origin, passions, bio } = req.body;
+  await User.findByIdAndUpdate(req.userId, { fullName, pseudo, avatar, city, continent, origin, passions, bio });
   res.json({ message: 'Profil mis à jour' });
 });
 
@@ -201,7 +201,7 @@ router.put('/posts/:postId', auth, async (req, res) => {
   if (Array.isArray(body.links)) body.links = sanitizeLinks(body.links);
 
   // Only allow updating known fields (best-effort per model)
-  const allowed = ['title', 'subject', 'content', 'desc', 'price', 'location', 'company', 'contact', 'category', 'eventDate', 'rules', 'name', 'description', 'imageUrls', 'imageUrl', 'links'];
+  const allowed = ['title', 'subject', 'content', 'desc', 'price', 'location', 'company', 'contact', 'category', 'eventDate', 'rules', 'name', 'description', 'imageUrls', 'imageUrl', 'links', 'continent', 'city'];
   for (const k of allowed) {
     if (body[k] !== undefined) doc[k] = body[k];
   }

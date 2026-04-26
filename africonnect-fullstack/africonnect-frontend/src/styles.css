@@ -290,7 +290,18 @@ p { margin-bottom: 1rem; }
 }
 
 /* Search */
-.search-bar input {
+.search-bar { width: 100%; }
+.search-bar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+}
+.search-bar .search-bar-input,
+.search-bar input[type="search"],
+.search-bar input[type="text"] {
+  flex: 1 1 220px;
+  min-width: 0;
   width: 100%;
   padding: 16px 24px;
   border-radius: var(--radius-xl);
@@ -299,12 +310,52 @@ p { margin-bottom: 1rem; }
   color: var(--text);
   font-size: 1rem;
   transition: var(--transition);
+  box-sizing: border-box;
 }
-
-.search-bar input:focus {
+.search-bar-more { flex: 0 0 auto; white-space: nowrap; }
+.search-bar-extra {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.search-bar-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.search-bar-filters .form-group { margin: 0; }
+.search-bar-toggles {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between;
+}
+.search-bar-opts {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 0.92rem; color: var(--muted);
+}
+.search-bar-opts input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+.search-bar input:focus,
+.search-bar .search-bar-input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(208, 138, 114, 0.2);
+}
+@media (max-width: 600px) {
+  .search-bar-row { flex-direction: column; }
+  .search-bar-more { width: 100%; justify-content: center; }
+}
+.pub-loc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--secondary);
+  margin-top: 4px;
+  font-weight: 600;
 }
 
 /* Cards */
@@ -795,6 +846,25 @@ select.form-control {
   box-shadow: var(--shadow);
 }
 
+.modal-content.modal--wide {
+  max-width: min(920px, 96vw);
+  width: 94%;
+  padding: 22px 24px;
+}
+.modal-content.modal--max {
+  max-width: min(1200px, 98vw);
+  width: 96%;
+  padding: 24px 28px;
+}
+@media (min-width: 1200px) {
+  .modal-content.modal--wide {
+    max-width: 960px;
+  }
+  .modal-content.modal--max {
+    max-width: 1120px;
+  }
+}
+
 /* Prevent horizontal scroll in modal rich content */
 .modal-content .modal-body {
   max-width: 100%;
@@ -1028,6 +1098,11 @@ select.form-control {
   .modal-content {
     padding: 20px;
     width: 95%;
+  }
+  .modal-content.modal--wide,
+  .modal-content.modal--max {
+    width: 96%;
+    max-width: 100%;
   }
 
   /* Forms: avoid horizontal overflow */
