@@ -23,6 +23,11 @@ export class ApiService {
   get(endpoint: string, includeAuth = true) { 
     return this.http.get(`${this.baseUrl}/${endpoint}`, this.getHeaders(includeAuth)); 
   }
+
+  getText(endpoint: string, includeAuth = true) {
+    const opts = { ...this.getHeaders(includeAuth), responseType: 'text' as const };
+    return this.http.get(`${this.baseUrl}/${endpoint}`, opts);
+  }
   
   post(endpoint: string, data: any, includeAuth = true) { 
     return this.http.post(`${this.baseUrl}/${endpoint}`, data, this.getHeaders(includeAuth)); 

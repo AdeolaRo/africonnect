@@ -21,6 +21,7 @@ const advertisementRoutes = require('./routes/advertisements');
 const rssRoutes = require('./routes/rss');
 const adRequestRoutes = require('./routes/adRequests');
 const geoRoutes = require('./routes/geo');
+const { accessLogMiddleware } = require('./middleware/accessLog');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const app = express();
@@ -58,6 +59,8 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), strip
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+app.use(accessLogMiddleware);
 
 // Servir les fichiers statiques du dossier uploads
 app.use('/uploads', express.static('uploads'));

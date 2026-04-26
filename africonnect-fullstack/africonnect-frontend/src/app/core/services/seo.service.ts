@@ -9,6 +9,7 @@ import { getCanonicalOrigin } from '../config/app.config';
 const PRIVATE_PATH_PREFIXES = [
   '/admin',
   '/profile',
+  '/compte',
   '/messagerie',
   '/moderation',
   '/publicite',

@@ -11,6 +11,7 @@ import { ApiService } from './core/services/api.service';
 import { RealtimeService } from './core/services/realtime.service';
 import { SeoService } from './core/services/seo.service';
 import { LocationPreferenceService } from './core/services/location-preference.service';
+import { CookieConsentService } from './core/services/cookie-consent.service';
 import { CONTINENT_OPTIONS } from './core/location-continents';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CarouselComponent } from './shared/components/carousel/carousel.component';
@@ -57,7 +58,7 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
       </div>
     </nav>
 
-    <div class="container">
+    <div class="container" [class.app-has-cookie]="cookieBarVisible">
       <div class="search-bar" *ngIf="!isAdminOrModerationRoute">
         <div class="search-bar-row">
           <input type="search" class="search-bar-input" name="gsearch" [(ngModel)]="searchQuery" [placeholder]="'search.placeholder' | translate" (input)="onSearch()">
@@ -318,6 +319,15 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
 
     <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
 
+    <div *ngIf="cookieBarVisible" class="cookie-consent-bar" role="region" [attr.aria-label]="'cookieBar.title' | translate">
+      <p class="cookie-consent-text">{{ 'cookieBar.text' | translate }}</p>
+      <div class="cookie-consent-actions">
+        <a *ngIf="isLoggedIn" routerLink="/compte/donnees" class="btn btn-link">{{ 'cookieBar.customize' | translate }}</a>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="dismissCookieEssential()">{{ 'cookieBar.essential' | translate }}</button>
+        <button type="button" class="btn btn-primary btn-sm" (click)="dismissCookieAll()">{{ 'cookieBar.all' | translate }}</button>
+      </div>
+    </div>
+
     <footer class="site-footer">
       <div class="site-footer-inner" style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center; align-items:center;">
         <button type="button" class="btn btn-link" (click)="openContact()" style="background:transparent; border:none; padding:0; color:var(--secondary); cursor:pointer;">
@@ -357,6 +367,7 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     .notif-card { padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); margin-top:10px; }
     .notif-card.read { opacity: 0.65; }
     .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .container.app-has-cookie { padding-bottom: 100px; }
     .search-bar { margin-bottom: 20px; }
     .search-bar input { width: 100%; padding: 12px; border-radius: 40px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
     .main-layout { display: flex; gap: 24px; }
@@ -395,6 +406,14 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     .pw-toggle svg { width: 16px; height: 16px; fill: currentColor; display: block; }
     .lang-btn { padding: 8px 10px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-weight: 800; }
     .lang-btn.active { border-color: var(--primary); }
+    .cookie-consent-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 1950;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 14px 20px; background: var(--surface); border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 20px rgba(0,0,0,.2);
+    }
+    .cookie-consent-text { margin: 0; flex: 1 1 240px; font-size: 0.92rem; line-height: 1.4; }
+    .cookie-consent-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .site-footer { padding: 18px 0 28px; }
     .site-footer-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; color: var(--text-muted); text-align: center; font-size: 0.95rem; }
     .terms-line { display:flex; gap:10px; align-items:flex-start; margin: 6px 0 12px; color: var(--text-muted); font-size: 0.92rem; }
@@ -509,6 +528,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   readonly continentOptions = CONTINENT_OPTIONS;
   isAdminOrModerationRoute = false;
   isProfileRoute = false;
+  cookieBarVisible = false;
   isNavOpen = false;
   unreadMessages = 0;
   unreadNotifications = 0;
@@ -524,7 +544,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private translate: TranslateService,
     private sanitizer: DomSanitizer,
     private seo: SeoService,
-    private locPref: LocationPreferenceService
+    private locPref: LocationPreferenceService,
+    private cookie: CookieConsentService
   ) {
     // Requirement: French by default; English only after explicit click.
     this.lang = 'fr';
@@ -614,12 +635,16 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.unreadNotifications = b.unreadNotifications;
     });
     this.realtime.notifications$.subscribe(items => this.notifications = items || []);
+    this.cookie.state$.subscribe(() => this.updateCookieBar());
+    this.updateCookieBar();
+
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         const url = event.url;
-        this.isAdminOrModerationRoute = url.includes('/admin') || url.includes('/profile') || url.includes('/messagerie') || url.includes('/moderation');
-        this.isProfileRoute = url.includes('/profile');
+        this.isAdminOrModerationRoute = url.includes('/admin') || url.includes('/profile') || url.includes('/messagerie') || url.includes('/moderation') || url.includes('/compte');
+        this.isProfileRoute = url.includes('/profile') || url.includes('/compte');
         this.isNavOpen = false;
+        this.updateCookieBar();
         if (url.includes('/messagerie')) this.realtime.clearMessagesBadge();
         if (this.isLoggedIn && !this.isAdmin) this.loadTermsVersion();
 
@@ -652,6 +677,20 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.filterContinent = '';
     this.filterCity = '';
     this.onFiltersChange();
+  }
+
+  private updateCookieBar() {
+    this.cookieBarVisible = !this.cookie.get().decided;
+  }
+
+  dismissCookieEssential() {
+    this.cookie.acceptEssentialOnly();
+    this.updateCookieBar();
+  }
+
+  dismissCookieAll() {
+    this.cookie.acceptAll();
+    this.updateCookieBar();
   }
 
   private maybeOpenSearchPage() {

@@ -20,6 +20,9 @@ const UserSchema = new mongoose.Schema({
   mustChangePseudo: { type: Boolean, default: false },
   mustChangeEmail: { type: Boolean, default: false },
   termsAcceptedVersion: { type: Number, default: 0 },
+  /** Consentement cookies non essentiels (analytique) — synchronisé depuis le compte */
+  analyticsOptIn: { type: Boolean, default: false },
+  cookiePreferencesAt: { type: Date },
   verificationToken: String,
   resetToken: String,
   resetExpires: Date,

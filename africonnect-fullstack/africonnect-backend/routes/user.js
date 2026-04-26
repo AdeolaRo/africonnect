@@ -12,6 +12,7 @@ const Solidarity = require('../models/Solidarity');
 const Event = require('../models/Event');
 const Group = require('../models/Group');
 const Message = require('../models/Message');
+const AdRequest = require('../models/AdRequest');
 
 function sanitizeLinks(input) {
   const arr = Array.isArray(input) ? input : [];
@@ -243,6 +244,67 @@ router.get('/saved', auth, async (req, res) => {
     saved.push(...posts.map(p => ({ ...p.toObject(), _type: key })));
   }
   res.json(saved);
+});
+
+/** Export RGPD : profil, publications, messages, favoris, demandes pub (JSON) */
+router.get('/data-export', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password -verificationToken -resetToken -resetExpires');
+    const modelList = [
+      { key: 'forum', Model: ForumPost },
+      { key: 'marketplace', Model: MarketplaceItem },
+      { key: 'jobs', Model: Job },
+      { key: 'solutions', Model: Solution },
+      { key: 'solidarity', Model: Solidarity },
+      { key: 'events', Model: Event },
+      { key: 'groups', Model: Group }
+    ];
+    let allPosts = [];
+    for (const entry of modelList) {
+      const posts = await entry.Model.find({ userId: req.userId }).sort({ createdAt: -1 });
+      allPosts.push(...posts.map((p) => ({ ...p.toObject(), _type: entry.key })));
+    }
+    allPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const messages = await Message.find({ $or: [{ from: req.userId }, { to: req.userId }] }).sort({ timestamp: -1 }).lean();
+
+    const u = await User.findById(req.userId);
+    let savedDetail = [];
+    if (u?.savedPosts?.length) {
+      for (const { key, Model } of modelList) {
+        const posts = await Model.find({ _id: { $in: u.savedPosts } });
+        savedDetail.push(...posts.map((p) => ({ ...p.toObject(), _type: key })));
+      }
+    }
+
+    const adRequests = await AdRequest.find({ userId: String(req.userId) }).sort({ createdAt: -1 }).lean();
+
+    res.json({
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      profile: user ? user.toObject() : null,
+      posts: allPosts,
+      messages,
+      savedPosts: savedDetail,
+      adRequests
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Export impossible' });
+  }
+});
+
+router.put('/cookie-preferences', auth, async (req, res) => {
+  try {
+    const analyticsOptIn = !!req.body?.analyticsOptIn;
+    await User.findByIdAndUpdate(req.userId, {
+      analyticsOptIn,
+      cookiePreferencesAt: new Date()
+    });
+    res.json({ analyticsOptIn });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Supprimer son compte + données (profil, messages, contenus)

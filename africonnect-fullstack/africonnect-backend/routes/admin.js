@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const AccessLog = require('../models/AccessLog');
 
 const router = express.Router();
 
@@ -113,6 +114,40 @@ router.put('/users/:id/role', auth, adminOnly, async (req, res) => {
   await user.save();
   const safe = await User.findById(user._id).select('-password -verificationToken -resetToken -resetExpires');
   res.json(safe);
+});
+
+/** Journal des requêtes API (90 jours max, données techniques) — admin uniquement */
+router.get('/access-logs', auth, adminOnly, async (req, res) => {
+  try {
+    const limit = Math.min(2000, Math.max(1, parseInt(String(req.query.limit || '500'), 10) || 500));
+    const skip = Math.max(0, parseInt(String(req.query.skip || '0'), 10) || 0);
+    const [items, total] = await Promise.all([
+      AccessLog.find().sort({ at: -1 }).skip(skip).limit(limit).lean(),
+      AccessLog.countDocuments()
+    ]);
+    res.json({ items, total, limit, skip });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get('/access-logs/export.csv', auth, adminOnly, async (req, res) => {
+  try {
+    const limit = Math.min(5000, Math.max(1, parseInt(String(req.query.limit || '2000'), 10) || 2000));
+    const items = await AccessLog.find().sort({ at: -1 }).limit(limit).lean();
+    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const header = ['at', 'method', 'path', 'ip', 'userId', 'userAgent', 'referer'].join(',') + '\n';
+    const body = items
+      .map((r) =>
+        [esc(r.at), esc(r.method), esc(r.path), esc(r.ip), esc(r.userId), esc(r.userAgent), esc(r.referer)].join(',')
+      )
+      .join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="access-logs.csv"');
+    res.send('\ufeff' + header + body);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 module.exports = router;
