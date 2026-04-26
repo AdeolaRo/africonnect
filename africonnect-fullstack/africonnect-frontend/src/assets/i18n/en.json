@@ -284,6 +284,7 @@
     "rss": "RSS",
     "adminLegal": "Terms & conditions",
     "adminAccessLog": "Access log",
+    "adminSecurityAudit": "Security audit",
     "saveProgress": "Saving...",
     "saveButton": "Save",
     "edit": "Edit",
@@ -378,6 +379,20 @@
     "colUa": "User-Agent (excerpt)",
     "error": "Could not load log (admin required?).",
     "exportError": "Export failed"
+  },
+  "securityAudit": {
+    "back": "Back",
+    "title": "Security audit",
+    "intro": "Sensitive actions (admin, content moderation). ~2 year retention. Confidential — do not share.",
+    "total": "{{count}} row(s) (preview, total on server).",
+    "colAt": "Time",
+    "colActor": "Actor",
+    "colRole": "Role",
+    "colAction": "Action",
+    "colTarget": "Target",
+    "colIp": "IP",
+    "colDetails": "Details",
+    "error": "Could not load audit log."
   },
   "moderation": {
     "title": "Content moderation",
@@ -564,7 +579,9 @@
       "legalTitle": "Terms & Conditions",
       "legalDesc": "Publish a new version",
       "accessLogTitle": "Access log",
-      "accessLogDesc": "API requests: IP, account, path, method (CSV export)"
+      "accessLogDesc": "API requests: IP, account, path, method (CSV export)",
+      "securityAuditTitle": "Security audit",
+      "securityAuditDesc": "Admin / moderation actions (~2y retention) — read here, no Mongo shell"
     },
     "legal": {
       "title": "Terms & Conditions",

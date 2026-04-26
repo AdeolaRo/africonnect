@@ -29,6 +29,7 @@ import { LocationPreferenceService } from '../../core/services/location-preferen
           <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminRss()">📰 {{ 'profile.rss' | translate }}</button>
           <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminLegal()">📜 {{ 'profile.adminLegal' | translate }}</button>
           <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminAccessLogs()">📡 {{ 'profile.adminAccessLog' | translate }}</button>
+          <button type="button" class="btn btn-secondary" *ngIf="isAdmin" (click)="openAdminSecurityAudit()">🛡️ {{ 'profile.adminSecurityAudit' | translate }}</button>
         </div>
       </div>
       
@@ -753,6 +754,10 @@ export class ProfileComponent implements OnInit {
 
   openAdminAccessLogs() {
     this.router.navigate(['/admin/access-logs']);
+  }
+
+  openAdminSecurityAudit() {
+    this.router.navigate(['/admin/security-audit']);
   }
 
   deleteAccount() {

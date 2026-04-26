@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const AccessLog = require('../models/AccessLog');
+const SecurityAuditLog = require('../models/SecurityAuditLog');
 const { logSecurityAudit } = require('../utils/securityAudit');
 
 const router = express.Router();
@@ -231,6 +232,41 @@ router.get('/access-logs/export.csv', auth, adminOnly, async (req, res) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="access-logs.csv"');
     res.send('\ufeff' + header + body);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/** Journal d’audit sécurité (modération, actions admin) — TTL ~2 ans, admin uniquement */
+router.get('/security-audit', auth, adminOnly, async (req, res) => {
+  try {
+    const limit = Math.min(2000, Math.max(1, parseInt(String(req.query.limit || '200'), 10) || 200));
+    const skip = Math.max(0, parseInt(String(req.query.skip || '0'), 10) || 0);
+    const [raw, total] = await Promise.all([
+      SecurityAuditLog.find()
+        .sort({ at: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('actorId', 'pseudo')
+        .lean(),
+      SecurityAuditLog.countDocuments()
+    ]);
+    const items = raw.map((r) => {
+      const pop = r.actorId && typeof r.actorId === 'object' ? r.actorId : null;
+      const actorIdStr = pop ? String(pop._id) : r.actorId ? String(r.actorId) : '';
+      return {
+        at: r.at,
+        actorId: actorIdStr,
+        actorPseudo: pop && pop.pseudo ? String(pop.pseudo) : '',
+        actorRole: r.actorRole,
+        action: r.action,
+        targetType: r.targetType,
+        targetId: r.targetId,
+        ip: r.ip,
+        details: r.details
+      };
+    });
+    res.json({ items, total, limit, skip });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

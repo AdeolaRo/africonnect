@@ -35,6 +35,7 @@ export const routes: Routes = [
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'compte/donnees', loadComponent: () => import('./features/privacy/privacy-data.component').then(m => m.PrivacyDataComponent), canActivate: [AuthGuard] },
   { path: 'admin/access-logs', loadComponent: () => import('./features/admin/admin-access-logs.component').then(m => m.AdminAccessLogsComponent), canActivate: [AdminGuard] },
+  { path: 'admin/security-audit', loadComponent: () => import('./features/admin/admin-security-audit.component').then(m => m.AdminSecurityAuditComponent), canActivate: [AdminGuard] },
   { path: 'recherche', component: SearchComponent },
   { path: 'moderation', loadComponent: () => import('./features/admin/content-moderation.component').then(m => m.ContentModerationComponent), canActivate: [StaffGuard] },
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard] },

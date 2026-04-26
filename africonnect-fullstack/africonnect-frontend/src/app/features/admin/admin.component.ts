@@ -50,6 +50,11 @@ import { TranslateModule } from '@ngx-translate/core';
           <div class="admin-title">{{ 'admin.home.accessLogTitle' | translate }}</div>
           <div class="admin-desc">{{ 'admin.home.accessLogDesc' | translate }}</div>
         </a>
+        <a class="admin-card" routerLink="/admin/security-audit">
+          <div class="admin-emoji">🔐</div>
+          <div class="admin-title">{{ 'admin.home.securityAuditTitle' | translate }}</div>
+          <div class="admin-desc">{{ 'admin.home.securityAuditDesc' | translate }}</div>
+        </a>
       </div>
 
       <div class="admin-panel">

@@ -284,6 +284,7 @@
     "rss": "RSS",
     "adminLegal": "CGU & Termes",
     "adminAccessLog": "Journal d’accès",
+    "adminSecurityAudit": "Audit sécurité",
     "saveProgress": "Enregistrement...",
     "saveButton": "Enregistrer",
     "edit": "Modifier",
@@ -378,6 +379,20 @@
     "colUa": "Navigateur (extrait)",
     "error": "Impossible de charger le journal (droits admin ?).",
     "exportError": "Export échoué"
+  },
+  "securityAudit": {
+    "back": "Retour",
+    "title": "Audit sécurité",
+    "intro": "Historique des actions sensibles (administration, modération de contenus). Rétention d’environ deux ans. Données confidentielles — ne pas diffuser.",
+    "total": "{{count}} entrée(s) (aperçu, total côté serveur).",
+    "colAt": "Date",
+    "colActor": "Acteur",
+    "colRole": "Rôle",
+    "colAction": "Action",
+    "colTarget": "Cible",
+    "colIp": "IP",
+    "colDetails": "Détails",
+    "error": "Impossible de charger l’audit."
   },
   "moderation": {
     "title": "Modération des contenus",
@@ -564,7 +579,9 @@
       "legalTitle": "CGU & Termes",
       "legalDesc": "Publier une nouvelle version",
       "accessLogTitle": "Journal d’accès",
-      "accessLogDesc": "Requêtes API : IP, compte, chemin, méthode (export CSV)"
+      "accessLogDesc": "Requêtes API : IP, compte, chemin, méthode (export CSV)",
+      "securityAuditTitle": "Audit sécurité",
+      "securityAuditDesc": "Actions admin / modération (rétention ~2 ans) — consultable ici, sans MongoDB"
     },
     "legal": {
       "title": "CGU & Termes",

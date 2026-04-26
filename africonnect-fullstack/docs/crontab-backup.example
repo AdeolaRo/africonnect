@@ -1,0 +1,8 @@
+# Fichier d'exemple — à intégrer via `crontab -e` sur le serveur d'exécution des backups.
+# Remplacer CHEMIN_VERS_PROJET par le chemin absolu (ex. /var/www/africonnect/africonnect-fullstack)
+#
+# Tous les jours à 03:15
+# 15 3 * * * /bin/bash CHEMIN_VERS_PROJET/africonnect-backend/scripts/backup-mongo.sh >> /var/log/africanconnect/backup-mongo.log 2>&1
+#
+# Hebdomadaire (dimanche 04:00)
+# 0 4 * * 0 /bin/bash CHEMIN_VERS_PROJET/africonnect-backend/scripts/backup-mongo.sh >> /var/log/africanconnect/backup-mongo.log 2>&1
