@@ -19,6 +19,10 @@
 
 > **Note** : les adresses e-mail ci-dessus sont des **canaux publics** attendus sur le site ; remplacez-les par vos adresses réelles opérationnelles. Ne commitez pas de secrets (SMTP, mots de passe) dans ce dépôt.
 
+> **Alias / une seule boîte (ex. IONOS)** : vous pouvez créer **contact@** et **privacy@** comme **alias** qui **redirigent vers** la même boîte que vous consultez (y compris **no-reply@**). L’important est que les demandes **RGPD** et **contact** soient **lues**, pas le nom exact de la boîte en back-office. Sur le site, préférez toutefois afficher **contact@** / **privacy@** (ou libellés clairs) plutôt qu’un seul **no-reply@** comme *unique* moyen de vous joindre pour les droits — le mot « no-reply » prête à confusion.
+
+> **Hébergement (exemple courant)** : VPS **Linux** (p. ex. **AlmaLinux 9**) chez **IONOS** : pare-feu (SSH/HTTP/HTTPS), **Nginx** + **Let’s Encrypt**, API Node derrière le proxy, **MongoDB** en local ou managé, **cron** pour les sauvegardes (§5).
+
 ---
 
 ## 2. Finalités & bases juridiques (rappel)
