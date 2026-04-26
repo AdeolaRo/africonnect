@@ -2,12 +2,42 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const User = require('../models/User');
 const { canSendEmail, sendMailSafe } = require('../utils/mailer');
 const router = express.Router();
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de tentatives de connexion. Réessayez dans quelques minutes.' }
+});
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de créations de compte depuis cette adresse. Réessayez plus tard.' }
+});
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 8,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de demandes. Réessayez plus tard.' }
+});
+const resetPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de tentatives. Réessayez plus tard.' }
+});
+
 // Inscription
-router.post('/register', async (req, res) => {
+router.post('/register', registerLimiter, async (req, res) => {
   const { email, password, pseudo, fullName, city } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email et mot de passe requis' });
@@ -52,7 +82,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Connexion
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
   try {
@@ -86,7 +116,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Mot de passe oublié
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requis' });
   try {
@@ -117,7 +147,7 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 // Réinitialisation du mot de passe
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', resetPasswordLimiter, async (req, res) => {
   const token = String(req.body?.token || req.body?.resetToken || '').trim();
   const newPassword = String(req.body?.newPassword || '').trim();
   if (!token || !newPassword) return res.status(400).json({ error: 'Token et nouveau mot de passe requis' });

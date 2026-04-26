@@ -374,6 +374,8 @@
     "colMethod": "Method",
     "colPath": "Path",
     "colIp": "IP",
+    "colUser": "Account (id)",
+    "colUa": "User-Agent (excerpt)",
     "error": "Could not load log (admin required?).",
     "exportError": "Export failed"
   },

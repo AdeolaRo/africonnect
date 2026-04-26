@@ -13,6 +13,7 @@ const Event = require('../models/Event');
 const Group = require('../models/Group');
 const Message = require('../models/Message');
 const AdRequest = require('../models/AdRequest');
+const { logIfNotOwnerContentDelete, logIfNotOwnerContentUpdate } = require('../utils/securityAudit');
 
 function sanitizeLinks(input) {
   const arr = Array.isArray(input) ? input : [];
@@ -127,9 +128,13 @@ router.post('/accept-terms', auth, async (req, res) => {
   }
 });
 
-// Liste des utilisateurs (pour messagerie) - connecté seulement
+// Liste des utilisateurs (messagerie / affichage pseudo) — minimisation RGPD : pas d’email hors admin
 router.get('/users', auth, async (req, res) => {
-  const users = await User.find().select('-password -verificationToken -resetToken -resetExpires');
+  if (req.role === 'admin') {
+    const users = await User.find().select('-password -verificationToken -resetToken -resetExpires');
+    return res.json(users);
+  }
+  const users = await User.find().select('pseudo fullName avatar').lean();
   res.json(users);
 });
 
@@ -181,6 +186,7 @@ router.delete('/posts/:postId', auth, async (req, res) => {
     req.role !== 'admin' &&
     req.role !== 'moderator'
   ) return res.status(403).json({ error: 'Non autorisé' });
+  logIfNotOwnerContentDelete(req, doc, found.key);
   await doc.deleteOne();
   res.json({ message: 'Supprimé' });
 });
@@ -195,6 +201,7 @@ router.put('/posts/:postId', auth, async (req, res) => {
     req.role !== 'admin' &&
     req.role !== 'moderator'
   ) return res.status(403).json({ error: 'Non autorisé' });
+  logIfNotOwnerContentUpdate(req, doc, found.key);
 
   const body = { ...(req.body || {}) };
   if (Array.isArray(body.imageUrls)) body.imageUrls = body.imageUrls.filter(Boolean).slice(0, 3);

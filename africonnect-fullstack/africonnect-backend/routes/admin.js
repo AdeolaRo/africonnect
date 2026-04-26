@@ -3,24 +3,37 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const AccessLog = require('../models/AccessLog');
+const { logSecurityAudit } = require('../utils/securityAudit');
 
 const router = express.Router();
+
+const VALID_ROLES = ['user', 'moderator', 'admin'];
 
 const adminOnly = (req, res, next) => {
   if (req.role !== 'admin') return res.status(403).json({ error: 'Admin requis' });
   next();
 };
 
+function normalizeRole(r) {
+  const s = String(r || '').trim();
+  return VALID_ROLES.includes(s) ? s : null;
+}
+
+async function countAdmins() {
+  return User.countDocuments({ role: 'admin' });
+}
+
 router.get('/users', auth, adminOnly, async (req, res) => {
   const users = await User.find().select('-password -verificationToken -resetToken -resetExpires');
   res.json(users);
 });
 
-// Création user par admin (email+password+role)
 router.post('/users', auth, adminOnly, async (req, res) => {
   try {
     const { email, password, role, verified, pseudo, fullName, city, origin, passions, avatar, bio } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
+
+    const nr = normalizeRole(role) || 'user';
 
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ error: 'Email déjà utilisé' });
@@ -29,7 +42,7 @@ router.post('/users', auth, adminOnly, async (req, res) => {
     const user = new User({
       email,
       password: hashed,
-      role: role || 'user',
+      role: nr,
       verified: typeof verified === 'boolean' ? verified : true,
       pseudo,
       fullName,
@@ -44,6 +57,15 @@ router.post('/users', auth, adminOnly, async (req, res) => {
       mustChangeEmail: true
     });
     await user.save();
+    logSecurityAudit({
+      req,
+      actorId: String(req.userId),
+      actorRole: req.role,
+      action: 'admin.user.create',
+      targetType: 'user',
+      targetId: String(user._id),
+      details: `role=${nr}`
+    });
     const safe = await User.findById(user._id).select('-password -verificationToken -resetToken -resetExpires');
     res.status(201).json(safe);
   } catch (err) {
@@ -51,7 +73,6 @@ router.post('/users', auth, adminOnly, async (req, res) => {
   }
 });
 
-// Mise à jour user par admin (profil + role + verified + password optionnel)
 router.put('/users/:id', auth, adminOnly, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -71,8 +92,31 @@ router.put('/users/:id', auth, adminOnly, async (req, res) => {
       bio
     } = req.body || {};
 
+    if (role !== undefined) {
+      const nr = normalizeRole(role);
+      if (!nr) return res.status(400).json({ error: 'Rôle invalide' });
+      if (user.role === 'admin' && nr !== 'admin') {
+        const c = await countAdmins();
+        if (c <= 1) {
+          return res.status(400).json({ error: 'Impossible de retirer le rôle admin au dernier administrateur' });
+        }
+      }
+      const prev = user.role;
+      user.role = nr;
+      if (prev !== nr) {
+        logSecurityAudit({
+          req,
+          actorId: String(req.userId),
+          actorRole: req.role,
+          action: 'admin.user.role',
+          targetType: 'user',
+          targetId: String(user._id),
+          details: `${prev}→${nr}`
+        });
+      }
+    }
+
     if (email) user.email = email;
-    if (typeof role === 'string') user.role = role;
     if (typeof verified === 'boolean') user.verified = verified;
 
     if (typeof pseudo === 'string') user.pseudo = pseudo;
@@ -95,12 +139,27 @@ router.put('/users/:id', auth, adminOnly, async (req, res) => {
   }
 });
 
-// Suppression user par admin
 router.delete('/users/:id', auth, adminOnly, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    if (user.role === 'admin') {
+      const c = await countAdmins();
+      if (c <= 1) {
+        return res.status(400).json({ error: 'Impossible de supprimer le dernier administrateur' });
+      }
+    }
+    const tid = String(user._id);
     await user.deleteOne();
+    logSecurityAudit({
+      req,
+      actorId: String(req.userId),
+      actorRole: req.role,
+      action: 'admin.user.delete',
+      targetType: 'user',
+      targetId: tid,
+      details: ''
+    });
     res.json({ message: 'Utilisateur supprimé' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -110,13 +169,31 @@ router.delete('/users/:id', auth, adminOnly, async (req, res) => {
 router.put('/users/:id/role', auth, adminOnly, async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
-  user.role = req.body.role;
+  const nr = normalizeRole(req.body?.role);
+  if (!nr) return res.status(400).json({ error: 'Rôle invalide' });
+  if (user.role === 'admin' && nr !== 'admin') {
+    const c = await countAdmins();
+    if (c <= 1) {
+      return res.status(400).json({ error: 'Impossible de retirer le rôle admin au dernier administrateur' });
+    }
+  }
+  const prev = user.role;
+  user.role = nr;
   await user.save();
+  logSecurityAudit({
+    req,
+    actorId: String(req.userId),
+    actorRole: req.role,
+    action: 'admin.user.role',
+    targetType: 'user',
+    targetId: String(user._id),
+    details: `${prev}→${nr}`
+  });
   const safe = await User.findById(user._id).select('-password -verificationToken -resetToken -resetExpires');
   res.json(safe);
 });
 
-/** Journal des requêtes API (90 jours max, données techniques) — admin uniquement */
+/** Journal des requêtes API (TTL 90j côté collection AccessLog) — admin uniquement */
 router.get('/access-logs', auth, adminOnly, async (req, res) => {
   try {
     const limit = Math.min(2000, Math.max(1, parseInt(String(req.query.limit || '500'), 10) || 500));
@@ -135,6 +212,15 @@ router.get('/access-logs/export.csv', auth, adminOnly, async (req, res) => {
   try {
     const limit = Math.min(5000, Math.max(1, parseInt(String(req.query.limit || '2000'), 10) || 2000));
     const items = await AccessLog.find().sort({ at: -1 }).limit(limit).lean();
+    logSecurityAudit({
+      req,
+      actorId: String(req.userId),
+      actorRole: req.role,
+      action: 'admin.access_log.export',
+      targetType: 'accesslog',
+      targetId: '',
+      details: `rows=${items.length},limit=${limit}`
+    });
     const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const header = ['at', 'method', 'path', 'ip', 'userId', 'userAgent', 'referer'].join(',') + '\n';
     const body = items

@@ -4,6 +4,7 @@ const GroupPost = require('../models/GroupPost');
 const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
+const { logIfNotOwnerContentDelete, logIfNotOwnerContentUpdate } = require('../utils/securityAudit');
 const router = express.Router();
 
 function sanitizeLinks(input) {
@@ -375,6 +376,7 @@ router.delete('/posts/:postId', auth, async (req, res) => {
   const group = await Group.findById(post.groupId);
   const can = String(post.userId) === String(req.userId) || (group && (isMod(group, req.userId) || req.role === 'admin'));
   if (!can) return res.status(403).json({ error: 'Non autorisé' });
+  logIfNotOwnerContentDelete(req, post, 'group_post');
   await post.deleteOne();
   res.json({ message: 'Supprimé' });
 });
@@ -385,6 +387,7 @@ router.put('/posts/:postId', auth, async (req, res) => {
   const group = await Group.findById(post.groupId);
   const can = String(post.userId) === String(req.userId) || (group && (isMod(group, req.userId) || req.role === 'admin'));
   if (!can) return res.status(403).json({ error: 'Non autorisé' });
+  logIfNotOwnerContentUpdate(req, post, 'group_post');
 
   const content = String(req.body?.content || '').trim();
   const imageUrls = Array.isArray(req.body?.imageUrls) ? req.body.imageUrls.filter(Boolean).slice(0, 3) : undefined;
@@ -425,6 +428,7 @@ router.delete('/:id', auth, async (req, res) => {
   ) {
     return res.status(403).json({ error: 'Non autorisé' });
   }
+  logIfNotOwnerContentDelete(req, item, 'groups');
   await GroupPost.deleteMany({ groupId: String(item._id) });
   await item.deleteOne();
   res.json({ message: 'Supprimé' });

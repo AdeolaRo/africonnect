@@ -22,6 +22,7 @@ const rssRoutes = require('./routes/rss');
 const adRequestRoutes = require('./routes/adRequests');
 const geoRoutes = require('./routes/geo');
 const { accessLogMiddleware } = require('./middleware/accessLog');
+const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const app = express();
@@ -65,9 +66,13 @@ app.use(accessLogMiddleware);
 // Servir les fichiers statiques du dossier uploads
 app.use('/uploads', express.static('uploads'));
 
-// Health check (useful for VPS/Nginx monitoring)
+// Health check (Nginx / supervision) — 200 pendant la connexion Mongo ; 503 si déconnecté
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
+  const st = mongoose.connection.readyState;
+  const t = new Date().toISOString();
+  if (st === 1) return res.json({ ok: true, db: 'up', t });
+  if (st === 2) return res.json({ ok: true, db: 'connecting', t });
+  return res.status(503).json({ ok: false, db: st === 0 ? 'down' : 'closing', t });
 });
 
 mongoose
@@ -113,7 +118,13 @@ app.use('/api/solidarity', solidarityRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/messages', messageRoutes);
-app.use('/api/admin', adminRoutes);
+const adminApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/admin', adminApiLimiter, adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/advertisements', advertisementRoutes);
@@ -123,6 +134,26 @@ app.use('/api/geo', geoRoutes);
 app.use('/api/site-settings', require('./routes/site-settings'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/notifications', require('./routes/notifications'));
+
+// API inconnue
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'Non trouvé' });
+});
+
+// Erreurs non gérées (CORS, etc.)
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  const msg = String(err && err.message ? err.message : err);
+  if (msg.includes('not allowed by CORS') || msg.includes('Origin not allowed')) {
+    return res.status(403).json({ error: 'Origine non autorisée' });
+  }
+  if (err && err.status === 404) {
+    return res.status(404).json({ error: 'Non trouvé' });
+  }
+  console.error('[api-error]', req.method, req.originalUrl, msg);
+  res.status(500).json({ error: 'Erreur serveur' });
+});
+
 io.use((socket,next)=>{ const jwt=require('jsonwebtoken'); const token=socket.handshake.auth.token; if(!token) return next(new Error('Auth error')); try{ const decoded=jwt.verify(token,process.env.JWT_SECRET); socket.userId=decoded.userId; next(); } catch(err){ next(new Error('Invalid token')); } });
 io.on('connection',(socket)=>{ console.log('User connected:',socket.userId); socket.join(`user_${socket.userId}`); socket.on('private_message',async(data)=>{ const Message=require('./models/Message'); const message=new Message({from:String(socket.userId),to:String(data.toUserId),subject:data.subject?String(data.subject):'',content:String(data.content||''),timestamp:new Date()}); await message.save(); io.to(`user_${String(data.toUserId)}`).emit('new_message',message); io.to(`user_${String(socket.userId)}`).emit('new_message',message); }); });
 

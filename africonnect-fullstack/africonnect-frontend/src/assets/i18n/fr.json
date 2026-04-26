@@ -374,6 +374,8 @@
     "colMethod": "Méthode",
     "colPath": "Chemin",
     "colIp": "IP",
+    "colUser": "Compte (ID)",
+    "colUa": "Navigateur (extrait)",
     "error": "Impossible de charger le journal (droits admin ?).",
     "exportError": "Export échoué"
   },

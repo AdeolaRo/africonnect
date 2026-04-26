@@ -1,6 +1,7 @@
 const express = require('express');
 const ForumPost = require('../models/ForumPost');
 const auth = require('../middleware/auth');
+const { logIfNotOwnerContentDelete } = require('../utils/securityAudit');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -66,6 +67,7 @@ router.delete('/:id', auth, async (req, res) => {
   ) {
     return res.status(403).json({ error: 'Non autorisé' });
   }
+  logIfNotOwnerContentDelete(req, item, 'forum');
   await item.deleteOne();
   res.json({ message: 'Supprimé' });
 });
