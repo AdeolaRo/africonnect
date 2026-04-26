@@ -1273,20 +1273,28 @@ select.form-control {
     border-radius: 16px;
   }
   .content-list .moderation-item {
-    padding: 12px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
   }
   .content-list .item-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .content-list .item-content {
+    padding: 10px 12px;
+    margin-bottom: 10px;
   }
   .content-list .item-actions {
     width: 100%;
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .content-list .item-actions .btn {
     flex: 1 1 auto;
+    min-width: 0;
   }
 }
 
@@ -1803,6 +1811,9 @@ select.form-control {
   .profile-stats { padding: 16px; }
   .avatar-section { padding: 16px; margin-bottom: 14px; }
   .avatar-large { width: 120px; height: 120px; margin-bottom: 12px; }
+  .profile-sections .section {
+    padding: 12px;
+  }
 }
 
 .avatar-section {
@@ -2034,12 +2045,29 @@ select.form-control {
 }
 
 @media (max-width: 768px) {
+  /* En colonne, flex-basis: 180px sur le titre s’applique à la hauteur → gros trou sous le titre */
+  .post-card-compact {
+    padding: 8px 10px;
+  }
   .post-card-compact-row {
     flex-direction: column;
     align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 4px 8px;
+    margin-bottom: 6px;
+  }
+  .post-card-compact-title {
+    flex: 0 1 auto;
+    width: 100%;
+    min-height: 0;
+    align-self: stretch;
   }
   .post-card-compact-date {
     margin-left: 0;
+  }
+  .post-actions-compact {
+    width: 100%;
+    margin-top: 0;
   }
   .post-actions-compact .btn {
     flex: 1 1 auto;

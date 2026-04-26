@@ -62,6 +62,13 @@ import { TranslateModule } from '@ngx-translate/core';
     .admin-desc { color: var(--text-muted); font-size: 0.95rem; }
     .admin-panel { padding-top: 8px; }
     @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .admin-container { padding: 12px; border-radius: 18px; }
+      .admin-grid { gap: 10px; }
+      .admin-card { padding: 14px; border-radius: 16px; }
+      .admin-emoji { font-size: 1.45rem; margin-bottom: 6px; }
+      .admin-desc { font-size: 0.88rem; line-height: 1.35; }
+    }
   `]
 })
 export class AdminComponent {
