@@ -105,7 +105,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       </div>
     </div>
 
-    <app-modal [(visible)]="detailsVisible" [title]="'admin.requestsPage.detailsTitle' | translate">
+    <app-modal [(visible)]="detailsVisible" [title]="'admin.requestsPage.detailsTitle' | translate" [size]="'wide'">
       <div *ngIf="selected">
         <div class="text-muted" style="margin-bottom:10px;">
           <div><strong>{{ 'admin.requestsPage.detailUser' | translate }}</strong>: {{ selected.userPseudo || '—' }} ({{ selected.userEmail }})</div>

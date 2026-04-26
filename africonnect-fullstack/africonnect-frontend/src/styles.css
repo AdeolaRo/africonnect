@@ -846,22 +846,31 @@ select.form-control {
   box-shadow: var(--shadow);
 }
 
+/* Lecture détail (ex. Voir) : large sur bureautique, inchangé sur mobile (voir media query bas) */
 .modal-content.modal--wide {
-  max-width: min(920px, 96vw);
+  max-width: min(1100px, 96vw);
   width: 94%;
-  padding: 22px 24px;
+  padding: 22px 28px;
 }
 .modal-content.modal--max {
-  max-width: min(1200px, 98vw);
+  max-width: min(1280px, 98vw);
   width: 96%;
-  padding: 24px 28px;
+  padding: 24px 32px;
 }
 @media (min-width: 1200px) {
   .modal-content.modal--wide {
-    max-width: 960px;
+    max-width: min(1200px, 94vw);
   }
   .modal-content.modal--max {
-    max-width: 1120px;
+    max-width: min(1320px, 96vw);
+  }
+}
+@media (min-width: 1600px) {
+  .modal-content.modal--wide {
+    max-width: min(1280px, 92vw);
+  }
+  .modal-content.modal--max {
+    max-width: min(1440px, 94vw);
   }
 }
 

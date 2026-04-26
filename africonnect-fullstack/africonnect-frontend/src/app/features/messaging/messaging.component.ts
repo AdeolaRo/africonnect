@@ -112,7 +112,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       </div>
     </div>
 
-    <app-modal [(visible)]="messageModalVisible" [title]="messageModalTitle">
+    <app-modal [(visible)]="messageModalVisible" [title]="messageModalTitle" [size]="'wide'">
       <div *ngIf="selectedMessage">
         <div class="text-muted" style="margin-bottom:10px;">
           <div *ngIf="selectedBox === 'received'"><strong>{{ 'messaging.from' | translate }}</strong>: {{ getSenderName(selectedMessage.from) }}</div>
