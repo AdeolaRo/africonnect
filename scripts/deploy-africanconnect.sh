@@ -44,6 +44,8 @@ pm2 restart "$PM2_NAME"
 
 echo "==> Frontend deps + build"
 cd "$FE"
+export CI=true
+# Évite le prompt interactif sur les analytics Google au premier `ng build` sur le serveur
 npm install
 npx ng build
 
