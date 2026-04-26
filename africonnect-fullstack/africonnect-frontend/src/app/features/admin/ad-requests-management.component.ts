@@ -114,7 +114,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <div><strong>{{ 'admin.requestsPage.detailDate' | translate }}</strong>: {{ selected.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
         </div>
         <div style="font-weight:900; margin-bottom:8px;">{{ 'admin.requestsPage.message' | translate }}</div>
-        <div style="white-space:pre-wrap; padding:12px; border-radius:12px; border:1px solid var(--border); background: var(--surface-2);">
+        <div class="modal-body" style="white-space:pre-wrap; padding:12px; border-radius:12px; border:1px solid var(--border); background: var(--surface-2);">
           {{ selected.message || '—' }}
         </div>
 
@@ -127,7 +127,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
         <div *ngIf="selected.adminMessage" style="margin-top:12px;">
           <div style="font-weight:900; margin-bottom:8px;">{{ 'admin.requestsPage.adminMessage' | translate }}</div>
-          <div style="white-space:pre-wrap; padding:12px; border-radius:12px; border:1px solid var(--border); background: rgba(245,101,101,.08);">
+          <div class="modal-body" style="white-space:pre-wrap; padding:12px; border-radius:12px; border:1px solid var(--border); background: rgba(245,101,101,.08);">
             {{ selected.adminMessage }}
           </div>
         </div>

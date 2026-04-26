@@ -120,7 +120,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <div><strong>{{ 'messaging.date' | translate }}</strong>: {{ selectedMessage.timestamp | date:'dd/MM/yyyy HH:mm' }}</div>
         </div>
         <div style="font-weight:900; margin-bottom:10px;">{{ selectedMessage.subject || ('messaging.noSubject' | translate) }}</div>
-        <div style="white-space:pre-wrap; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2);">
+        <div class="modal-body" style="white-space:pre-wrap; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2);">
           {{ selectedMessage.content }}
         </div>
 
