@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Pages personnelles ou administration (SPA — évite l’indexation des vues compte)
+Disallow: /admin
+Disallow: /profile
+Disallow: /messagerie
+Disallow: /moderation
+Disallow: /publicite
+Disallow: /paiement
+Disallow: /reset-password
+
+Sitemap: https://africanconnect.net/sitemap.xml

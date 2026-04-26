@@ -9,6 +9,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { API_BASE_URL } from './core/config/app.config';
 import { ApiService } from './core/services/api.service';
 import { RealtimeService } from './core/services/realtime.service';
+import { SeoService } from './core/services/seo.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CarouselComponent } from './shared/components/carousel/carousel.component';
 
@@ -484,7 +485,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private api: ApiService,
     private realtime: RealtimeService,
     private translate: TranslateService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private seo: SeoService
   ) {
     // Requirement: French by default; English only after explicit click.
     this.lang = 'fr';
@@ -496,6 +498,9 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   setLang(lang: 'fr' | 'en') {
     this.lang = lang;
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('lang', lang);
+    }
     localStorage.setItem('lang', lang);
     this.ensureTranslationsLoaded(lang);
     this.translate.use(lang);
@@ -532,6 +537,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.seo.init();
     this.translate.onLangChange.subscribe(() => this.refreshPublishedLegalSafe());
     this.loadTermsVersion();
     this.auth.profileBarRefresh.subscribe(() => {

@@ -2,6 +2,20 @@
   "brand": {
     "name": "African Connect"
   },
+  "seo": {
+    "defaultDesc": "African Connect : plateforme sociale et communautaire (forum, petites annonces, emploi, solidarité, événements, groupes).",
+    "descForum": "Discussions et partage sur le forum African Connect : sujets, entraide et actualités de la communauté.",
+    "descMarketplace": "Petites annonces vente et achat sur African Connect : market place entre membres de la communauté.",
+    "descJobs": "Offres d’emploi et opportunités professionnelles publiées sur African Connect.",
+    "descSolutions": "Solutions, projets et idées proposés par la communauté sur African Connect.",
+    "descSolidarity": "Solidarité, entraide et initiatives collectives sur African Connect.",
+    "descEvents": "Événements, rencontres et annonces près de chez vous sur African Connect.",
+    "descGroups": "Groupes thématiques : rejoignez des communautés et discutez sur African Connect.",
+    "descGroupDetail": "Groupe thématique sur African Connect : publications et membres.",
+    "descSearch": "Recherchez des publications, annonces et contenus publics sur tout le site African Connect.",
+    "descLegal": "Conditions d’utilisation et termes d’African Connect.",
+    "descSitemap": "Plan du site African Connect : accès direct aux principales pages publiques."
+  },
   "nav": {
     "forum": "Forum",
     "marketplace": "Ventes/Achats",
