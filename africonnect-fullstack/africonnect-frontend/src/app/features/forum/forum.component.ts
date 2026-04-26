@@ -5,7 +5,6 @@ import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
-import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -13,7 +12,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-forum',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, FormsModule, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FormsModule, TranslateModule],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">{{ 'common.new' | translate }}</button>
@@ -83,7 +82,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         
         <div class="form-group">
           <label class="form-label">{{ 'forumUi.contentLabel' | translate }}</label>
-          <quill-editor formControlName="content" [placeholder]="'forumUi.contentPlaceholder' | translate"></quill-editor>
+          <textarea class="form-control" formControlName="content" rows="12"
+            [placeholder]="'forumUi.contentPlaceholder' | translate"></textarea>
           <div *ngIf="itemForm.get('content')?.invalid && itemForm.get('content')?.touched" class="text-error">
             {{ 'forumUi.contentRequired' | translate }}
           </div>
@@ -171,7 +171,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <img *ngFor="let url of getImages(viewItem)" class="thumb" [src]="url" [alt]="viewItem.title || viewItem.name || 'Image'" (click)="openPreview(url)">
         </div>
 
-        <div class="modal-body" style="margin-top:12px;" [innerHTML]="viewItem.content || viewItem.desc || ''"></div>
+        <div class="modal-body forum-view-plain" style="margin-top:12px; white-space: pre-wrap;">{{ plainTextFromStored(viewItem.content || viewItem.desc || '') }}</div>
 
         <div *ngIf="(viewItem.links?.length || 0) > 0" style="margin-top:12px; padding:10px; border:1px solid var(--border); border-radius:12px; background: var(--surface-2);">
           <div style="font-weight:700; margin-bottom:6px;">{{ 'common.linksTitle' | translate }}</div>
@@ -262,7 +262,7 @@ export class ForumComponent implements OnInit {
     this.editingItem = item;
     this.itemForm.patchValue({
       title: item?.title || '',
-      content: item?.content || item?.desc || ''
+      content: this.plainTextFromStored(item?.content || item?.desc || '')
     });
     this.resetLinks(Array.isArray(item?.links) ? item.links : []);
     this.clearFiles();
@@ -309,6 +309,19 @@ export class ForumComponent implements OnInit {
 
   stripHtml(html: string): string {
     return String(html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /** Texte simple pour saisie / affichage (anciens messages pouvant être en HTML) */
+  plainTextFromStored(raw: string): string {
+    const s = String(raw || '');
+    if (!s) return '';
+    if (!s.includes('<')) return s;
+    if (typeof document === 'undefined') {
+      return this.stripHtml(s);
+    }
+    const tmp = document.createElement('div');
+    tmp.innerHTML = s;
+    return (tmp.textContent || tmp.innerText || '').trim();
   }
   async submit() {
     if (this.itemForm.invalid) return;
