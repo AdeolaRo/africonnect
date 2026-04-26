@@ -862,6 +862,45 @@ select.form-control {
   display: block;
 }
 
+/* Ligne « liens » (forum, etc.) : 3 colonnes desktop, 1 colonne sur mobile */
+.form-modal-links-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .form-modal-links-row {
+    grid-template-columns: 1fr;
+  }
+  .form-modal-links-row > .btn {
+    width: 100%;
+  }
+}
+
+/* Forum : textarea simple (pas d’éditeur riche) — mobile = zone lisible, font ≥16px pour iOS (évite le zoom auto) */
+.forum-content-textarea,
+.modal-content .forum-content-textarea {
+  width: 100%;
+  min-height: 96px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .form-modal .forum-content-textarea,
+  .modal-content textarea.forum-content-textarea {
+    min-height: 120px;
+    font-size: 1rem; /* 16px : limite le zoom intempestif sur focus iOS */
+  }
+
+  .form-modal .form-group.form-modal-forum-content {
+    margin-bottom: 14px;
+  }
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;

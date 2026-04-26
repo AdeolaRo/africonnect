@@ -1,0 +1,13 @@
+# Hints Nginx (IONOS / VPS) : forcer le navigateur à recharger l’app après chaque déploiement
+# Sans cela, un vieux index.html garde des références vers d’anciens main-xxx.js (ex. avec Quill).
+# À mettre dans le server { } du vhost africanconnect (adapter les chemins).
+#
+#   location = /index.html {
+#       add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+#   }
+#   # Optionnel : racine sert l’app SPA
+#   location / {
+#       try_files $uri $uri/ /index.html;
+#   }
+#
+# Les assets avec hash (main-ABCD.js, etc.) peuvent rester en cache longue durée.

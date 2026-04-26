@@ -80,10 +80,15 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           </div>
         </div>
         
-        <div class="form-group">
+        <div class="form-group form-modal-forum-content">
           <label class="form-label">{{ 'forumUi.contentLabel' | translate }}</label>
-          <textarea class="form-control form-modal-field-desc" formControlName="content" rows="4"
-            [placeholder]="'forumUi.contentPlaceholder' | translate"></textarea>
+          <textarea
+            class="form-control form-modal-field-desc forum-content-textarea"
+            formControlName="content"
+            rows="4"
+            spellcheck="true"
+            [placeholder]="'forumUi.contentPlaceholder' | translate"
+            [attr.aria-label]="'forumUi.contentLabel' | translate"></textarea>
           <div *ngIf="itemForm.get('content')?.invalid && itemForm.get('content')?.touched" class="text-error">
             {{ 'forumUi.contentRequired' | translate }}
           </div>
@@ -123,8 +128,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             {{ 'common.addLink' | translate }}
           </div>
 
-          <div *ngFor="let fg of linksArray.controls; let i = index" [formGroupName]="i"
-               style="display:grid; grid-template-columns: 1fr 1.2fr auto; gap:10px; align-items:end; margin-top:10px;">
+          <div *ngFor="let fg of linksArray.controls; let i = index" [formGroupName]="i" class="form-modal-links-row">
             <div class="form-group" style="margin:0;">
               <label class="form-label">{{ 'common.linkLabel' | translate }}</label>
               <input type="text" class="form-control" formControlName="label" [placeholder]="'common.linkLabel' | translate">

@@ -54,7 +54,7 @@ cd "$FE"
 export CI=true
 # Évite le prompt interactif sur les analytics Google au premier `ng build` sur le serveur
 npm install
-npx ng build
+npx ng build --configuration production
 
 if [[ -d "${FE}/dist/africonnect/browser" ]]; then
   OUT="${FE}/dist/africonnect/browser"
