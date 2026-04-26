@@ -19,7 +19,13 @@ PM2_NAME="${DEPLOY_PM2_NAME:-africanconnect-api}"
 
 if [[ -z "${DEPLOY_WEBROOT:-}" ]]; then
   echo "Erreur: exportez DEPLOY_WEBROOT (répertoire des fichiers statiques servis par Nginx)."
-  echo "Exemple: export DEPLOY_WEBROOT=/chemin/vers/la/racine/site"
+  echo "Trouver le vrai chemin: sudo nginx -T 2>/dev/null | grep -E 'server_name|root '"
+  exit 1
+fi
+# Ne pas utiliser l'exemple de la doc à la lettre (déploiement silencieux vers un mauvais dossier)
+if [[ "$DEPLOY_WEBROOT" == *"/chemin/"* ]] || [[ "$DEPLOY_WEBROOT" == *"absolu/vers"* ]]; then
+  echo "Erreur: DEPLOY_WEBROOT ressemble à un placeholder. Mettez le chemin exact de la directive root Nginx pour ce site."
+  echo "Exemple concret: export DEPLOY_WEBROOT=/var/www/africanconnect-frontend/browser"
   exit 1
 fi
 
