@@ -13,13 +13,13 @@
 | **Responsable de traitement (personne morale)** | African Connect — *représentant légal : indiquer nom, prénom et qualité* |
 | **Adresse du siège** | *À compléter (rue, code postal, pays)* — préférence **Union européenne** si possible |
 | **Contact général** | **contact@africanconnect.net** |
-| **Contact données personnelles (RGPD)** | **privacy@africanconnect.net** *(créer cette boîte et la faire suivre par le responsable ou un DPO / mandataire)* |
+| **Contact données personnelles (RGPD)** | **privacy@africanconnect.net** *(souvent une **redirection** IONOS vers **contact@** : une seule boîte à consulter)* |
 | **Hébergeur du site / de l’API** | *Nom du prestataire, localisation des serveurs (UE recommandé), lien vers sa politique de sous-traitance* |
 | **Base de données (MongoDB)** | *Même hébergeur ou préciser — accès restreint (SSH, réseau privé), sauvegardes chiffrées en transit* |
 
 > **Note** : les adresses e-mail ci-dessus sont des **canaux publics** attendus sur le site ; remplacez-les par vos adresses réelles opérationnelles. Ne commitez pas de secrets (SMTP, mots de passe) dans ce dépôt.
 
-> **Alias / une seule boîte (ex. IONOS)** : vous pouvez créer **contact@** et **privacy@** comme **alias** qui **redirigent vers** la même boîte que vous consultez (y compris **no-reply@**). L’important est que les demandes **RGPD** et **contact** soient **lues**, pas le nom exact de la boîte en back-office. Sur le site, préférez toutefois afficher **contact@** / **privacy@** (ou libellés clairs) plutôt qu’un seul **no-reply@** comme *unique* moyen de vous joindre pour les droits — le mot « no-reply » prête à confusion.
+> **Alias / redirection (ex. IONOS)** : configuration fréquente — **contact@** = boîte réelle (ou principale) que vous ouvrez ; **privacy@** = **redirection** vers **contact@** (comme sur votre capture : `privacy@` → `contact@`). Les demandes RGPD et le contact général arrivent au même endroit. **no-reply@** peut rester une boîte à part pour les **envois automatiques** (inscription, reset mot de passe) — ce n’est pas contradictoire. L’important est que les demandes envoyées à **privacy@** ou **contact@** soient **lues**. Sur le site, continuez d’afficher **contact@** et **privacy@** pour la clarté (éviter un seul **no-reply@** comme seul canal « humain »).
 
 > **Hébergement (exemple courant)** : VPS **Linux** (p. ex. **AlmaLinux 9**) chez **IONOS** : pare-feu (SSH/HTTP/HTTPS), **Nginx** + **Let’s Encrypt**, API Node derrière le proxy, **MongoDB** en local ou managé, **cron** pour les sauvegardes (§5).
 
