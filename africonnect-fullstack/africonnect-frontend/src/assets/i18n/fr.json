@@ -53,7 +53,8 @@
     "logout": "Déconnexion"
   },
   "search": {
-    "placeholder": "Rechercher sur tout le site..."
+    "placeholder": "Rechercher sur tout le site...",
+    "clear": "Effacer la recherche"
   },
   "auth": {
     "title": "Connexion / Inscription",

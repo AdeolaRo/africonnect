@@ -60,7 +60,10 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     <div class="container" [class.app-has-cookie]="cookieBarVisible">
       <div class="search-bar" *ngIf="!isAdminOrModerationRoute">
         <div class="search-bar-row">
-          <input type="search" class="search-bar-input" name="gsearch" [(ngModel)]="searchQuery" [placeholder]="'search.placeholder' | translate" (input)="onSearch()">
+          <div class="search-bar-input-wrap" [class.search-bar-input-wrap--has-clear]="(searchQuery || '').trim()">
+            <input type="search" class="search-bar-input" name="gsearch" [(ngModel)]="searchQuery" [placeholder]="'search.placeholder' | translate" (input)="onSearch()">
+            <button *ngIf="(searchQuery || '').trim()" type="button" class="search-bar-clear" (click)="clearSearchQuery()" [attr.aria-label]="'search.clear' | translate" [attr.title]="'search.clear' | translate">×</button>
+          </div>
           <button type="button" class="btn btn-secondary search-bar-more" (click)="searchMoreOpen = !searchMoreOpen">
             {{ 'location.moreFilters' | translate }}
           </button>
@@ -369,7 +372,6 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
     .container.app-has-cookie { padding-bottom: 120px; }
     .search-bar { margin-bottom: 20px; }
-    .search-bar input { width: 100%; padding: 12px; border-radius: 40px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
     .main-layout { display: flex; gap: 24px; }
     .sidebar-vertical { width: 220px; background: var(--surface); border-radius: 24px; padding: 20px; height: fit-content; }
     .sidebar-vertical ul { list-style: none; padding: 0; margin: 0; }
@@ -675,6 +677,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   onSearch() {
     this.searchService.setQuery(this.searchQuery);
     this.maybeOpenSearchPage();
+  }
+
+  clearSearchQuery() {
+    this.searchQuery = '';
+    this.onSearch();
   }
 
   onFiltersChange() {

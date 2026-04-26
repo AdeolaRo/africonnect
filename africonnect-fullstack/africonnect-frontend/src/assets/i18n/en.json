@@ -53,7 +53,8 @@
     "logout": "Logout"
   },
   "search": {
-    "placeholder": "Search the whole site..."
+    "placeholder": "Search the whole site...",
+    "clear": "Clear search"
   },
   "auth": {
     "title": "Login / Sign up",

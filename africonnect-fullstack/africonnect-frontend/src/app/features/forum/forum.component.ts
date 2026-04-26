@@ -196,7 +196,39 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           </div>
         </div>
 
-        <div class="card-actions bottom">
+        <div class="card-actions bottom" style="margin-top:14px; flex-wrap:wrap;">
+          <button type="button" (click)="toggleLike(viewItem)" class="btn btn-sm btn-like">{{ 'common.likesCountLabel' | translate:{ count: (viewItem.likes?.length || 0) } }}</button>
+          <button class="btn btn-secondary btn-sm" (click)="toggleReplies(viewItem)" type="button">
+            {{ 'forumUi.replies' | translate:{ count: viewItem.comments?.length || 0 } }}
+          </button>
+        </div>
+
+        <div *ngIf="isRepliesOpen(viewItem)" class="forum-view-replies" style="margin-top:12px;">
+          <div *ngIf="(viewItem.comments?.length || 0) === 0" class="text-muted" style="padding:12px; background:var(--surface-2); border-radius:12px; border:1px solid var(--border);">
+            {{ 'forumUi.noReplies' | translate }}
+          </div>
+          <div *ngFor="let c of (viewItem.comments || [])" style="margin-top:10px; padding:12px; background:var(--surface-2); border-radius:12px; border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+              <div style="font-weight:700;">{{ c.authorName || ('forumUi.anonymous' | translate) }}</div>
+              <div class="text-muted" style="font-size:0.85rem;">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+            <div style="margin-top:6px; white-space:pre-wrap;">{{ c.content }}</div>
+          </div>
+          <div style="margin-top:12px;" *ngIf="isLoggedIn">
+            <label class="form-label">{{ 'forumUi.replyLabel' | translate }}</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="replyDraft[viewItem._id]" [placeholder]="'forumUi.replyPlaceholder' | translate"></textarea>
+            <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+              <button class="btn btn-primary" type="button" (click)="submitReply(viewItem)" [disabled]="!replyDraft[viewItem._id]?.trim()">
+                {{ 'forumUi.sendReply' | translate }}
+              </button>
+            </div>
+          </div>
+          <div *ngIf="!isLoggedIn" class="text-muted" style="margin-top:10px;">
+            {{ 'forumUi.loginToReply' | translate }}
+          </div>
+        </div>
+
+        <div class="card-actions bottom" style="margin-top:16px;">
           <button class="btn btn-secondary btn-sm" type="button" (click)="viewVisible=false">{{ 'common.close' | translate }}</button>
         </div>
       </div>
