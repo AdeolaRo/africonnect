@@ -6,13 +6,12 @@ import { SearchService } from '../../core/services/search.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { CityAutocompleteComponent } from '../../shared/components/city-autocomplete/city-autocomplete.component';
-import { QuillModule } from 'ngx-quill';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-evenements',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, CityAutocompleteComponent, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, CityAutocompleteComponent, TranslateModule],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">{{ 'common.new' | translate }}</button>

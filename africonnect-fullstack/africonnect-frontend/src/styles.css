@@ -862,31 +862,6 @@ select.form-control {
   display: block;
 }
 
-/* Quill in modal: better contrast + spacing */
-.modal-content .ql-toolbar .ql-stroke,
-.modal-content .ql-toolbar .ql-fill {
-  stroke: var(--text-muted) !important;
-}
-
-.modal-content .ql-toolbar .ql-picker {
-  color: var(--text-muted) !important;
-}
-
-.modal-content .ql-toolbar button:hover .ql-stroke,
-.modal-content .ql-toolbar button:hover .ql-fill,
-.modal-content .ql-toolbar button.ql-active .ql-stroke,
-.modal-content .ql-toolbar button.ql-active .ql-fill {
-  stroke: var(--text) !important;
-}
-
-.modal-content .ql-container {
-  min-height: 160px;
-}
-
-.modal-content .ql-editor {
-  min-height: 160px;
-}
-
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -947,25 +922,6 @@ select.form-control {
 
 .toast-info {
   border-left: 4px solid var(--secondary);
-}
-
-/* Quill Editor Customization */
-.ql-toolbar {
-  background: var(--surface-2) !important;
-  border-color: var(--border) !important;
-  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
-}
-
-.ql-container {
-  background: var(--surface-2) !important;
-  border-color: var(--border) !important;
-  border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
-  min-height: 200px;
-}
-
-.ql-editor {
-  color: var(--text) !important;
-  font-family: inherit !important;
 }
 
 /* Animations */
@@ -1035,7 +991,7 @@ select.form-control {
     width: 95%;
   }
 
-  /* Forms + Quill: avoid horizontal overflow */
+  /* Forms: avoid horizontal overflow */
   .form-control,
   .form-label,
   .form-group,
@@ -1043,18 +999,6 @@ select.form-control {
   .form-modal {
     width: 100%;
     max-width: 100%;
-  }
-
-  .ql-toolbar,
-  .ql-container,
-  quill-editor {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .ql-editor {
-    word-break: break-word;
-    overflow-wrap: anywhere;
   }
 
   /* Messaging: make cards readable on narrow widths */

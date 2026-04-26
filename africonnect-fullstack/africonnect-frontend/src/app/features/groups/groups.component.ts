@@ -5,14 +5,13 @@ import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
-import { QuillModule } from 'ngx-quill';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-groupes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, QuillModule, RouterLink, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, RouterLink, TranslateModule],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">{{ 'common.new' | translate }}</button>
