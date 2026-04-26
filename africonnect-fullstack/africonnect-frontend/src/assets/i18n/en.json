@@ -489,6 +489,8 @@
     "altSelectedImage": "Selected image"
   },
   "a11y": {
+    "langFr": "Français",
+    "langEn": "English",
     "menu": "Menu",
     "notifications": "Notifications",
     "messages": "Messages",

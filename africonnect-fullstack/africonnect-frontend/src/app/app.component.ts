@@ -37,8 +37,8 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
         <a routerLink="/groupes" routerLinkActive="active">{{ 'nav.groups' | translate }}</a>
       </div>
       <div class="toolbar">
-        <button class="lang-btn" type="button" (click)="setLang('fr')" [class.active]="lang==='fr'">🇫🇷 FR</button>
-        <button class="lang-btn" type="button" (click)="setLang('en')" [class.active]="lang==='en'">🇬🇧 EN</button>
+        <button class="lang-btn" type="button" (click)="setLang('fr')" [class.active]="lang==='fr'" [attr.aria-label]="'a11y.langFr' | translate" [attr.title]="'a11y.langFr' | translate">🇫🇷</button>
+        <button class="lang-btn" type="button" (click)="setLang('en')" [class.active]="lang==='en'" [attr.aria-label]="'a11y.langEn' | translate" [attr.title]="'a11y.langEn' | translate">🇬🇧</button>
         <button *ngIf="isLoggedIn" class="icon-btn" type="button" (click)="openNotifications()" [attr.aria-label]="'a11y.notifications' | translate">
           🔔
           <span *ngIf="unreadNotifications > 0" class="badge">{{ unreadNotifications }}</span>
@@ -404,7 +404,7 @@ import { CarouselComponent } from './shared/components/carousel/carousel.compone
     }
     .pw-toggle:hover { border-color: var(--primary); }
     .pw-toggle svg { width: 16px; height: 16px; fill: currentColor; display: block; }
-    .lang-btn { padding: 8px 10px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-weight: 800; }
+    .lang-btn { padding: 8px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-weight: 800; font-size: 1.2rem; line-height: 1; }
     .lang-btn.active { border-color: var(--primary); }
     .cookie-consent-bar {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 1950;
