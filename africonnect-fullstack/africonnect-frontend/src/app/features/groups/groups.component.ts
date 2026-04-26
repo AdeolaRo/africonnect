@@ -4,14 +4,17 @@ import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { ApiService } from '../../core/services/api.service';
 import { SearchService } from '../../core/services/search.service';
 import { AuthService } from '../../core/services/auth.service';
+import { LocationPreferenceService } from '../../core/services/location-preference.service';
+import { formatLocationLine } from '../../core/utils/location-list.util';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { PublishLocationStepComponent } from '../../shared/components/publish-location-step/publish-location-step.component';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-groupes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, RouterLink, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, RouterLink, TranslateModule, PublishLocationStepComponent],
   template: `
     <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
       <button *ngIf="isLoggedIn" class="btn btn-primary" (click)="openModal()">{{ 'common.new' | translate }}</button>
@@ -24,6 +27,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             {{ item.title || item.name }}
           </a>
         </h3>
+        <div *ngIf="getLocLine(item)" class="pub-loc-pill">📍 {{ getLocLine(item) }}</div>
         <div style="color:var(--muted);">{{ 'common.metaBy' | translate:{ author: (item.authorName || ('forumUi.anonymous' | translate)) } }} — {{ item.createdAt | date }}</div>
         <div class="text-muted" style="margin-top:6px;">
           👥 {{ 'groupsList.membersCount' | translate:{ count: (item.members?.length || 0) } }}
@@ -56,7 +60,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     </div>
 
     <app-modal [(visible)]="modalVisible" [title]="'sections.groupsNew' | translate">
-      <form [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
+      <app-publish-location-step
+        *ngIf="locationStepActive"
+        (confirmed)="onLocConfirm($event)"
+        (skipped)="onLocSkip()">
+      </app-publish-location-step>
+      <form *ngIf="!locationStepActive" [formGroup]="itemForm" (ngSubmit)="submit()" class="form-modal">
         <div class="form-group">
           <label class="form-label">{{ 'groupsList.nameLabel' | translate }}</label>
           <input type="text" formControlName="name" [placeholder]="'groupsList.namePlaceholder' | translate" class="form-control">
@@ -162,11 +171,15 @@ export class GroupesComponent implements OnInit {
   filteredItems: any[] = [];
   isSubmitting = false;
   savedIds = new Set<string>();
+  locationStepActive = true;
+  publishContinent = '';
+  publishCity = '';
 
   constructor(
     private api: ApiService,
     private fb: FormBuilder,
     private searchService: SearchService,
+    private locPref: LocationPreferenceService,
     private auth: AuthService,
     private translate: TranslateService
   ) {}
@@ -186,10 +199,30 @@ export class GroupesComponent implements OnInit {
     });
   }
   loadItems() { this.api.get('groups').subscribe((data: any) => { this.items = data; this.updateFilter(); }); }
+
+  getLocLine(item: any): string {
+    if (!item) return '';
+    return formatLocationLine(item, (c) => this.translate.instant('location.continent.' + c));
+  }
+
+  onLocConfirm(e: { continent: string; city: string }) {
+    this.publishContinent = e.continent;
+    this.publishCity = e.city;
+    this.locationStepActive = false;
+  }
+
+  onLocSkip() {
+    this.locationStepActive = false;
+  }
+
   openModal() {
     this.itemForm.reset({ name: '', description: '', category: '' });
     this.resetLinks([]);
     this.clearFiles();
+    const p = this.locPref.get();
+    this.publishContinent = p.continent;
+    this.publishCity = p.city;
+    this.locationStepActive = true;
     this.modalVisible = true;
   }
 
@@ -242,6 +275,8 @@ export class GroupesComponent implements OnInit {
         const upload: any = await this.api.post('upload', fd).toPromise();
         formValue.imageUrls = Array.isArray(upload?.urls) ? upload.urls : (upload?.url ? [upload.url] : []);
       }
+      formValue.continent = String(this.publishContinent || '').trim();
+      formValue.city = String(this.publishCity || '').trim();
       await this.api.post('groups', formValue).toPromise();
       this.modalVisible = false;
       this.loadItems();

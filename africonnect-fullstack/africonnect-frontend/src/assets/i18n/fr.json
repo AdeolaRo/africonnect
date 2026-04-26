@@ -283,6 +283,7 @@
     "adminAdRequests": "Demandes pub",
     "rss": "RSS",
     "adminLegal": "CGU & Termes",
+    "adminAccessLog": "Journal d’accès",
     "saveProgress": "Enregistrement...",
     "saveButton": "Enregistrer",
     "edit": "Modifier",
@@ -559,7 +560,9 @@
       "rssTitle": "RSS",
       "rssDesc": "Gestion des sources et contenus RSS",
       "legalTitle": "CGU & Termes",
-      "legalDesc": "Publier une nouvelle version"
+      "legalDesc": "Publier une nouvelle version",
+      "accessLogTitle": "Journal d’accès",
+      "accessLogDesc": "Requêtes API : IP, compte, chemin, méthode (export CSV)"
     },
     "legal": {
       "title": "CGU & Termes",

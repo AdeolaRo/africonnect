@@ -283,6 +283,7 @@
     "adminAdRequests": "Ad requests",
     "rss": "RSS",
     "adminLegal": "Terms & conditions",
+    "adminAccessLog": "Access log",
     "saveProgress": "Saving...",
     "saveButton": "Save",
     "edit": "Edit",
@@ -559,7 +560,9 @@
       "rssTitle": "RSS",
       "rssDesc": "Manage RSS sources and content",
       "legalTitle": "Terms & Conditions",
-      "legalDesc": "Publish a new version"
+      "legalDesc": "Publish a new version",
+      "accessLogTitle": "Access log",
+      "accessLogDesc": "API requests: IP, account, path, method (CSV export)"
     },
     "legal": {
       "title": "Terms & Conditions",

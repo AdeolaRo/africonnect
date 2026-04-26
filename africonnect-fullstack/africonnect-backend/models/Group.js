@@ -29,6 +29,9 @@ const GroupSchema = new mongoose.Schema({
   },
   userId: String,
   authorName: String,
+  /** Localisation d’annonce (recherche / affichage), comme les autres rubriques */
+  continent: { type: String, default: '' },
+  city: { type: String, default: '' },
   likes: { type: [String], default: [] },
   shares: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
